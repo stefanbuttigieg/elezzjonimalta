@@ -89,19 +89,27 @@ function Countdown({
   t: (k: string, v?: Record<string, string | number>) => string;
 }) {
   const target = new Date(targetIso).getTime();
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  const diff = Math.max(0, target - now);
+  const diff = now === null ? 0 : Math.max(0, target - now);
   const days = Math.floor(diff / 86_400_000);
   const hours = Math.floor((diff % 86_400_000) / 3_600_000);
   const minutes = Math.floor((diff % 3_600_000) / 60_000);
   const seconds = Math.floor((diff % 60_000) / 1000);
-  const passed = diff === 0;
+  const passed = now !== null && diff === 0;
+
+  const cells = [
+    { value: days, label: t("home.countdown.days") },
+    { value: hours, label: t("home.countdown.hours") },
+    { value: minutes, label: t("home.countdown.minutes") },
+    { value: seconds, label: t("home.countdown.seconds") },
+  ];
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">
@@ -113,15 +121,13 @@ function Countdown({
         <p className="mt-4 text-sm text-foreground">{t("home.countdown.passed")}</p>
       ) : (
         <div className="mt-5 grid grid-cols-4 gap-2">
-          {[
-            { value: days, label: t("home.countdown.days") },
-            { value: hours, label: t("home.countdown.hours") },
-            { value: minutes, label: t("home.countdown.minutes") },
-            { value: seconds, label: t("home.countdown.seconds") },
-          ].map((cell) => (
+          {cells.map((cell) => (
             <div key={cell.label} className="rounded-lg bg-secondary px-2 py-3 text-center">
-              <div className="font-serif text-2xl font-bold tabular-nums text-foreground">
-                {String(cell.value).padStart(2, "0")}
+              <div
+                className="font-serif text-2xl font-bold tabular-nums text-foreground"
+                suppressHydrationWarning
+              >
+                {now === null ? "--" : String(cell.value).padStart(2, "0")}
               </div>
               <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {cell.label}
