@@ -92,7 +92,7 @@ function DistrictsPage() {
     void navigate({ search: { ...search, ...patch } });
   };
 
-  const filtered = districts.filter((district) => {
+  const filtered = districts.filter((district: DistrictRecord) => {
     if (search.region === "gozo" && district.number !== 13) return false;
     if (search.region === "malta" && district.number === 13) return false;
 
@@ -188,7 +188,7 @@ function DistrictsPage() {
 
         {filtered.length > 0 ? (
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((district) => (
+            {filtered.map((district: DistrictRecord) => (
               <DistrictCard
                 key={district.id}
                 district={district}
