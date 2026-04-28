@@ -16,6 +16,7 @@ import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
+import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
@@ -58,6 +59,11 @@ const LangPrivacyRoute = LangPrivacyRouteImport.update({
 const LangPartiesRoute = LangPartiesRouteImport.update({
   id: '/parties',
   path: '/parties',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDistrictsRoute = LangDistrictsRouteImport.update({
+  id: '/districts',
+  path: '/districts',
   getParentRoute: () => LangRoute,
 } as any)
 const LangDevelopersRoute = LangDevelopersRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
@@ -259,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/parties'
       fullPath: '/$lang/parties'
       preLoaderRoute: typeof LangPartiesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/districts': {
+      id: '/$lang/districts'
+      path: '/districts'
+      fullPath: '/$lang/districts'
+      preLoaderRoute: typeof LangDistrictsRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/developers': {
@@ -329,6 +348,7 @@ interface LangRouteChildren {
   LangContactRoute: typeof LangContactRoute
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
+  LangDistrictsRoute: typeof LangDistrictsRoute
   LangPartiesRoute: typeof LangPartiesRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
@@ -345,6 +365,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangContactRoute: LangContactRoute,
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
+  LangDistrictsRoute: LangDistrictsRoute,
   LangPartiesRoute: LangPartiesRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
