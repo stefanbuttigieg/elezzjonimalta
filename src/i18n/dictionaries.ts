@@ -182,6 +182,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "nav.sittingMps": "Membri Parlamentari",
     "nav.compare": "Qabbel",
     "nav.askAi": "Staqsi lill-AI",
+    "nav.proposals": "Proposti",
     "nav.developers": "Żviluppaturi",
     "nav.about": "Dwarna",
     "nav.menu": "Menu",
