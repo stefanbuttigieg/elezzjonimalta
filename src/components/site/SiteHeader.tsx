@@ -1,6 +1,6 @@
-import { Link, useLocation, useParams } from "@tanstack/react-router";
-import { useState } from "react";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import { Link, useLocation, useNavigate, useParams } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { Menu, X, ShieldCheck, Search } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { isLocale, LOCALES, type Locale } from "@/i18n/types";
 import { useAuth } from "@/lib/auth";
@@ -61,6 +61,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <HeaderSearch lang={lang} />
           {isStaff ? (
             <Link
               to="/admin"
