@@ -39,10 +39,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { onConflict: "user_id" },
     );
 
-    await supabase.from("user_roles").upsert(
-      { user_id: user.id, role: "viewer" },
-      { onConflict: "user_id,role", ignoreDuplicates: true },
-    );
+    await supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: user.id, role: "viewer" },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
   };
 
   const loadRoles = async (uid: string | undefined) => {
