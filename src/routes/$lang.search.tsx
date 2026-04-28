@@ -199,9 +199,9 @@ function SearchPage() {
   const locale: Locale = isLocale(lang) ? lang : "en";
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/$lang/search" });
-  const { results } = Route.useLoaderData();
+  const { results } = Route.useLoaderData() as { results: SearchResult[] };
 
-  const filtered = results.filter((r) => {
+  const filtered = results.filter((r: SearchResult) => {
     if (search.type === "all") return true;
     if (search.type === "candidates") return r.kind === "candidate";
     if (search.type === "parties") return r.kind === "party";
@@ -211,10 +211,10 @@ function SearchPage() {
   });
 
   const groups: Array<{ kind: Kind; labelKey: string; items: SearchResult[] }> = [
-    { kind: "candidate", labelKey: "search.group.candidates", items: filtered.filter((r) => r.kind === "candidate") },
-    { kind: "party", labelKey: "search.group.parties", items: filtered.filter((r) => r.kind === "party") },
-    { kind: "manifesto", labelKey: "search.group.manifestos", items: filtered.filter((r) => r.kind === "manifesto") },
-    { kind: "proposal", labelKey: "search.group.proposals", items: filtered.filter((r) => r.kind === "proposal") },
+    { kind: "candidate", labelKey: "search.group.candidates", items: filtered.filter((r: SearchResult) => r.kind === "candidate") },
+    { kind: "party", labelKey: "search.group.parties", items: filtered.filter((r: SearchResult) => r.kind === "party") },
+    { kind: "manifesto", labelKey: "search.group.manifestos", items: filtered.filter((r: SearchResult) => r.kind === "manifesto") },
+    { kind: "proposal", labelKey: "search.group.proposals", items: filtered.filter((r: SearchResult) => r.kind === "proposal") },
   ];
 
   const updateSearch = (patch: Partial<typeof search>) => {
