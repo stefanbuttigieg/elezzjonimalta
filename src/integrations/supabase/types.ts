@@ -255,51 +255,72 @@ export type Database = {
       parties: {
         Row: {
           color: string | null
+          cover_image_url: string | null
           created_at: string
           description_en: string | null
           description_mt: string | null
+          founded_year: number | null
           id: string
           imported_from: string | null
+          leader_name: string | null
+          logo_url: string | null
           name_en: string
           name_mt: string | null
           short_name: string | null
+          slogan_en: string | null
+          slogan_mt: string | null
           slug: string
           source_url: string | null
           status: Database["public"]["Enums"]["review_status"]
           updated_at: string
           website: string | null
+          wikipedia_url: string | null
         }
         Insert: {
           color?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description_en?: string | null
           description_mt?: string | null
+          founded_year?: number | null
           id?: string
           imported_from?: string | null
+          leader_name?: string | null
+          logo_url?: string | null
           name_en: string
           name_mt?: string | null
           short_name?: string | null
+          slogan_en?: string | null
+          slogan_mt?: string | null
           slug: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
           website?: string | null
+          wikipedia_url?: string | null
         }
         Update: {
           color?: string | null
+          cover_image_url?: string | null
           created_at?: string
           description_en?: string | null
           description_mt?: string | null
+          founded_year?: number | null
           id?: string
           imported_from?: string | null
+          leader_name?: string | null
+          logo_url?: string | null
           name_en?: string
           name_mt?: string | null
           short_name?: string | null
+          slogan_en?: string | null
+          slogan_mt?: string | null
           slug?: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
           website?: string | null
+          wikipedia_url?: string | null
         }
         Relationships: []
       }
