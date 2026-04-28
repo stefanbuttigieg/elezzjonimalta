@@ -294,6 +294,27 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "candidates.bio.empty": "Bijografija pendenti reviżjoni editorjali.",
     "candidates.website": "Websajt",
 
+    "districts.meta.title": "Distretti Elettorali — Vot Malta 2026",
+    "districts.meta.description":
+      "It-13-il distrett elettorali ta' Malta: il-lokalitajiet, il-kandidati, u s-sors mill-Kummissjoni Elettorali.",
+    "districts.title": "Distretti elettorali",
+    "districts.subtitle":
+      "Malta hija maqsuma f'13-il diviżjoni elettorali; kull waħda telegg 5 Membri Parlamentari. Konfini skont l-artikolu 61 tal-Kostituzzjoni.",
+    "districts.search.placeholder": "Fittex skont l-isem tad-distrett jew lokalità…",
+    "districts.region.label": "Reġjun",
+    "districts.region.all": "Ir-reġjuni kollha",
+    "districts.region.malta": "Malta",
+    "districts.region.gozo": "Għawdex u Kemmuna",
+    "districts.results": "Qed jintwerew {count} distretti",
+    "districts.empty.title": "Ebda distrett ma jaqbel mal-filtri",
+    "districts.empty.body": "Ipprova tfittxija oħra jew irrisettja l-filtru tar-reġjun.",
+    "districts.localities.label": "Lokalitajiet",
+    "districts.candidates.count": "{count} kandidati",
+    "districts.candidates.none": "Għad m'hemm ebda kandidat ippubblikat",
+    "districts.viewCandidates": "Ara l-kandidati",
+    "districts.viewSource": "Sors: Il-Kummissjoni Elettorali",
+    "districts.seats": "5 siġġijiet",
+
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",
     "common.retry": "Erġa' pprova",
