@@ -20,6 +20,7 @@ export function SiteHeader() {
   const { isStaff } = useAuth();
 
   const navItems = [
+    { to: `/${lang}/candidates`, label: t("nav.candidates") },
     { to: `/${lang}/districts`, label: t("nav.districts") },
     { to: `/${lang}/parties`, label: t("nav.parties") },
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
