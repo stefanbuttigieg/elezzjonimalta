@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const ensureAccountRecords = async (user: User | undefined) => {
+  const ensureAccountRecords = async (user: User | undefined | null) => {
     if (!user) return;
 
     const displayName =
@@ -30,60 +30,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? user.user_metadata.display_name
         : user.email;
 
-    await supabase.from("profiles").upsert(
-      {
-        user_id: user.id,
-        email: user.email,
-        display_name: displayName,
-      },
-      { onConflict: "user_id" },
-    );
-
-    await supabase
-      .from("user_roles")
-      .upsert(
-        { user_id: user.id, role: "viewer" },
-        { onConflict: "user_id,role", ignoreDuplicates: true },
+    try {
+      await supabase.from("profiles").upsert(
+        {
+          user_id: user.id,
+          email: user.email,
+          display_name: displayName,
+        },
+        { onConflict: "user_id" },
       );
+    } catch (err) {
+      console.warn("ensureAccountRecords: profiles upsert failed", err);
+    }
+
+    try {
+      await supabase
+        .from("user_roles")
+        .upsert(
+          { user_id: user.id, role: "viewer" },
+          { onConflict: "user_id,role", ignoreDuplicates: true },
+        );
+    } catch (err) {
+      console.warn("ensureAccountRecords: user_roles upsert failed", err);
+    }
   };
 
-  const loadRoles = async (uid: string | undefined) => {
+  const loadRoles = async (uid: string | undefined | null) => {
     if (!uid) {
       setRoles([]);
       return;
     }
-    const { data: rpcRoles, error: rpcError } = await supabase.rpc("get_my_roles");
-
-    if (!rpcError && Array.isArray(rpcRoles)) {
-      setRoles(rpcRoles as AppRole[]);
-      return;
+    try {
+      const { data: rpcRoles, error: rpcError } = await supabase.rpc("get_my_roles");
+      if (!rpcError && Array.isArray(rpcRoles)) {
+        setRoles(rpcRoles as AppRole[]);
+        return;
+      }
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
+    } catch (err) {
+      console.warn("loadRoles failed", err);
     }
-
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
   useEffect(() => {
+    let mounted = true;
+
+    const handleSession = (newSession: Session | null) => {
+      if (!mounted) return;
+      setSession(newSession);
+      const uid = newSession?.user?.id;
+      // Defer Supabase calls to avoid deadlock with onAuthStateChange
+      setTimeout(() => {
+        if (!mounted) return;
+        // Load roles immediately — do not block on profile upserts
+        void loadRoles(uid);
+        void ensureAccountRecords(newSession?.user);
+      }, 0);
+    };
+
     // Set up listener FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      // Defer Supabase calls to avoid deadlock
-      setTimeout(() => {
-        void ensureAccountRecords(newSession?.user).finally(() => {
-          void loadRoles(newSession?.user.id);
-        });
-      }, 0);
+      handleSession(newSession);
     });
 
     // Then check current session
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      void ensureAccountRecords(data.session?.user)
-        .finally(() => loadRoles(data.session?.user.id))
-        .finally(() => setLoading(false));
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        handleSession(data.session);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     return () => {
+      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -98,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       await supabase.auth.signOut();
     },
-    refreshRoles: async () => loadRoles(session?.user.id),
+    refreshRoles: async () => loadRoles(session?.user?.id),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
