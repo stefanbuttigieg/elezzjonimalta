@@ -12,6 +12,7 @@ import {
   BookOpen,
   Languages,
   Database,
+  FileText,
 } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
