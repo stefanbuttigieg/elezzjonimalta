@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadRoles = async (uid: string | undefined | null) => {
+  const loadRoles = async (uid: string | undefined | null, attempt = 0): Promise<void> => {
     if (!uid) {
       setRoles([]);
       return;
@@ -66,10 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(rpcRoles as AppRole[]);
         return;
       }
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid);
+      if (error) throw error;
       setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
     } catch (err) {
-      console.warn("loadRoles failed", err);
+      console.warn(`loadRoles failed (attempt ${attempt + 1})`, err);
+      // Retry up to 3 times with backoff to handle transient backend errors (e.g. 503)
+      if (attempt < 3) {
+        const delay = 500 * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, delay));
+        return loadRoles(uid, attempt + 1);
+      }
     }
   };
 
