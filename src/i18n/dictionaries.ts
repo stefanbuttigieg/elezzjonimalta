@@ -309,6 +309,30 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
 
     "notFound.title": "Paġna mhux misjuba",
     "notFound.body": "Il-paġna li qed tfittex ma teżistix jew ġiet imċaqilqa.",
+
+    "proposals.meta.title": "Proposti — Vot Malta 2026",
+    "proposals.meta.description":
+      "Ara l-proposti politiċi tal-partiti u l-kandidati fl-Elezzjoni Ġenerali Maltija 2026.",
+    "proposals.title": "Proposti",
+    "proposals.subtitle":
+      "Proposti politiċi mressqa minn partiti u kandidati. Kull proposta tirreferi għas-sors oriġinali.",
+    "proposals.search.placeholder": "Fittex proposti…",
+    "proposals.filter.scope.label": "Sors",
+    "proposals.filter.scope.all": "Is-sorsi kollha",
+    "proposals.filter.scope.party": "Mill-partiti",
+    "proposals.filter.scope.candidate": "Mill-kandidati",
+    "proposals.filter.party.label": "Partit",
+    "proposals.filter.party.all": "Il-partiti kollha",
+    "proposals.filter.candidate.label": "Kandidat",
+    "proposals.filter.candidate.all": "Il-kandidati kollha",
+    "proposals.filter.category.label": "Kategorija",
+    "proposals.filter.category.all": "Il-kategoriji kollha",
+    "proposals.results": "Instabu {count} proposti",
+    "proposals.empty.title": "Ma nstabux proposti",
+    "proposals.empty.body": "Ipprova tfittxija jew filtru differenti.",
+    "proposals.from.party": "Proposta ta' partit",
+    "proposals.from.candidate": "Proposta ta' kandidat",
+    "proposals.viewSource": "Ara s-sors",
   },
 };
 
