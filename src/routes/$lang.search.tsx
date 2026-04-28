@@ -358,10 +358,9 @@ function ResultCard({
   const Icon = KIND_ICON[item.kind];
   const kindLabel = t(`search.kind.${item.kind}` as any);
 
-  const linkProps =
-    item.hrefParams
-      ? { to: item.href as any, params: { lang: locale, ...item.hrefParams } }
-      : { to: item.href as any, params: { lang: locale } };
+  const linkProps: any = item.hrefParams
+    ? { to: item.href, params: { lang: locale, ...item.hrefParams } }
+    : { to: item.href, params: { lang: locale } };
 
   return (
     <Link
