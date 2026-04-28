@@ -87,7 +87,7 @@ function PartiesPage() {
           <p className="mt-12 text-sm text-muted-foreground">{t("parties.empty")}</p>
         ) : (
           <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {parties.map((p) => {
+            {parties.map((p: PartyCard) => {
               const name = partyName(p, locale);
               const desc = partyDescription(p, locale);
               const accent = p.color || "#64748b";

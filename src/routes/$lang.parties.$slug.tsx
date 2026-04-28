@@ -226,7 +226,7 @@ function PartyDetailPage() {
                 </p>
               ) : (
                 <ul className="mt-4 space-y-4">
-                  {proposals.slice(0, 6).map((pr) => {
+                  {proposals.slice(0, 6).map((pr: ProposalRow) => {
                     const title = (locale === "mt" ? pr.title_mt : pr.title_en) ?? pr.title_en;
                     const body = locale === "mt" ? pr.description_mt : pr.description_en;
                     return (
@@ -274,7 +274,7 @@ function PartyDetailPage() {
                 </p>
               ) : (
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {candidates.slice(0, 12).map((c) => (
+                  {candidates.slice(0, 12).map((c: CandidateRow) => (
                     <li
                       key={c.id}
                       className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"

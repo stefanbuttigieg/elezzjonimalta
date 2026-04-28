@@ -36,6 +36,7 @@ import { Route as LangCandidatesRouteImport } from './routes/$lang.candidates'
 import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
+import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -172,6 +173,11 @@ const LangAboutRoute = LangAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => LangRoute,
 } as any)
+const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LangPartiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,7 +193,7 @@ export interface FileRoutesByFullPath {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/parties/$slug': typeof LangPartiesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,7 +221,7 @@ export interface FileRoutesByTo {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/$lang/parties/$slug': typeof LangPartiesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -244,7 +252,7 @@ export interface FileRoutesById {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/parties/$slug': typeof LangPartiesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/parties/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang'
     | '/admin'
+    | '/$lang/parties/$slug'
   id:
     | '__root__'
     | '/'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/parties/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -545,8 +557,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangAboutRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/parties/$slug': {
+      id: '/$lang/parties/$slug'
+      path: '/$slug'
+      fullPath: '/$lang/parties/$slug'
+      preLoaderRoute: typeof LangPartiesSlugRouteImport
+      parentRoute: typeof LangPartiesRoute
+    }
   }
 }
+
+interface LangPartiesRouteChildren {
+  LangPartiesSlugRoute: typeof LangPartiesSlugRoute
+}
+
+const LangPartiesRouteChildren: LangPartiesRouteChildren = {
+  LangPartiesSlugRoute: LangPartiesSlugRoute,
+}
+
+const LangPartiesRouteWithChildren = LangPartiesRoute._addFileChildren(
+  LangPartiesRouteChildren,
+)
 
 interface LangRouteChildren {
   LangAboutRoute: typeof LangAboutRoute
@@ -559,7 +590,7 @@ interface LangRouteChildren {
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
-  LangPartiesRoute: typeof LangPartiesRoute
+  LangPartiesRoute: typeof LangPartiesRouteWithChildren
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
@@ -578,7 +609,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
-  LangPartiesRoute: LangPartiesRoute,
+  LangPartiesRoute: LangPartiesRouteWithChildren,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
@@ -619,12 +650,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
