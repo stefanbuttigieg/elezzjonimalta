@@ -36,15 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: user.email,
         display_name: displayName,
       },
-      { onConflict: "user_id" }
+      { onConflict: "user_id" },
     );
 
-    await supabase
-      .from("user_roles")
-      .upsert(
-        { user_id: user.id, role: "viewer" },
-        { onConflict: "user_id,role", ignoreDuplicates: true }
-      );
+    await supabase.from("user_roles").upsert(
+      { user_id: user.id, role: "viewer" },
+      { onConflict: "user_id,role", ignoreDuplicates: true },
+    );
   };
 
   const loadRoles = async (uid: string | undefined) => {
@@ -52,10 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
       return;
     }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid);
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
