@@ -330,6 +330,66 @@ export type Database = {
         }
         Relationships: []
       }
+      proposals: {
+        Row: {
+          candidate_id: string | null
+          category: string | null
+          created_at: string
+          description_en: string | null
+          description_mt: string | null
+          id: string
+          party_id: string | null
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt: string | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          category?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          party_id?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          category?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          party_id?: string | null
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          title_en?: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
