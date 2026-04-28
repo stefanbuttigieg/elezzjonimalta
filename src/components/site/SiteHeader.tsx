@@ -1,8 +1,9 @@
 import { Link, useLocation, useParams } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShieldCheck } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { isLocale, LOCALES, type Locale } from "@/i18n/types";
+import { useAuth } from "@/lib/auth";
 
 function buildSwitchPath(currentPath: string, currentLang: Locale, nextLang: Locale): string {
   // Replace the first /xx segment with the new locale.
@@ -16,6 +17,7 @@ export function SiteHeader() {
   const lang: Locale = isLocale(params.lang) ? params.lang : "en";
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { isStaff } = useAuth();
 
   const navItems = [
     { to: `/${lang}/districts`, label: t("nav.districts") },
@@ -57,6 +59,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {isStaff ? (
+            <Link
+              to="/admin"
+              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent md:inline-flex"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Admin
+            </Link>
+          ) : null}
           <LanguageToggle currentLang={lang} currentPath={location.pathname} />
           <button
             type="button"

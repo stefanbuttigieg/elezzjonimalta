@@ -17,6 +17,6 @@ function ComingSoon({ titleKey, descKey }: { titleKey: string; descKey: string }
   );
 }
 
-export const DistrictsRoute = createFileRoute("/$lang/districts")({
+export const Route = createFileRoute("/$lang/districts")({
   component: () => <ComingSoon titleKey="home.entry.districts.title" descKey="home.entry.districts.desc" />,
 });

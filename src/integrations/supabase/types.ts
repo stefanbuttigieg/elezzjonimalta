@@ -14,16 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidates: {
+        Row: {
+          bio_en: string | null
+          bio_mt: string | null
+          created_at: string
+          electoral_confirmed: boolean
+          facebook: string | null
+          full_name: string
+          id: string
+          imported_from: string | null
+          is_incumbent: boolean
+          notes: string | null
+          parlament_mt_url: string | null
+          party_id: string | null
+          photo_url: string | null
+          primary_district_id: string | null
+          slug: string
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          twitter: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          bio_en?: string | null
+          bio_mt?: string | null
+          created_at?: string
+          electoral_confirmed?: boolean
+          facebook?: string | null
+          full_name: string
+          id?: string
+          imported_from?: string | null
+          is_incumbent?: boolean
+          notes?: string | null
+          parlament_mt_url?: string | null
+          party_id?: string | null
+          photo_url?: string | null
+          primary_district_id?: string | null
+          slug: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          twitter?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          bio_en?: string | null
+          bio_mt?: string | null
+          created_at?: string
+          electoral_confirmed?: boolean
+          facebook?: string | null
+          full_name?: string
+          id?: string
+          imported_from?: string | null
+          is_incumbent?: boolean
+          notes?: string | null
+          parlament_mt_url?: string | null
+          party_id?: string | null
+          photo_url?: string | null
+          primary_district_id?: string | null
+          slug?: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          twitter?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_primary_district_id_fkey"
+            columns: ["primary_district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      districts: {
+        Row: {
+          created_at: string
+          id: string
+          localities_en: string | null
+          localities_mt: string | null
+          name_en: string
+          name_mt: string | null
+          number: number
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          localities_en?: string | null
+          localities_mt?: string | null
+          name_en: string
+          name_mt?: string | null
+          number: number
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          localities_en?: string | null
+          localities_mt?: string | null
+          name_en?: string
+          name_mt?: string | null
+          number?: number
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parties: {
+        Row: {
+          color: string | null
+          created_at: string
+          description_en: string | null
+          description_mt: string | null
+          id: string
+          imported_from: string | null
+          name_en: string
+          name_mt: string | null
+          short_name: string | null
+          slug: string
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          imported_from?: string | null
+          name_en: string
+          name_mt?: string | null
+          short_name?: string | null
+          slug: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          imported_from?: string | null
+          name_en?: string
+          name_mt?: string | null
+          short_name?: string | null
+          slug?: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor" | "viewer"
+      review_status: "draft" | "pending_review" | "published" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +379,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor", "viewer"],
+      review_status: ["draft", "pending_review", "published", "archived"],
+    },
   },
 } as const

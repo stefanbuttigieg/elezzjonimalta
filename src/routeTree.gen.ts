@@ -9,13 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminReviewRouteImport } from './routes/admin.review'
+import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
+import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
+import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
+import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
@@ -25,6 +34,11 @@ import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
 
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LangRoute = LangRouteImport.update({
   id: '/$lang',
   path: '/$lang',
@@ -35,10 +49,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LangRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewRoute = AdminReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPartiesRoute = AdminPartiesRouteImport.update({
+  id: '/parties',
+  path: '/parties',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
+  id: '/districts',
+  path: '/districts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => AdminRoute,
 } as any)
 const LangTermsRoute = LangTermsRouteImport.update({
   id: '/terms',
@@ -58,6 +107,11 @@ const LangPrivacyRoute = LangPrivacyRouteImport.update({
 const LangPartiesRoute = LangPartiesRouteImport.update({
   id: '/parties',
   path: '/parties',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDistrictsRoute = LangDistrictsRouteImport.update({
+  id: '/districts',
+  path: '/districts',
   getParentRoute: () => LangRoute,
 } as any)
 const LangDevelopersRoute = LangDevelopersRouteImport.update({
@@ -104,6 +158,7 @@ const LangAboutRoute = LangAboutRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -112,11 +167,19 @@ export interface FileRoutesByFullPath {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/parties': typeof AdminPartiesRoute
+  '/admin/review': typeof AdminReviewRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,16 +191,25 @@ export interface FileRoutesByTo {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/parties': typeof AdminPartiesRoute
+  '/admin/review': typeof AdminReviewRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -146,17 +218,26 @@ export interface FileRoutesById {
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/parties': typeof AdminPartiesRoute
+  '/admin/review': typeof AdminReviewRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$lang'
+    | '/admin'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -165,11 +246,19 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/candidates'
+    | '/admin/districts'
+    | '/admin/parties'
+    | '/admin/review'
+    | '/admin/roles'
+    | '/auth/login'
     | '/$lang/'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -181,15 +270,24 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/candidates'
+    | '/admin/districts'
+    | '/admin/parties'
+    | '/admin/review'
+    | '/admin/roles'
+    | '/auth/login'
     | '/$lang'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/$lang'
+    | '/admin'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -198,20 +296,37 @@ export interface FileRouteTypes {
     | '/$lang/contact'
     | '/$lang/cookies'
     | '/$lang/developers'
+    | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/candidates'
+    | '/admin/districts'
+    | '/admin/parties'
+    | '/admin/review'
+    | '/admin/roles'
+    | '/auth/login'
     | '/$lang/'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
+  AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$lang': {
       id: '/$lang'
       path: '/$lang'
@@ -226,12 +341,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/$lang/': {
       id: '/$lang/'
       path: '/'
       fullPath: '/$lang/'
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/review': {
+      id: '/admin/review'
+      path: '/review'
+      fullPath: '/admin/review'
+      preLoaderRoute: typeof AdminReviewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/parties': {
+      id: '/admin/parties'
+      path: '/parties'
+      fullPath: '/admin/parties'
+      preLoaderRoute: typeof AdminPartiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/districts': {
+      id: '/admin/districts'
+      path: '/districts'
+      fullPath: '/admin/districts'
+      preLoaderRoute: typeof AdminDistrictsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/candidates': {
+      id: '/admin/candidates'
+      path: '/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/$lang/terms': {
       id: '/$lang/terms'
@@ -259,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/parties'
       fullPath: '/$lang/parties'
       preLoaderRoute: typeof LangPartiesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/districts': {
+      id: '/$lang/districts'
+      path: '/districts'
+      fullPath: '/$lang/districts'
+      preLoaderRoute: typeof LangDistrictsRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/developers': {
@@ -329,6 +500,7 @@ interface LangRouteChildren {
   LangContactRoute: typeof LangContactRoute
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
+  LangDistrictsRoute: typeof LangDistrictsRoute
   LangPartiesRoute: typeof LangPartiesRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
@@ -345,6 +517,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangContactRoute: LangContactRoute,
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
+  LangDistrictsRoute: LangDistrictsRoute,
   LangPartiesRoute: LangPartiesRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
@@ -354,9 +527,31 @@ const LangRouteChildren: LangRouteChildren = {
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
+interface AdminRouteChildren {
+  AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminDistrictsRoute: typeof AdminDistrictsRoute
+  AdminPartiesRoute: typeof AdminPartiesRoute
+  AdminReviewRoute: typeof AdminReviewRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminDistrictsRoute: AdminDistrictsRoute,
+  AdminPartiesRoute: AdminPartiesRoute,
+  AdminReviewRoute: AdminReviewRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
+  AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
