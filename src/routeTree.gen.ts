@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
@@ -58,6 +59,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPartiesRoute = AdminPartiesRouteImport.update({
+  id: '/parties',
+  path: '/parties',
+  getParentRoute: () => AdminRoute,
 } as any)
 const LangTermsRoute = LangTermsRouteImport.update({
   id: '/terms',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/parties': typeof AdminPartiesRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/parties': typeof AdminPartiesRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/parties': typeof AdminPartiesRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/parties'
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/parties'
     | '/auth/login'
     | '/$lang'
     | '/admin'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/$lang/privacy'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/parties'
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
@@ -301,6 +313,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/parties': {
+      id: '/admin/parties'
+      path: '/parties'
+      fullPath: '/admin/parties'
+      preLoaderRoute: typeof AdminPartiesRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/$lang/terms': {
       id: '/$lang/terms'
@@ -433,10 +452,12 @@ const LangRouteChildren: LangRouteChildren = {
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
+  AdminPartiesRoute: typeof AdminPartiesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminPartiesRoute: AdminPartiesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
