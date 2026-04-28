@@ -57,7 +57,7 @@ function Hero({ lang, t }: { lang: Locale; t: (k: string, v?: Record<string, str
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to={`/${lang}/districts`}
+                to={`/${lang}/candidates`}
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
               >
                 {t("home.hero.ctaCandidates")}
@@ -148,6 +148,7 @@ function EntryGrid({
   t: (k: string, v?: Record<string, string | number>) => string;
 }) {
   const items = [
+    { to: `/${lang}/candidates`, icon: Users, title: t("candidates.title"), desc: t("candidates.subtitle") },
     { to: `/${lang}/districts`, icon: Map, title: t("home.entry.districts.title"), desc: t("home.entry.districts.desc") },
     { to: `/${lang}/parties`, icon: Landmark, title: t("home.entry.parties.title"), desc: t("home.entry.parties.desc") },
     { to: `/${lang}/sitting-mps`, icon: Users, title: t("home.entry.sitting.title"), desc: t("home.entry.sitting.desc") },
