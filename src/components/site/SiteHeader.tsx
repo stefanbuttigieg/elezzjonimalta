@@ -181,3 +181,4 @@ function HeaderSearch({ lang }: { lang: Locale }) {
     </form>
   );
 }
+
