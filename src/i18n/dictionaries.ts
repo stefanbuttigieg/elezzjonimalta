@@ -108,6 +108,27 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "candidates.bio.empty": "Biography pending editorial review.",
     "candidates.website": "Website",
 
+    "districts.meta.title": "Electoral Districts — Vot Malta 2026",
+    "districts.meta.description":
+      "Malta's 13 electoral districts: localities covered, candidates contesting, and source from the Electoral Commission.",
+    "districts.title": "Electoral districts",
+    "districts.subtitle":
+      "Malta is divided into 13 electoral divisions; each returns 5 MPs. Boundaries set under article 61 of the Constitution.",
+    "districts.search.placeholder": "Search by district name or locality…",
+    "districts.region.label": "Region",
+    "districts.region.all": "All regions",
+    "districts.region.malta": "Malta",
+    "districts.region.gozo": "Gozo & Comino",
+    "districts.results": "{count} districts shown",
+    "districts.empty.title": "No districts match your filters",
+    "districts.empty.body": "Try a different search term or reset the region filter.",
+    "districts.localities.label": "Localities",
+    "districts.candidates.count": "{count} candidates",
+    "districts.candidates.none": "No published candidates yet",
+    "districts.viewCandidates": "View candidates",
+    "districts.viewSource": "Source: Electoral Commission",
+    "districts.seats": "5 seats",
+
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
     "common.retry": "Try again",
