@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      candidate_districts: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          district_id: string
+          elected: boolean
+          election_year: number
+          id: string
+          updated_at: string
+          votes_first_count: number | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          district_id: string
+          elected?: boolean
+          election_year: number
+          id?: string
+          updated_at?: string
+          votes_first_count?: number | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          district_id?: string
+          elected?: boolean
+          election_year?: number
+          id?: string
+          updated_at?: string
+          votes_first_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_districts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_districts_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           bio_en: string | null
@@ -136,6 +184,73 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      parliament_terms: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          district_id: string | null
+          end_date: string | null
+          id: string
+          legislature_number: number
+          notes: string | null
+          party_id: string | null
+          role: string | null
+          source_url: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          district_id?: string | null
+          end_date?: string | null
+          id?: string
+          legislature_number: number
+          notes?: string | null
+          party_id?: string | null
+          role?: string | null
+          source_url?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          district_id?: string | null
+          end_date?: string | null
+          id?: string
+          legislature_number?: number
+          notes?: string | null
+          party_id?: string | null
+          role?: string | null
+          source_url?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parliament_terms_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parliament_terms_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parliament_terms_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       parties: {
         Row: {
