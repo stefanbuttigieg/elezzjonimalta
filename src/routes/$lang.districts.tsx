@@ -29,10 +29,29 @@ type DistrictRecord = {
 
 type CandidateCountRow = {
   primary_district_id: string | null;
+  party_id: string | null;
+};
+
+type PartyRow = {
+  id: string;
+  short_name: string | null;
+  name_en: string;
+  name_mt: string | null;
+  color: string | null;
+  slug: string;
+};
+
+export type PartyBreakdownEntry = {
+  partyId: string | null;
+  shortName: string;
+  fullName: string;
+  color: string | null;
+  slug: string | null;
+  count: number;
 };
 
 async function loadDistricts() {
-  const [districtsResult, candidatesResult] = await Promise.all([
+  const [districtsResult, candidatesResult, partiesResult] = await Promise.all([
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt, source_url")
@@ -40,22 +59,68 @@ async function loadDistricts() {
       .order("number", { ascending: true }),
     supabase
       .from("candidates")
-      .select("primary_district_id")
+      .select("primary_district_id, party_id")
+      .eq("status", "published"),
+    supabase
+      .from("parties")
+      .select("id, short_name, name_en, name_mt, color, slug")
       .eq("status", "published"),
   ]);
 
   if (districtsResult.error) throw districtsResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
+  if (partiesResult.error) throw partiesResult.error;
+
+  const partiesById = new Map<string, PartyRow>();
+  for (const party of (partiesResult.data ?? []) as PartyRow[]) {
+    partiesById.set(party.id, party);
+  }
 
   const counts = new Map<string, number>();
+  // districtId -> partyId|"__independent__" -> count
+  const breakdown = new Map<string, Map<string, number>>();
+
   for (const row of (candidatesResult.data ?? []) as CandidateCountRow[]) {
     if (!row.primary_district_id) continue;
     counts.set(row.primary_district_id, (counts.get(row.primary_district_id) ?? 0) + 1);
+
+    const key = row.party_id ?? "__independent__";
+    const inner = breakdown.get(row.primary_district_id) ?? new Map<string, number>();
+    inner.set(key, (inner.get(key) ?? 0) + 1);
+    breakdown.set(row.primary_district_id, inner);
+  }
+
+  const partyBreakdown: Record<string, PartyBreakdownEntry[]> = {};
+  for (const [districtId, inner] of breakdown.entries()) {
+    const entries: PartyBreakdownEntry[] = Array.from(inner.entries()).map(([key, count]) => {
+      if (key === "__independent__") {
+        return {
+          partyId: null,
+          shortName: "IND",
+          fullName: "Independent",
+          color: null,
+          slug: null,
+          count,
+        };
+      }
+      const party = partiesById.get(key);
+      return {
+        partyId: key,
+        shortName: party?.short_name || party?.name_en || "—",
+        fullName: party?.name_en || party?.short_name || "—",
+        color: party?.color ?? null,
+        slug: party?.slug ?? null,
+        count,
+      };
+    });
+    entries.sort((a, b) => b.count - a.count || a.shortName.localeCompare(b.shortName));
+    partyBreakdown[districtId] = entries;
   }
 
   return {
     districts: (districtsResult.data ?? []) as DistrictRecord[],
     candidateCounts: Object.fromEntries(counts) as Record<string, number>,
+    partyBreakdown,
   };
 }
 
