@@ -27,7 +27,7 @@ const items = [
 ];
 
 function AdminLayout() {
-  const { session, loading, isStaff, isAdmin, user, signOut, roles } = useAuth();
+  const { session, loading, isStaff, isAdmin, user, signOut, roles, refreshRoles } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -56,7 +56,13 @@ function AdminLayout() {
             An admin must grant you the <span className="font-semibold">editor</span> or{" "}
             <span className="font-semibold">admin</span> role.
           </p>
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => void refreshRoles()}
+              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+              Retry
+            </button>
             <button
               onClick={() => signOut()}
               className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
