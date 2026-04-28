@@ -29,10 +29,29 @@ type DistrictRecord = {
 
 type CandidateCountRow = {
   primary_district_id: string | null;
+  party_id: string | null;
+};
+
+type PartyRow = {
+  id: string;
+  short_name: string | null;
+  name_en: string;
+  name_mt: string | null;
+  color: string | null;
+  slug: string;
+};
+
+export type PartyBreakdownEntry = {
+  partyId: string | null;
+  shortName: string;
+  fullName: string;
+  color: string | null;
+  slug: string | null;
+  count: number;
 };
 
 async function loadDistricts() {
-  const [districtsResult, candidatesResult] = await Promise.all([
+  const [districtsResult, candidatesResult, partiesResult] = await Promise.all([
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt, source_url")
@@ -40,22 +59,68 @@ async function loadDistricts() {
       .order("number", { ascending: true }),
     supabase
       .from("candidates")
-      .select("primary_district_id")
+      .select("primary_district_id, party_id")
+      .eq("status", "published"),
+    supabase
+      .from("parties")
+      .select("id, short_name, name_en, name_mt, color, slug")
       .eq("status", "published"),
   ]);
 
   if (districtsResult.error) throw districtsResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
+  if (partiesResult.error) throw partiesResult.error;
+
+  const partiesById = new Map<string, PartyRow>();
+  for (const party of (partiesResult.data ?? []) as PartyRow[]) {
+    partiesById.set(party.id, party);
+  }
 
   const counts = new Map<string, number>();
+  // districtId -> partyId|"__independent__" -> count
+  const breakdown = new Map<string, Map<string, number>>();
+
   for (const row of (candidatesResult.data ?? []) as CandidateCountRow[]) {
     if (!row.primary_district_id) continue;
     counts.set(row.primary_district_id, (counts.get(row.primary_district_id) ?? 0) + 1);
+
+    const key = row.party_id ?? "__independent__";
+    const inner = breakdown.get(row.primary_district_id) ?? new Map<string, number>();
+    inner.set(key, (inner.get(key) ?? 0) + 1);
+    breakdown.set(row.primary_district_id, inner);
+  }
+
+  const partyBreakdown: Record<string, PartyBreakdownEntry[]> = {};
+  for (const [districtId, inner] of breakdown.entries()) {
+    const entries: PartyBreakdownEntry[] = Array.from(inner.entries()).map(([key, count]) => {
+      if (key === "__independent__") {
+        return {
+          partyId: null,
+          shortName: "IND",
+          fullName: "Independent",
+          color: null,
+          slug: null,
+          count,
+        };
+      }
+      const party = partiesById.get(key);
+      return {
+        partyId: key,
+        shortName: party?.short_name || party?.name_en || "—",
+        fullName: party?.name_en || party?.short_name || "—",
+        color: party?.color ?? null,
+        slug: party?.slug ?? null,
+        count,
+      };
+    });
+    entries.sort((a, b) => b.count - a.count || a.shortName.localeCompare(b.shortName));
+    partyBreakdown[districtId] = entries;
   }
 
   return {
     districts: (districtsResult.data ?? []) as DistrictRecord[],
     candidateCounts: Object.fromEntries(counts) as Record<string, number>,
+    partyBreakdown,
   };
 }
 
@@ -85,7 +150,7 @@ function DistrictsPage() {
   const navigate = useNavigate({ from: "/$lang/districts" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { districts, candidateCounts } = Route.useLoaderData();
+  const { districts, candidateCounts, partyBreakdown } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
 
   const updateSearch = (patch: Partial<typeof search>) => {
@@ -194,6 +259,7 @@ function DistrictsPage() {
                 district={district}
                 locale={locale}
                 candidateCount={candidateCounts[district.id] ?? 0}
+                partyBreakdown={partyBreakdown[district.id] ?? []}
               />
             ))}
           </div>
@@ -217,10 +283,12 @@ function DistrictCard({
   district,
   locale,
   candidateCount,
+  partyBreakdown,
 }: {
   district: DistrictRecord;
   locale: Locale;
   candidateCount: number;
+  partyBreakdown: PartyBreakdownEntry[];
 }) {
   const t = useT();
   const name =
@@ -278,6 +346,55 @@ function DistrictCard({
           </ul>
         </div>
       ) : null}
+
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {t("districts.partyBreakdown")}
+        </p>
+        {partyBreakdown.length > 0 ? (
+          <>
+            <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-accent">
+              {partyBreakdown.map((entry) => {
+                const pct = candidateCount > 0 ? (entry.count / candidateCount) * 100 : 0;
+                return (
+                  <span
+                    key={entry.partyId ?? "ind"}
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: entry.color ?? "hsl(var(--muted-foreground))",
+                    }}
+                    title={`${entry.fullName}: ${entry.count}`}
+                  />
+                );
+              })}
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {partyBreakdown.map((entry) => (
+                <li
+                  key={entry.partyId ?? "ind"}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2 py-0.5 text-xs font-semibold text-foreground"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: entry.color ?? "hsl(var(--muted-foreground))" }}
+                  />
+                  <span>
+                    {entry.partyId === null
+                      ? t("districts.partyBreakdown.independent")
+                      : entry.shortName}
+                  </span>
+                  <span className="text-muted-foreground">{entry.count}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t("districts.partyBreakdown.none")}
+          </p>
+        )}
+      </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">
         <Link
