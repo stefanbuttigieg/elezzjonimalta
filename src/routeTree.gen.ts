@@ -12,6 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
+import { Route as LangTermsRouteImport } from './routes/$lang.terms'
+import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
+import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
+import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
+import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
+import { Route as LangContactRouteImport } from './routes/$lang.contact'
+import { Route as LangCompareRouteImport } from './routes/$lang.compare'
+import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
+import { Route as LangAskRouteImport } from './routes/$lang.ask'
+import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
+import { Route as LangAboutRouteImport } from './routes/$lang.about'
 
 const LangRoute = LangRouteImport.update({
   id: '/$lang',
@@ -28,28 +40,169 @@ const LangIndexRoute = LangIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LangRoute,
 } as any)
+const LangTermsRoute = LangTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
+  id: '/sitting-mps',
+  path: '/sitting-mps',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivacyRoute = LangPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPartiesRoute = LangPartiesRouteImport.update({
+  id: '/parties',
+  path: '/parties',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDevelopersRoute = LangDevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCookiesRoute = LangCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangContactRoute = LangContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCompareRoute = LangCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangChangelogRoute = LangChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAskRoute = LangAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAccessibilityRoute = LangAccessibilityRouteImport.update({
+  id: '/accessibility',
+  path: '/accessibility',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/accessibility': typeof LangAccessibilityRoute
+  '/$lang/ask': typeof LangAskRoute
+  '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/compare': typeof LangCompareRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/$lang/': typeof LangIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/accessibility': typeof LangAccessibilityRoute
+  '/$lang/ask': typeof LangAskRoute
+  '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/compare': typeof LangCompareRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/$lang': typeof LangIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/accessibility': typeof LangAccessibilityRoute
+  '/$lang/ask': typeof LangAskRoute
+  '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/compare': typeof LangCompareRoute
+  '/$lang/contact': typeof LangContactRoute
+  '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/developers': typeof LangDevelopersRoute
+  '/$lang/parties': typeof LangPartiesRoute
+  '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/terms': typeof LangTermsRoute
   '/$lang/': typeof LangIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$lang' | '/$lang/'
+  fullPaths:
+    | '/'
+    | '/$lang'
+    | '/$lang/about'
+    | '/$lang/accessibility'
+    | '/$lang/ask'
+    | '/$lang/changelog'
+    | '/$lang/compare'
+    | '/$lang/contact'
+    | '/$lang/cookies'
+    | '/$lang/developers'
+    | '/$lang/parties'
+    | '/$lang/privacy'
+    | '/$lang/sitting-mps'
+    | '/$lang/terms'
+    | '/$lang/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$lang'
-  id: '__root__' | '/' | '/$lang' | '/$lang/'
+  to:
+    | '/'
+    | '/$lang/about'
+    | '/$lang/accessibility'
+    | '/$lang/ask'
+    | '/$lang/changelog'
+    | '/$lang/compare'
+    | '/$lang/contact'
+    | '/$lang/cookies'
+    | '/$lang/developers'
+    | '/$lang/parties'
+    | '/$lang/privacy'
+    | '/$lang/sitting-mps'
+    | '/$lang/terms'
+    | '/$lang'
+  id:
+    | '__root__'
+    | '/'
+    | '/$lang'
+    | '/$lang/about'
+    | '/$lang/accessibility'
+    | '/$lang/ask'
+    | '/$lang/changelog'
+    | '/$lang/compare'
+    | '/$lang/contact'
+    | '/$lang/cookies'
+    | '/$lang/developers'
+    | '/$lang/parties'
+    | '/$lang/privacy'
+    | '/$lang/sitting-mps'
+    | '/$lang/terms'
+    | '/$lang/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -80,14 +233,122 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/terms': {
+      id: '/$lang/terms'
+      path: '/terms'
+      fullPath: '/$lang/terms'
+      preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/sitting-mps': {
+      id: '/$lang/sitting-mps'
+      path: '/sitting-mps'
+      fullPath: '/$lang/sitting-mps'
+      preLoaderRoute: typeof LangSittingMpsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/privacy': {
+      id: '/$lang/privacy'
+      path: '/privacy'
+      fullPath: '/$lang/privacy'
+      preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/parties': {
+      id: '/$lang/parties'
+      path: '/parties'
+      fullPath: '/$lang/parties'
+      preLoaderRoute: typeof LangPartiesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/developers': {
+      id: '/$lang/developers'
+      path: '/developers'
+      fullPath: '/$lang/developers'
+      preLoaderRoute: typeof LangDevelopersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/cookies': {
+      id: '/$lang/cookies'
+      path: '/cookies'
+      fullPath: '/$lang/cookies'
+      preLoaderRoute: typeof LangCookiesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/contact': {
+      id: '/$lang/contact'
+      path: '/contact'
+      fullPath: '/$lang/contact'
+      preLoaderRoute: typeof LangContactRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/compare': {
+      id: '/$lang/compare'
+      path: '/compare'
+      fullPath: '/$lang/compare'
+      preLoaderRoute: typeof LangCompareRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/changelog': {
+      id: '/$lang/changelog'
+      path: '/changelog'
+      fullPath: '/$lang/changelog'
+      preLoaderRoute: typeof LangChangelogRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/ask': {
+      id: '/$lang/ask'
+      path: '/ask'
+      fullPath: '/$lang/ask'
+      preLoaderRoute: typeof LangAskRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/accessibility': {
+      id: '/$lang/accessibility'
+      path: '/accessibility'
+      fullPath: '/$lang/accessibility'
+      preLoaderRoute: typeof LangAccessibilityRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/about': {
+      id: '/$lang/about'
+      path: '/about'
+      fullPath: '/$lang/about'
+      preLoaderRoute: typeof LangAboutRouteImport
+      parentRoute: typeof LangRoute
+    }
   }
 }
 
 interface LangRouteChildren {
+  LangAboutRoute: typeof LangAboutRoute
+  LangAccessibilityRoute: typeof LangAccessibilityRoute
+  LangAskRoute: typeof LangAskRoute
+  LangChangelogRoute: typeof LangChangelogRoute
+  LangCompareRoute: typeof LangCompareRoute
+  LangContactRoute: typeof LangContactRoute
+  LangCookiesRoute: typeof LangCookiesRoute
+  LangDevelopersRoute: typeof LangDevelopersRoute
+  LangPartiesRoute: typeof LangPartiesRoute
+  LangPrivacyRoute: typeof LangPrivacyRoute
+  LangSittingMpsRoute: typeof LangSittingMpsRoute
+  LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
 }
 
 const LangRouteChildren: LangRouteChildren = {
+  LangAboutRoute: LangAboutRoute,
+  LangAccessibilityRoute: LangAccessibilityRoute,
+  LangAskRoute: LangAskRoute,
+  LangChangelogRoute: LangChangelogRoute,
+  LangCompareRoute: LangCompareRoute,
+  LangContactRoute: LangContactRoute,
+  LangCookiesRoute: LangCookiesRoute,
+  LangDevelopersRoute: LangDevelopersRoute,
+  LangPartiesRoute: LangPartiesRoute,
+  LangPrivacyRoute: LangPrivacyRoute,
+  LangSittingMpsRoute: LangSittingMpsRoute,
+  LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
 }
 
