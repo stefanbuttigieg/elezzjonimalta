@@ -108,12 +108,16 @@ function SittingMpsPage() {
   const navigate = useNavigate({ from: "/$lang/sitting-mps" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { mps, parties, districts } = Route.useLoaderData();
+  const { mps, parties, districts } = Route.useLoaderData() as {
+    mps: MpRow[];
+    parties: PartyRow[];
+    districts: DistrictRow[];
+  };
   const { isStaff } = useAuth();
   const locale = isLocale(lang) ? lang : "en";
 
-  const partiesById = new Map(parties.map((p) => [p.id, p] as const));
-  const districtsById = new Map(districts.map((d) => [d.id, d] as const));
+  const partiesById = new Map<string, PartyRow>(parties.map((p) => [p.id, p]));
+  const districtsById = new Map<string, DistrictRow>(districts.map((d) => [d.id, d]));
 
   const updateSearch = (patch: Partial<typeof search>) => {
     void navigate({ search: { ...search, ...patch } });
