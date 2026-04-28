@@ -152,6 +152,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.viewCandidates": "View candidates",
     "districts.viewSource": "Source: Electoral Commission",
     "districts.seats": "5 seats",
+    "districts.partyBreakdown": "Party breakdown",
+    "districts.partyBreakdown.none": "No party affiliations recorded yet",
+    "districts.partyBreakdown.independent": "Independent",
 
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
