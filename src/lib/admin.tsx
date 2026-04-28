@@ -39,7 +39,7 @@ export function slugify(input: string) {
 }
 
 export async function updateStatus(
-  table: "parties" | "districts" | "candidates",
+  table: "parties" | "districts" | "candidates" | "proposals",
   id: string,
   status: ReviewStatus
 ) {
@@ -48,7 +48,7 @@ export async function updateStatus(
 }
 
 export async function deleteRow(
-  table: "parties" | "districts" | "candidates",
+  table: "parties" | "districts" | "candidates" | "proposals",
   id: string
 ) {
   const { error } = await supabase.from(table).delete().eq("id", id);
