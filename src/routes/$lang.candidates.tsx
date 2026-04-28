@@ -1,4 +1,10 @@
-import { createFileRoute, ErrorComponent, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  ErrorComponent,
+  Link,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { BadgeCheck, ExternalLink, Filter, RotateCcw, Search, UserRound } from "lucide-react";
@@ -42,7 +48,15 @@ type CandidateRecord = {
   district: DistrictOption | null;
 };
 
-async function loadCandidates({ q, party, district }: { q: string; party: string; district: string }) {
+async function loadCandidates({
+  q,
+  party,
+  district,
+}: {
+  q: string;
+  party: string;
+  district: string;
+}) {
   const cleanQuery = q.trim();
   let candidatesQuery = supabase
     .from("candidates")
@@ -222,7 +236,9 @@ function FilterSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <span className="mt-1 flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-primary">
         <Filter className="h-4 w-4 text-muted-foreground" />
         <select
@@ -244,7 +260,8 @@ function FilterSelect({
 
 function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; locale: Locale }) {
   const t = useT();
-  const bio = locale === "mt" ? candidate.bio_mt || candidate.bio_en : candidate.bio_en || candidate.bio_mt;
+  const bio =
+    locale === "mt" ? candidate.bio_mt || candidate.bio_en : candidate.bio_en || candidate.bio_mt;
 
   return (
     <article className="flex min-h-[260px] flex-col rounded-xl border border-border bg-surface p-5 shadow-card">
@@ -266,7 +283,10 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
             {candidate.full_name}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {[candidate.party ? partyName(candidate.party, locale) : null, candidate.district ? districtName(candidate.district, locale) : null]
+            {[
+              candidate.party ? partyName(candidate.party, locale) : null,
+              candidate.district ? districtName(candidate.district, locale) : null,
+            ]
               .filter(Boolean)
               .join(" · ") || t("candidates.unassigned")}
           </p>
@@ -307,11 +327,14 @@ function Badge({ label }: { label: string }) {
 }
 
 function partyName(party: PartyOption, locale: Locale) {
-  return locale === "mt" ? party.name_mt || party.name_en : party.name_en || party.name_mt || party.slug;
+  return locale === "mt"
+    ? party.name_mt || party.name_en
+    : party.name_en || party.name_mt || party.slug;
 }
 
 function districtName(district: DistrictOption, locale: Locale) {
-  const name = locale === "mt" ? district.name_mt || district.name_en : district.name_en || district.name_mt;
+  const name =
+    locale === "mt" ? district.name_mt || district.name_en : district.name_en || district.name_mt;
   return `${district.number} · ${name}`;
 }
 
