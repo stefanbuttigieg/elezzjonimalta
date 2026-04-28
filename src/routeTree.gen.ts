@@ -23,6 +23,7 @@ import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
+import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
@@ -106,6 +107,11 @@ const LangTermsRoute = LangTermsRouteImport.update({
 const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
   id: '/sitting-mps',
   path: '/sitting-mps',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSearchRoute = LangSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => LangRoute,
 } as any)
 const LangProposalsRoute = LangProposalsRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
@@ -464,6 +476,13 @@ declare module '@tanstack/react-router' {
       path: '/sitting-mps'
       fullPath: '/$lang/sitting-mps'
       preLoaderRoute: typeof LangSittingMpsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/search': {
+      id: '/$lang/search'
+      path: '/search'
+      fullPath: '/$lang/search'
+      preLoaderRoute: typeof LangSearchRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/proposals': {
@@ -593,6 +612,7 @@ interface LangRouteChildren {
   LangPartiesRoute: typeof LangPartiesRouteWithChildren
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
+  LangSearchRoute: typeof LangSearchRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
@@ -612,6 +632,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangPartiesRoute: LangPartiesRouteWithChildren,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
+  LangSearchRoute: LangSearchRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
