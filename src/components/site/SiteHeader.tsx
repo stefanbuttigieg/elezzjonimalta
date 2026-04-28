@@ -84,7 +84,10 @@ export function SiteHeader() {
 
       {open ? (
         <div className="border-t border-border bg-background md:hidden">
-          <nav className="container mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3" aria-label="Mobile">
+          <nav
+            className="container mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3"
+            aria-label="Mobile"
+          >
             {navItems.map((item) => (
               <Link
                 key={item.to}
@@ -103,7 +106,13 @@ export function SiteHeader() {
   );
 }
 
-function LanguageToggle({ currentLang, currentPath }: { currentLang: Locale; currentPath: string }) {
+function LanguageToggle({
+  currentLang,
+  currentPath,
+}: {
+  currentLang: Locale;
+  currentPath: string;
+}) {
   const t = useT();
   return (
     <div

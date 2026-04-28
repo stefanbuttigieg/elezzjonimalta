@@ -61,7 +61,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.search.button": "Search",
 
     "home.entry.districts.title": "Browse by district",
-    "home.entry.districts.desc": "Malta's 13 electoral districts and the candidates running in each.",
+    "home.entry.districts.desc":
+      "Malta's 13 electoral districts and the candidates running in each.",
     "home.entry.parties.title": "Browse by party",
     "home.entry.parties.desc": "Manifestos and candidate lists for every contesting party.",
     "home.entry.sitting.title": "Sitting MPs",
@@ -230,7 +231,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "candidates.meta.description":
       "Fittex kandidati ppubblikati għall-Elezzjoni Ġenerali Maltija 2026 skont l-isem, id-distrett u l-partit politiku.",
     "candidates.title": "Kandidati",
-    "candidates.subtitle": "Fittex il-lista ppubblikata tal-kandidati skont id-distrett u l-partit politiku.",
+    "candidates.subtitle":
+      "Fittex il-lista ppubblikata tal-kandidati skont id-distrett u l-partit politiku.",
     "candidates.search.label": "Fittex",
     "candidates.search.placeholder": "Isem il-kandidat…",
     "candidates.party.label": "Partit",
