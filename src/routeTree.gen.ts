@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
@@ -42,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
@@ -122,7 +128,7 @@ const LangAboutRoute = LangAboutRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -138,10 +144,10 @@ export interface FileRoutesByFullPath {
   '/$lang/terms': typeof LangTermsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -157,12 +163,13 @@ export interface FileRoutesByTo {
   '/$lang/terms': typeof LangTermsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -178,6 +185,7 @@ export interface FileRoutesById {
   '/$lang/terms': typeof LangTermsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,10 +208,10 @@ export interface FileRouteTypes {
     | '/$lang/terms'
     | '/auth/login'
     | '/$lang/'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -219,6 +227,7 @@ export interface FileRouteTypes {
     | '/$lang/terms'
     | '/auth/login'
     | '/$lang'
+    | '/admin'
   id:
     | '__root__'
     | '/'
@@ -239,12 +248,13 @@ export interface FileRouteTypes {
     | '/$lang/terms'
     | '/auth/login'
     | '/$lang/'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
@@ -270,6 +280,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/$lang/': {
       id: '/$lang/'
@@ -415,10 +432,20 @@ const LangRouteChildren: LangRouteChildren = {
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
