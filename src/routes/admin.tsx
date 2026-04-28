@@ -27,7 +27,18 @@ const items = [
 ];
 
 function AdminLayout() {
-  const { session, loading, isStaff, isAdmin, user, signOut, roles, refreshRoles } = useAuth();
+  const {
+    session,
+    loading,
+    rolesLoading,
+    rolesError,
+    isStaff,
+    isAdmin,
+    user,
+    signOut,
+    roles,
+    refreshRoles,
+  } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -35,10 +46,10 @@ function AdminLayout() {
     if (!loading && !session) navigate({ to: "/auth/login" });
   }, [loading, session, navigate]);
 
-  if (loading) {
+  if (loading || (session && rolesLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Loading…
+        Verifying admin access…
       </div>
     );
   }
@@ -52,9 +63,15 @@ function AdminLayout() {
           <ShieldCheck className="mx-auto h-8 w-8 text-muted-foreground" />
           <h1 className="mt-4 font-serif text-2xl font-bold text-foreground">Access restricted</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your account ({user?.email}) is signed in but has no editorial role.
-            An admin must grant you the <span className="font-semibold">editor</span> or{" "}
-            <span className="font-semibold">admin</span> role.
+            {rolesError ? (
+              <>We could not verify your editorial role because the database request failed. Please retry.</>
+            ) : (
+              <>
+                Your account ({user?.email}) is signed in but has no editorial role.
+                An admin must grant you the <span className="font-semibold">editor</span> or{" "}
+                <span className="font-semibold">admin</span> role.
+              </>
+            )}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <button
