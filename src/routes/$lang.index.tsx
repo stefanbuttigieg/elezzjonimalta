@@ -1,0 +1,202 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowRight, Map, Users, Landmark, GitCompareArrows, Sparkles, Code2, ShieldCheck, BookOpen, Languages, Database } from "lucide-react";
+import { useT } from "@/i18n/useT";
+import { translate } from "@/i18n/useT";
+import { isLocale, type Locale } from "@/i18n/types";
+
+const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
+
+export const Route = createFileRoute("/$lang/")({
+  head: ({ params }) => {
+    const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
+    const title =
+      lang === "mt"
+        ? "Vot Malta 2026 — Ivvota b'għarfien"
+        : "Vot Malta 2026 — Make an informed vote";
+    const description = translate(lang, "site.description");
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
+  component: HomePage,
+});
+
+function HomePage() {
+  const t = useT();
+  const { lang } = Route.useParams();
+
+  return (
+    <>
+      <Hero lang={lang as Locale} t={t} />
+      <Principles t={t} />
+      <EntryGrid lang={lang as Locale} t={t} />
+    </>
+  );
+}
+
+function Hero({ lang, t }: { lang: Locale; t: (k: string, v?: Record<string, string | number>) => string }) {
+  return (
+    <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-surface to-background">
+      <div className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <div className="grid gap-10 md:grid-cols-5 md:items-center">
+          <div className="md:col-span-3">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {t("home.hero.eyebrow")}
+            </p>
+            <h1 className="mt-3 font-serif text-4xl font-bold leading-[1.05] text-foreground md:text-6xl">
+              {t("home.hero.title")}
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+              {t("home.hero.subtitle")}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                to={`/${lang}/districts`}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+              >
+                {t("home.hero.ctaCandidates")}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                to={`/${lang}/ask`}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+              >
+                <Sparkles className="h-4 w-4" />
+                {t("home.hero.ctaAsk")}
+              </Link>
+            </div>
+          </div>
+          <div className="md:col-span-2">
+            <Countdown targetIso={ELECTION_DATE_ISO} t={t} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Countdown({
+  targetIso,
+  t,
+}: {
+  targetIso: string;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  const target = new Date(targetIso).getTime();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const diff = Math.max(0, target - now);
+  const days = Math.floor(diff / 86_400_000);
+  const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1000);
+  const passed = diff === 0;
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-card">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {t("home.countdown.label")}
+      </p>
+      <p className="mt-1 font-serif text-2xl font-bold text-foreground">30 · 05 · 2026</p>
+      {passed ? (
+        <p className="mt-4 text-sm text-foreground">{t("home.countdown.passed")}</p>
+      ) : (
+        <div className="mt-5 grid grid-cols-4 gap-2">
+          {[
+            { value: days, label: t("home.countdown.days") },
+            { value: hours, label: t("home.countdown.hours") },
+            { value: minutes, label: t("home.countdown.minutes") },
+            { value: seconds, label: t("home.countdown.seconds") },
+          ].map((cell) => (
+            <div key={cell.label} className="rounded-lg bg-secondary px-2 py-3 text-center">
+              <div className="font-serif text-2xl font-bold tabular-nums text-foreground">
+                {String(cell.value).padStart(2, "0")}
+              </div>
+              <div className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                {cell.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EntryGrid({
+  lang,
+  t,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  const items = [
+    { to: `/${lang}/districts`, icon: Map, title: t("home.entry.districts.title"), desc: t("home.entry.districts.desc") },
+    { to: `/${lang}/parties`, icon: Landmark, title: t("home.entry.parties.title"), desc: t("home.entry.parties.desc") },
+    { to: `/${lang}/sitting-mps`, icon: Users, title: t("home.entry.sitting.title"), desc: t("home.entry.sitting.desc") },
+    { to: `/${lang}/compare`, icon: GitCompareArrows, title: t("home.entry.compare.title"), desc: t("home.entry.compare.desc") },
+    { to: `/${lang}/ask`, icon: Sparkles, title: t("home.entry.ask.title"), desc: t("home.entry.ask.desc") },
+    { to: `/${lang}/developers`, icon: Code2, title: t("home.entry.developers.title"), desc: t("home.entry.developers.desc") },
+  ];
+  return (
+    <section className="container mx-auto max-w-6xl px-4 py-16">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="group flex flex-col rounded-xl border border-border bg-surface p-6 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <item.icon className="h-5 w-5" />
+            </div>
+            <h3 className="mt-4 font-serif text-lg font-semibold text-foreground">{item.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground/70 transition-colors group-hover:text-foreground">
+              {t("common.learnMore")}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Principles({ t }: { t: (k: string, v?: Record<string, string | number>) => string }) {
+  const items = [
+    { icon: ShieldCheck, title: t("home.principles.neutral.title"), desc: t("home.principles.neutral.desc") },
+    { icon: BookOpen, title: t("home.principles.sourced.title"), desc: t("home.principles.sourced.desc") },
+    { icon: Languages, title: t("home.principles.bilingual.title"), desc: t("home.principles.bilingual.desc") },
+    { icon: Database, title: t("home.principles.open.title"), desc: t("home.principles.open.desc") },
+  ];
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="container mx-auto max-w-6xl px-4 py-16">
+        <h2 className="font-serif text-2xl font-bold text-foreground md:text-3xl">
+          {t("home.principles.title")}
+        </h2>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((item) => (
+            <div key={item.title} className="flex flex-col">
+              <item.icon className="h-5 w-5 text-foreground" />
+              <h3 className="mt-3 text-base font-semibold text-foreground">{item.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
