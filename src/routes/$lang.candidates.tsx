@@ -105,7 +105,7 @@ export const Route = createFileRoute("/$lang/candidates")({
 
 function CandidatesPage() {
   const t = useT();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/$lang/candidates" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
   const { candidates, parties, districts } = Route.useLoaderData();
@@ -113,7 +113,7 @@ function CandidatesPage() {
 
   const updateSearch = (patch: Partial<typeof search>) => {
     void navigate({
-      search: (prev) => ({ ...prev, ...patch }),
+      search: { ...search, ...patch },
     });
   };
 
@@ -152,7 +152,7 @@ function CandidatesPage() {
             label={t("candidates.party.label")}
             value={search.party}
             onChange={(value) => updateSearch({ party: value })}
-            options={parties.map((partyOption) => ({
+            options={parties.map((partyOption: PartyOption) => ({
               value: partyOption.id,
               label: partyName(partyOption, locale),
             }))}
@@ -163,7 +163,7 @@ function CandidatesPage() {
             label={t("candidates.district.label")}
             value={search.district}
             onChange={(value) => updateSearch({ district: value })}
-            options={districts.map((districtOption) => ({
+            options={districts.map((districtOption: DistrictOption) => ({
               value: districtOption.id,
               label: districtName(districtOption, locale),
             }))}
@@ -187,7 +187,7 @@ function CandidatesPage() {
 
         {candidates.length > 0 ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {candidates.map((candidate) => (
+            {candidates.map((candidate: CandidateRecord) => (
               <CandidateCard key={candidate.id} candidate={candidate} locale={locale} />
             ))}
           </div>
