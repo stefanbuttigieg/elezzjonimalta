@@ -23,6 +23,7 @@ export function SiteHeader() {
     { to: `/${lang}/candidates`, label: t("nav.candidates") },
     { to: `/${lang}/districts`, label: t("nav.districts") },
     { to: `/${lang}/parties`, label: t("nav.parties") },
+    { to: `/${lang}/proposals`, label: t("nav.proposals") },
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
     { to: `/${lang}/compare`, label: t("nav.compare") },
     { to: `/${lang}/ask`, label: t("nav.askAi") },

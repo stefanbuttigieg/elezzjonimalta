@@ -12,6 +12,7 @@ import {
   BookOpen,
   Languages,
   Database,
+  FileText,
 } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
@@ -183,6 +184,12 @@ function EntryGrid({
       icon: Landmark,
       title: t("home.entry.parties.title"),
       desc: t("home.entry.parties.desc"),
+    },
+    {
+      to: `/${lang}/proposals`,
+      icon: FileText,
+      title: t("proposals.title"),
+      desc: t("proposals.subtitle"),
     },
     {
       to: `/${lang}/sitting-mps`,

@@ -17,11 +17,13 @@ import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
+import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
+import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
@@ -75,6 +77,11 @@ const AdminReviewRoute = AdminReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminProposalsRoute = AdminProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPartiesRoute = AdminPartiesRouteImport.update({
   id: '/parties',
   path: '/parties',
@@ -98,6 +105,11 @@ const LangTermsRoute = LangTermsRouteImport.update({
 const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
   id: '/sitting-mps',
   path: '/sitting-mps',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProposalsRoute = LangProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
   getParentRoute: () => LangRoute,
 } as any)
 const LangPrivacyRoute = LangPrivacyRouteImport.update({
@@ -177,11 +189,13 @@ export interface FileRoutesByFullPath {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
+  '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -202,11 +216,13 @@ export interface FileRoutesByTo {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
+  '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -230,11 +246,13 @@ export interface FileRoutesById {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/parties': typeof LangPartiesRoute
   '/$lang/privacy': typeof LangPrivacyRoute
+  '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
+  '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/auth/login': typeof AuthLoginRoute
@@ -259,11 +277,13 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
+    | '/$lang/proposals'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
+    | '/admin/proposals'
     | '/admin/review'
     | '/admin/roles'
     | '/auth/login'
@@ -284,11 +304,13 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
+    | '/$lang/proposals'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
+    | '/admin/proposals'
     | '/admin/review'
     | '/admin/roles'
     | '/auth/login'
@@ -311,11 +333,13 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/parties'
     | '/$lang/privacy'
+    | '/$lang/proposals'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
+    | '/admin/proposals'
     | '/admin/review'
     | '/admin/roles'
     | '/auth/login'
@@ -388,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReviewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/proposals': {
+      id: '/admin/proposals'
+      path: '/proposals'
+      fullPath: '/admin/proposals'
+      preLoaderRoute: typeof AdminProposalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/parties': {
       id: '/admin/parties'
       path: '/parties'
@@ -421,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/sitting-mps'
       fullPath: '/$lang/sitting-mps'
       preLoaderRoute: typeof LangSittingMpsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/proposals': {
+      id: '/$lang/proposals'
+      path: '/proposals'
+      fullPath: '/$lang/proposals'
+      preLoaderRoute: typeof LangProposalsRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/privacy': {
@@ -523,6 +561,7 @@ interface LangRouteChildren {
   LangDistrictsRoute: typeof LangDistrictsRoute
   LangPartiesRoute: typeof LangPartiesRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
+  LangProposalsRoute: typeof LangProposalsRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
@@ -541,6 +580,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangDistrictsRoute: LangDistrictsRoute,
   LangPartiesRoute: LangPartiesRoute,
   LangPrivacyRoute: LangPrivacyRoute,
+  LangProposalsRoute: LangProposalsRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
@@ -552,6 +592,7 @@ interface AdminRouteChildren {
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
+  AdminProposalsRoute: typeof AdminProposalsRoute
   AdminReviewRoute: typeof AdminReviewRoute
   AdminRolesRoute: typeof AdminRolesRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -561,6 +602,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
+  AdminProposalsRoute: AdminProposalsRoute,
   AdminReviewRoute: AdminReviewRoute,
   AdminRolesRoute: AdminRolesRoute,
   AdminIndexRoute: AdminIndexRoute,
