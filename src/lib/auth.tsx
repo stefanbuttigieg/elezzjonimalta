@@ -52,6 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
       return;
     }
+    const { data: rpcRoles, error: rpcError } = await supabase.rpc("get_my_roles");
+
+    if (!rpcError && Array.isArray(rpcRoles)) {
+      setRoles(rpcRoles as AppRole[]);
+      return;
+    }
+
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
