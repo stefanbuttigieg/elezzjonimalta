@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, Map, Users, Landmark, GitCompareArrows, Sparkles, Code2, ShieldCheck, BookOpen, Languages, Database } from "lucide-react";
+import {
+  ArrowRight,
+  Map,
+  Users,
+  Landmark,
+  GitCompareArrows,
+  Sparkles,
+  Code2,
+  ShieldCheck,
+  BookOpen,
+  Languages,
+  Database,
+} from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
@@ -40,7 +52,13 @@ function HomePage() {
   );
 }
 
-function Hero({ lang, t }: { lang: Locale; t: (k: string, v?: Record<string, string | number>) => string }) {
+function Hero({
+  lang,
+  t,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
   return (
     <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-surface to-background">
       <div className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
@@ -57,7 +75,7 @@ function Hero({ lang, t }: { lang: Locale; t: (k: string, v?: Record<string, str
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to={`/${lang}/districts`}
+                to={`/${lang}/candidates`}
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
               >
                 {t("home.hero.ctaCandidates")}
@@ -148,12 +166,48 @@ function EntryGrid({
   t: (k: string, v?: Record<string, string | number>) => string;
 }) {
   const items = [
-    { to: `/${lang}/districts`, icon: Map, title: t("home.entry.districts.title"), desc: t("home.entry.districts.desc") },
-    { to: `/${lang}/parties`, icon: Landmark, title: t("home.entry.parties.title"), desc: t("home.entry.parties.desc") },
-    { to: `/${lang}/sitting-mps`, icon: Users, title: t("home.entry.sitting.title"), desc: t("home.entry.sitting.desc") },
-    { to: `/${lang}/compare`, icon: GitCompareArrows, title: t("home.entry.compare.title"), desc: t("home.entry.compare.desc") },
-    { to: `/${lang}/ask`, icon: Sparkles, title: t("home.entry.ask.title"), desc: t("home.entry.ask.desc") },
-    { to: `/${lang}/developers`, icon: Code2, title: t("home.entry.developers.title"), desc: t("home.entry.developers.desc") },
+    {
+      to: `/${lang}/candidates`,
+      icon: Users,
+      title: t("candidates.title"),
+      desc: t("candidates.subtitle"),
+    },
+    {
+      to: `/${lang}/districts`,
+      icon: Map,
+      title: t("home.entry.districts.title"),
+      desc: t("home.entry.districts.desc"),
+    },
+    {
+      to: `/${lang}/parties`,
+      icon: Landmark,
+      title: t("home.entry.parties.title"),
+      desc: t("home.entry.parties.desc"),
+    },
+    {
+      to: `/${lang}/sitting-mps`,
+      icon: Users,
+      title: t("home.entry.sitting.title"),
+      desc: t("home.entry.sitting.desc"),
+    },
+    {
+      to: `/${lang}/compare`,
+      icon: GitCompareArrows,
+      title: t("home.entry.compare.title"),
+      desc: t("home.entry.compare.desc"),
+    },
+    {
+      to: `/${lang}/ask`,
+      icon: Sparkles,
+      title: t("home.entry.ask.title"),
+      desc: t("home.entry.ask.desc"),
+    },
+    {
+      to: `/${lang}/developers`,
+      icon: Code2,
+      title: t("home.entry.developers.title"),
+      desc: t("home.entry.developers.desc"),
+    },
   ];
   return (
     <section className="container mx-auto max-w-6xl px-4 py-16">
@@ -182,10 +236,26 @@ function EntryGrid({
 
 function Principles({ t }: { t: (k: string, v?: Record<string, string | number>) => string }) {
   const items = [
-    { icon: ShieldCheck, title: t("home.principles.neutral.title"), desc: t("home.principles.neutral.desc") },
-    { icon: BookOpen, title: t("home.principles.sourced.title"), desc: t("home.principles.sourced.desc") },
-    { icon: Languages, title: t("home.principles.bilingual.title"), desc: t("home.principles.bilingual.desc") },
-    { icon: Database, title: t("home.principles.open.title"), desc: t("home.principles.open.desc") },
+    {
+      icon: ShieldCheck,
+      title: t("home.principles.neutral.title"),
+      desc: t("home.principles.neutral.desc"),
+    },
+    {
+      icon: BookOpen,
+      title: t("home.principles.sourced.title"),
+      desc: t("home.principles.sourced.desc"),
+    },
+    {
+      icon: Languages,
+      title: t("home.principles.bilingual.title"),
+      desc: t("home.principles.bilingual.desc"),
+    },
+    {
+      icon: Database,
+      title: t("home.principles.open.title"),
+      desc: t("home.principles.open.desc"),
+    },
   ];
   return (
     <section className="border-b border-border bg-background">

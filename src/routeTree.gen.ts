@@ -30,6 +30,7 @@ import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
 import { Route as LangCompareRouteImport } from './routes/$lang.compare'
 import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
+import { Route as LangCandidatesRouteImport } from './routes/$lang.candidates'
 import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
@@ -139,6 +140,11 @@ const LangChangelogRoute = LangChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => LangRoute,
 } as any)
+const LangCandidatesRoute = LangCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangAskRoute = LangAskRouteImport.update({
   id: '/ask',
   path: '/ask',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
+  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
+  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
+  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
+    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
+    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
+    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -467,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangChangelogRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/candidates': {
+      id: '/$lang/candidates'
+      path: '/candidates'
+      fullPath: '/$lang/candidates'
+      preLoaderRoute: typeof LangCandidatesRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/ask': {
       id: '/$lang/ask'
       path: '/ask'
@@ -495,6 +514,7 @@ interface LangRouteChildren {
   LangAboutRoute: typeof LangAboutRoute
   LangAccessibilityRoute: typeof LangAccessibilityRoute
   LangAskRoute: typeof LangAskRoute
+  LangCandidatesRoute: typeof LangCandidatesRoute
   LangChangelogRoute: typeof LangChangelogRoute
   LangCompareRoute: typeof LangCompareRoute
   LangContactRoute: typeof LangContactRoute
@@ -512,6 +532,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangAboutRoute: LangAboutRoute,
   LangAccessibilityRoute: LangAccessibilityRoute,
   LangAskRoute: LangAskRoute,
+  LangCandidatesRoute: LangCandidatesRoute,
   LangChangelogRoute: LangChangelogRoute,
   LangCompareRoute: LangCompareRoute,
   LangContactRoute: LangContactRoute,
