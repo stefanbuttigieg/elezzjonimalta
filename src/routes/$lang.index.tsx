@@ -186,6 +186,12 @@ function EntryGrid({
       desc: t("home.entry.parties.desc"),
     },
     {
+      to: `/${lang}/proposals`,
+      icon: FileText,
+      title: t("proposals.title"),
+      desc: t("proposals.subtitle"),
+    },
+    {
       to: `/${lang}/sitting-mps`,
       icon: Users,
       title: t("home.entry.sitting.title"),
