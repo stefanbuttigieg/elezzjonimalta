@@ -365,6 +365,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.viewCandidates": "Ara l-kandidati",
     "districts.viewSource": "Sors: Il-Kummissjoni Elettorali",
     "districts.seats": "5 siġġijiet",
+    "districts.partyBreakdown": "Tqassim skont il-partit",
+    "districts.partyBreakdown.none": "Għadhom ma ġewx irreġistrati affiljazzjonijiet ma' partiti",
+    "districts.partyBreakdown.independent": "Indipendenti",
 
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",
