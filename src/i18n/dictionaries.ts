@@ -12,6 +12,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "An independent, non-partisan tool to research candidates and parties in Malta's 2026 General Election.",
 
     "nav.home": "Home",
+    "nav.candidates": "Candidates",
     "nav.districts": "Districts",
     "nav.parties": "Parties",
     "nav.sittingMps": "Sitting MPs",
@@ -86,6 +87,25 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "A free, documented public API. Use the data in your own research and reporting.",
 
+    "candidates.meta.title": "Candidates — Vot Malta 2026",
+    "candidates.meta.description":
+      "Search published Malta 2026 General Election candidates by name, district, and political party.",
+    "candidates.title": "Candidates",
+    "candidates.subtitle": "Search the published candidate list by district and political party.",
+    "candidates.search.label": "Search",
+    "candidates.search.placeholder": "Candidate name…",
+    "candidates.party.label": "Party",
+    "candidates.party.all": "All parties",
+    "candidates.district.label": "District",
+    "candidates.district.all": "All districts",
+    "candidates.filters.reset": "Reset",
+    "candidates.results": "{count} candidates found",
+    "candidates.empty.title": "No candidates found",
+    "candidates.empty.body": "Try a different name, party, or district filter.",
+    "candidates.unassigned": "Party or district not assigned",
+    "candidates.bio.empty": "Biography pending editorial review.",
+    "candidates.website": "Website",
+
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
     "common.retry": "Try again",
@@ -130,6 +150,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Għodda indipendenti u imparzjali biex tirriċerka l-kandidati u l-partiti fl-Elezzjoni Ġenerali Maltija 2026.",
 
     "nav.home": "Home",
+    "nav.candidates": "Kandidati",
     "nav.districts": "Distretti",
     "nav.parties": "Partiti",
     "nav.sittingMps": "Membri Parlamentari",
@@ -204,6 +225,25 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.title": "Data miftuħa",
     "home.principles.open.desc":
       "API pubbliku, bla ħlas u dokumentat. Uża d-data fir-riċerka u r-rappurtaġġ tiegħek.",
+
+    "candidates.meta.title": "Kandidati — Vot Malta 2026",
+    "candidates.meta.description":
+      "Fittex kandidati ppubblikati għall-Elezzjoni Ġenerali Maltija 2026 skont l-isem, id-distrett u l-partit politiku.",
+    "candidates.title": "Kandidati",
+    "candidates.subtitle": "Fittex il-lista ppubblikata tal-kandidati skont id-distrett u l-partit politiku.",
+    "candidates.search.label": "Fittex",
+    "candidates.search.placeholder": "Isem il-kandidat…",
+    "candidates.party.label": "Partit",
+    "candidates.party.all": "Il-partiti kollha",
+    "candidates.district.label": "Distrett",
+    "candidates.district.all": "Id-distretti kollha",
+    "candidates.filters.reset": "Irrisettja",
+    "candidates.results": "Instabu {count} kandidati",
+    "candidates.empty.title": "Ma nstabux kandidati",
+    "candidates.empty.body": "Ipprova isem, partit jew distrett differenti.",
+    "candidates.unassigned": "Partit jew distrett mhux assenjat",
+    "candidates.bio.empty": "Bijografija pendenti reviżjoni editorjali.",
+    "candidates.website": "Websajt",
 
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",
