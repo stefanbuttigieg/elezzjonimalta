@@ -347,6 +347,55 @@ function DistrictCard({
         </div>
       ) : null}
 
+      <div className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {t("districts.partyBreakdown")}
+        </p>
+        {partyBreakdown.length > 0 ? (
+          <>
+            <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-accent">
+              {partyBreakdown.map((entry) => {
+                const pct = candidateCount > 0 ? (entry.count / candidateCount) * 100 : 0;
+                return (
+                  <span
+                    key={entry.partyId ?? "ind"}
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: entry.color ?? "hsl(var(--muted-foreground))",
+                    }}
+                    title={`${entry.fullName}: ${entry.count}`}
+                  />
+                );
+              })}
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {partyBreakdown.map((entry) => (
+                <li
+                  key={entry.partyId ?? "ind"}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2 py-0.5 text-xs font-semibold text-foreground"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: entry.color ?? "hsl(var(--muted-foreground))" }}
+                  />
+                  <span>
+                    {entry.partyId === null
+                      ? t("districts.partyBreakdown.independent")
+                      : entry.shortName}
+                  </span>
+                  <span className="text-muted-foreground">{entry.count}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t("districts.partyBreakdown.none")}
+          </p>
+        )}
+      </div>
+
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">
         <Link
           to="/$lang/candidates"
