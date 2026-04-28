@@ -22,15 +22,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const ensureAccountRecords = async (user: User | undefined) => {
+    if (!user) return;
+
+    const displayName =
+      typeof user.user_metadata?.display_name === "string"
+        ? user.user_metadata.display_name
+        : user.email;
+
+    await supabase.from("profiles").upsert(
+      {
+        user_id: user.id,
+        email: user.email,
+        display_name: displayName,
+      },
+      { onConflict: "user_id" },
+    );
+
+    await supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: user.id, role: "viewer" },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
+  };
+
   const loadRoles = async (uid: string | undefined) => {
     if (!uid) {
       setRoles([]);
       return;
     }
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid);
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
@@ -40,14 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(newSession);
       // Defer Supabase calls to avoid deadlock
       setTimeout(() => {
-        void loadRoles(newSession?.user.id);
+        void ensureAccountRecords(newSession?.user).finally(() => {
+          void loadRoles(newSession?.user.id);
+        });
       }, 0);
     });
 
     // Then check current session
     void supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      void loadRoles(data.session?.user.id).finally(() => setLoading(false));
+      void ensureAccountRecords(data.session?.user)
+        .finally(() => loadRoles(data.session?.user.id))
+        .finally(() => setLoading(false));
     });
 
     return () => {
