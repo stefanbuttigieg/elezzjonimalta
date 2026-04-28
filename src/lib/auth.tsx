@@ -105,6 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       setSession(newSession);
       const uid = newSession?.user?.id;
+      setRoles([]);
+      setRolesError(null);
+      setRolesLoading(Boolean(uid));
       // Defer Supabase calls to avoid deadlock with onAuthStateChange
       setTimeout(() => {
         if (!mounted) return;
