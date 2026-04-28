@@ -9,6 +9,7 @@ import {
   ClipboardList,
   ShieldCheck,
   LogOut,
+  FileText,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -21,6 +22,7 @@ const items = [
   { to: "/admin/candidates", label: "Candidates", icon: Users },
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
+  { to: "/admin/proposals", label: "Proposals", icon: FileText },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
 ];
 
