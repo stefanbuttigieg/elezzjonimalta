@@ -144,6 +144,30 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
 
     "notFound.title": "Page not found",
     "notFound.body": "The page you're looking for doesn't exist or has been moved.",
+
+    "proposals.meta.title": "Proposals — Vot Malta 2026",
+    "proposals.meta.description":
+      "Browse policy proposals from political parties and candidates running in Malta's 2026 General Election.",
+    "proposals.title": "Proposals",
+    "proposals.subtitle":
+      "Policy proposals put forward by parties and candidates. Each proposal links back to its source.",
+    "proposals.search.placeholder": "Search proposals…",
+    "proposals.filter.scope.label": "Source",
+    "proposals.filter.scope.all": "All sources",
+    "proposals.filter.scope.party": "From parties",
+    "proposals.filter.scope.candidate": "From candidates",
+    "proposals.filter.party.label": "Party",
+    "proposals.filter.party.all": "All parties",
+    "proposals.filter.candidate.label": "Candidate",
+    "proposals.filter.candidate.all": "All candidates",
+    "proposals.filter.category.label": "Category",
+    "proposals.filter.category.all": "All categories",
+    "proposals.results": "{count} proposals found",
+    "proposals.empty.title": "No proposals found",
+    "proposals.empty.body": "Try a different search or filter.",
+    "proposals.from.party": "Party proposal",
+    "proposals.from.candidate": "Candidate proposal",
+    "proposals.viewSource": "View source",
   },
   mt: {
     "site.name": "Vot Malta 2026",
