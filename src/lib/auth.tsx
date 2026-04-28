@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRolesLoading(false);
     } catch (err) {
       console.warn(`loadRoles failed (attempt ${attempt + 1})`, err);
-      // Retry up to 3 times with backoff to handle transient backend errors (e.g. 503)
+      // Retry with backoff to handle transient backend errors (e.g. 503)
       if (attempt < 5) {
         const delay = 500 * Math.pow(2, attempt);
         await new Promise((r) => setTimeout(r, delay));
