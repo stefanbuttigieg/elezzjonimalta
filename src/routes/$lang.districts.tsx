@@ -283,10 +283,12 @@ function DistrictCard({
   district,
   locale,
   candidateCount,
+  partyBreakdown,
 }: {
   district: DistrictRecord;
   locale: Locale;
   candidateCount: number;
+  partyBreakdown: PartyBreakdownEntry[];
 }) {
   const t = useT();
   const name =
