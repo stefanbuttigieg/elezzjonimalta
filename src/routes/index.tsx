@@ -1,26 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/**
+ * Root URL: detect browser language and redirect to /en or /mt.
+ * Defaults to English for non-mt locales.
+ */
 export const Route = createFileRoute("/")({
-  component: Index,
+  beforeLoad: () => {
+    let target: "en" | "mt" = "en";
+    if (typeof navigator !== "undefined") {
+      const langs = (navigator.languages?.length ? navigator.languages : [navigator.language]) ?? [];
+      if (langs.some((l) => l?.toLowerCase().startsWith("mt"))) target = "mt";
+    }
+    throw redirect({ to: "/$lang", params: { lang: target }, replace: true });
+  },
+  component: () => null,
 });
-
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
-}
