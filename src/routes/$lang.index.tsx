@@ -160,7 +160,46 @@ function Hero({
   );
 }
 
-function Countdown({
+function DistrictsMapSection({
+  lang,
+  t,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {t("districts.title")}
+            </p>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-4xl">
+              {t("districts.map.title")}
+            </h2>
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+              {t("districts.map.subtitle")}
+            </p>
+          </div>
+          <Link
+            to="/$lang/districts"
+            params={{ lang }}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/80 hover:text-foreground"
+          >
+            {t("home.hero.ctaCandidates")}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="mt-6">
+          <MaltaDistrictsMap locale={lang} height={420} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
   targetIso,
   t,
 }: {
