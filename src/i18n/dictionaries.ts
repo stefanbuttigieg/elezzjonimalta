@@ -6,8 +6,8 @@ import type { Locale } from "./types";
  */
 export const dictionaries: Record<Locale, Record<string, string>> = {
   en: {
-    "site.name": "Vot Malta 2026",
-    "site.tagline": "Malta General Election — 30 May 2026",
+    "site.name": "Elezzjoni",
+    "site.tagline": "Elezzjoni Ġenerali — 30 May 2026",
     "site.description":
       "An independent, non-partisan tool to research candidates and parties in Malta's 2026 General Election.",
 
@@ -44,7 +44,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.sources":
       "Data sourced from electoral.gov.mt, parlament.mt, party websites, and named news outlets.",
     "footer.lastUpdated": "Last updated",
-    "footer.rights": "© {year} Vot Malta 2026. Open data, attribution required.",
+    "footer.rights": "© {year} Elezzjoni. Open data, attribution required.",
 
     "home.hero.eyebrow": "Malta General Election",
     "home.hero.title": "Make an informed vote",
@@ -90,7 +90,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "A free, documented public API. Use the data in your own research and reporting.",
 
-    "candidates.meta.title": "Candidates — Vot Malta 2026",
+    "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
       "Search published Malta 2026 General Election candidates by name, district, and political party.",
     "candidates.title": "Candidates",
@@ -139,7 +139,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "ask.error.rate": "You're sending messages too quickly. Please wait a moment and try again.",
     "ask.error.credits": "The AI assistant is temporarily unavailable. Please try again later.",
     "ask.error.generic": "Something went wrong. Please try again.",
-    "parties.meta.title": "Political parties — Vot Malta 2026",
+    "parties.meta.title": "Political parties — Elezzjoni",
     "parties.meta.description": "Profiles of political parties contesting Malta's 2026 General Election, with leaders, manifestos and candidates.",
     "parties.title": "Political parties",
     "parties.subtitle": "Profiles of the parties contesting the 2026 General Election.",
@@ -164,7 +164,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "parties.notFound.title": "Party not found",
     "parties.notFound.body": "This party doesn't exist or hasn't been published yet.",
 
-    "districts.meta.title": "Electoral Districts — Vot Malta 2026",
+    "districts.meta.title": "Electoral Districts — Elezzjoni",
     "districts.meta.description":
       "Malta's 13 electoral districts: localities covered, candidates contesting, and source from the Electoral Commission.",
     "districts.title": "Electoral districts",
@@ -191,7 +191,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
     "common.retry": "Try again",
-    "sittingMps.meta.title": "Sitting MPs — Vot Malta 2026",
+    "sittingMps.meta.title": "Sitting MPs — Elezzjoni",
     "sittingMps.meta.description": "Browse Malta's sitting Members of Parliament from the XIV Legislature, with party and district affiliations.",
     "sittingMps.title": "Sitting Members of Parliament",
     "sittingMps.subtitle": "Members of Malta's XIV Legislature (2022–). Sitting MPs are listed here for reference. They are NOT automatically confirmed as candidates for the 2026 election — staff promote each MP to a candidate once their nomination is verified.",
@@ -244,7 +244,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "notFound.title": "Page not found",
     "notFound.body": "The page you're looking for doesn't exist or has been moved.",
 
-    "proposals.meta.title": "Proposals — Vot Malta 2026",
+    "proposals.meta.title": "Proposals — Elezzjoni",
     "proposals.meta.description":
       "Browse policy proposals from political parties and candidates running in Malta's 2026 General Election.",
     "proposals.title": "Proposals",
@@ -319,7 +319,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.noBio": "No biography available yet.",
     "compare.noProposals": "No published proposals yet.",
     "compare.viewProfile": "View full profile",
-    "compare.meta.title": "Compare candidates — Vot Malta 2026",
+    "compare.meta.title": "Compare candidates — Elezzjoni",
     "compare.meta.description":
       "Place Maltese 2026 General Election candidates side by side — party, district, record, biography and proposals.",
 
@@ -341,7 +341,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.maltaelections.title": "Malta Elections — historical results",
     "resources.maltaelections.desc":
       "An open dataset and explorer of Maltese election results going back decades — district by district, party by party, count by count. Indispensable for understanding how districts have voted historically.",
-    "resources.meta.title": "Useful election resources — Vot Malta 2026",
+    "resources.meta.title": "Useful election resources — Elezzjoni",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
 
@@ -387,7 +387,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "developers.eyebrow": "For developers",
     "developers.title": "Public API",
     "developers.intro":
-      "A small, read-only JSON API exposing published Vot Malta 2026 data — parties, electoral districts and candidates. No API key required.",
+      "A small, read-only JSON API exposing published Elezzjoni data — parties, electoral districts and candidates. No API key required.",
     "developers.facts.format": "Format",
     "developers.facts.auth": "Authentication",
     "developers.facts.authValue": "None",
@@ -410,13 +410,13 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "All endpoints return a JSON envelope with a data array and a meta object describing the result.",
     "developers.attribution.title": "Attribution",
     "developers.attribution.body":
-      "Data is open and free to reuse. Please credit \"Vot Malta 2026\" with a link back to the site, and check the About page for sourcing details.",
+      "Data is open and free to reuse. Please credit \"Elezzjoni\" with a link back to the site, and check the About page for sourcing details.",
   },
   mt: {
-    "site.name": "Vot Malta 2026",
-    "site.tagline": "Elezzjoni Ġenerali Maltija — 30 ta' Mejju 2026",
+    "site.name": "Elezzjoni",
+    "site.tagline": "Elezzjoni Ġenerali — 30 ta' Mejju 2026",
     "site.description":
-      "Għodda indipendenti u imparzjali biex tirriċerka l-kandidati u l-partiti fl-Elezzjoni Ġenerali Maltija 2026.",
+      "Għodda indipendenti u imparzjali biex tirriċerka l-kandidati u l-partiti fl-Elezzjoni Ġenerali 2026.",
 
     "nav.home": "Home",
     "nav.candidates": "Kandidati",
@@ -451,7 +451,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.sources":
       "Data minn electoral.gov.mt, parlament.mt, websajts tal-partiti, u sorsi tal-aħbarijiet imsemmija.",
     "footer.lastUpdated": "L-aħħar aġġornament",
-    "footer.rights": "© {year} Vot Malta 2026. Data miftuħa, attribuzzjoni meħtieġa.",
+    "footer.rights": "© {year} Elezzjoni. Data miftuħa, attribuzzjoni meħtieġa.",
 
     "home.hero.eyebrow": "Elezzjoni Ġenerali Maltija",
     "home.hero.title": "Ivvota b'għarfien",
@@ -497,9 +497,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "API pubbliku, bla ħlas u dokumentat. Uża d-data fir-riċerka u r-rappurtaġġ tiegħek.",
 
-    "candidates.meta.title": "Kandidati — Vot Malta 2026",
+    "candidates.meta.title": "Kandidati — Elezzjoni",
     "candidates.meta.description":
-      "Fittex kandidati ppubblikati għall-Elezzjoni Ġenerali Maltija 2026 skont l-isem, id-distrett u l-partit politiku.",
+      "Fittex kandidati ppubblikati għall-Elezzjoni Ġenerali 2026 skont l-isem, id-distrett u l-partit politiku.",
     "candidates.title": "Kandidati",
     "candidates.subtitle":
       "Fittex il-lista ppubblikata tal-kandidati skont id-distrett u l-partit politiku.",
@@ -547,8 +547,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "ask.error.rate": "Qed tibgħat messaġġi malajr wisq. Stenna ftit u erġa' pprova.",
     "ask.error.credits": "L-assistent AI mhux disponibbli temporanjament. Erġa' pprova aktar tard.",
     "ask.error.generic": "Xi ħaġa marret ħażin. Erġa' pprova.",
-    "parties.meta.title": "Partiti politiċi — Vot Malta 2026",
-    "parties.meta.description": "Profili tal-partiti politiċi li qed jikkontestaw l-Elezzjoni Ġenerali ta' Malta 2026, bil-mexxejja, manifesti u kandidati.",
+    "parties.meta.title": "Partiti politiċi — Elezzjoni",
+    "parties.meta.description": "Profili tal-partiti politiċi li qed jikkontestaw l-Elezzjoni Ġenerali tal-2026, bil-mexxejja, manifesti u kandidati.",
     "parties.title": "Partiti politiċi",
     "parties.subtitle": "Profili tal-partiti li qed jikkontestaw l-Elezzjoni Ġenerali tal-2026.",
     "parties.empty": "Għad m'hemmx partiti ppubblikati.",
@@ -572,7 +572,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "parties.notFound.title": "Partit mhux misjub",
     "parties.notFound.body": "Dan il-partit ma jeżistix jew għadu mhux ippubblikat.",
 
-    "districts.meta.title": "Distretti Elettorali — Vot Malta 2026",
+    "districts.meta.title": "Distretti Elettorali — Elezzjoni",
     "districts.meta.description":
       "It-13-il distrett elettorali ta' Malta: il-lokalitajiet, il-kandidati, u s-sors mill-Kummissjoni Elettorali.",
     "districts.title": "Distretti elettorali",
@@ -599,7 +599,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",
     "common.retry": "Erġa' pprova",
-    "sittingMps.meta.title": "Membri Parlamentari — Vot Malta 2026",
+    "sittingMps.meta.title": "Membri Parlamentari — Elezzjoni",
     "sittingMps.meta.description": "Ara l-Membri Parlamentari attwali ta' Malta mil-XIV Leġiżlatura, bl-affiljazzjonijiet tal-partit u d-distrett.",
     "sittingMps.title": "Membri Parlamentari attwali",
     "sittingMps.subtitle": "Membri tal-XIV Leġiżlatura ta' Malta (2022–). Il-Membri Parlamentari attwali huma elenkati hawn għal referenza. Mhumiex awtomatikament ikkonfermati bħala kandidati għall-elezzjoni 2026 — l-istaff jippromwovi lil kull MP bħala kandidat ladarba n-nomina tiegħu tiġi vverifikata.",
@@ -652,9 +652,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "notFound.title": "Paġna mhux misjuba",
     "notFound.body": "Il-paġna li qed tfittex ma teżistix jew ġiet imċaqilqa.",
 
-    "proposals.meta.title": "Proposti — Vot Malta 2026",
+    "proposals.meta.title": "Proposti — Elezzjoni",
     "proposals.meta.description":
-      "Ara l-proposti politiċi tal-partiti u l-kandidati fl-Elezzjoni Ġenerali Maltija 2026.",
+      "Ara l-proposti politiċi tal-partiti u l-kandidati fl-Elezzjoni Ġenerali 2026.",
     "proposals.title": "Proposti",
     "proposals.subtitle":
       "Proposti politiċi mressqa minn partiti u kandidati. Kull proposta tirreferi għas-sors oriġinali.",

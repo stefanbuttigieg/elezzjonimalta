@@ -16,8 +16,8 @@ export const Route = createFileRoute("/$lang")({
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title =
       lang === "mt"
-        ? "Vot Malta 2026 — Irriċerka l-kandidati għall-Elezzjoni Ġenerali"
-        : "Vot Malta 2026 — Research candidates for the General Election";
+        ? "Elezzjoni — Irriċerka l-kandidati għall-Elezzjoni Ġenerali"
+        : "Elezzjoni — Research candidates for the General Election";
     const description = translate(lang, "site.description");
     return {
       meta: [

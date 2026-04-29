@@ -49,8 +49,8 @@ export function SiteHeader() {
           params={{ lang }}
           className="flex items-baseline gap-2 font-serif text-xl font-bold tracking-tight text-foreground"
         >
-          <span>Vot Malta</span>
-          <span className="text-base font-medium text-muted-foreground">2026</span>
+          <span>Elezzjoni</span>
+          <span className="sr-only">2026</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
