@@ -146,7 +146,7 @@ function PartyDetailPage() {
         </div>
       )}
       {/* Cover */}
-      <header className="relative overflow-hidden border-b border-border">
+      <header className="relative border-b border-border">
         {party.cover_image_url ? (
           <div className="relative h-[180px] w-full sm:h-[260px] md:h-[420px]">
             <img
