@@ -437,7 +437,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "common.notFound": "Mhux misjub",
     "common.backHome": "Lura għad-dar",
     "common.sittingMp": "Membru Parlamentari",
-    "common.electoralConfirmed": "Ikkonfermat uffiċjalment",
+    "common.electoralConfirmed": "Ikkonfermat permezz ta' sorsi tal-aħbarijiet",
     "common.partyList": "Fuq il-lista tal-partit",
     "common.draft": "Abbozz",
     "common.viewAll": "Ara kollox",
