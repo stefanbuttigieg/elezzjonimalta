@@ -5,7 +5,10 @@ informed decisions ahead of the general election. It brings candidates,
 sitting MPs, parties, electoral districts, and policy proposals into one
 searchable, comparable, and accessible place.
 
-Live: <https://elezzjoni.app> · Repo: <https://github.com/stefanbuttigieg/>
+Live: <https://elezzjoni.app> · Repo: <https://github.com/stefanbuttigieg/> · Changelog: [CHANGELOG.md](./CHANGELOG.md)
+
+> **Heads up:** the site was previously branded "Vot Malta" and is now
+> **Elezzjoni**. All UI copy, legal pages, and translations have been updated.
 
 ---
 
