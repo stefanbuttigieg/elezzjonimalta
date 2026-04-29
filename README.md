@@ -99,6 +99,28 @@ Candidates who have publicly announced they will not contest the 2026
 election are flagged with a **"Not contesting for 2026"** badge on candidate
 cards and sitting-MP listings, alongside a link to the source announcement.
 
+### Keyboard Shortcuts
+Power users can navigate the site without a mouse. Press `?` anywhere to open
+the in-app shortcut reference. Available shortcuts:
+
+| Key | Action |
+| --- | --- |
+| `?` | Show / hide keyboard shortcuts dialog |
+| `/` | Focus the search field |
+| `h` | Go to home |
+| `c` | Go to candidates |
+| `d` | Go to districts |
+| `p` | Go to parties |
+| `r` | Go to proposals |
+| `m` | Go to sitting MPs |
+| `x` | Go to compare |
+| `a` | Go to Ask AI |
+| `l` | Toggle language (EN ↔ MT) |
+| `Esc` | Close the shortcuts dialog |
+
+Shortcuts are disabled while typing in inputs, textareas, or contenteditable
+fields, and ignore key combinations with `Ctrl`, `Cmd`, or `Alt`.
+
 ---
 
 ## Tech Stack
