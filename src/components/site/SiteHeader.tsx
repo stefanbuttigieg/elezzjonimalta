@@ -152,6 +152,17 @@ export function SiteHeader() {
             className="container mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
             aria-label="Mobile"
           >
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("elezzjoni:open-command-palette"));
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+              {t("nav.search")}
+            </button>
             {navItems.map((item) => (
               <Link
                 key={item.to}
