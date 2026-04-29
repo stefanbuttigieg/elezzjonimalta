@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,8 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesError, setRolesError] = useState<string | null>(null);
+  const roleLoadId = useRef(0);
 
-  const ensureAccountRecords = async (user: User | undefined | null) => {
+  const ensureProfileRecord = async (user: User | undefined | null) => {
     if (!user) return;
 
     const displayName =
@@ -45,58 +46,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       if (error) throw error;
     } catch (err) {
-      console.warn("ensureAccountRecords: profiles upsert failed", err);
-    }
-
-    try {
-      const { error } = await supabase
-        .from("user_roles")
-        .upsert(
-          { user_id: user.id, role: "viewer" },
-          { onConflict: "user_id,role", ignoreDuplicates: true },
-        );
-      if (error) throw error;
-    } catch (err) {
-      console.warn("ensureAccountRecords: user_roles upsert failed", err);
+      console.warn("ensureProfileRecord: profiles upsert failed", err);
     }
   };
 
-  const loadRoles = async (uid: string | undefined | null, attempt = 0): Promise<void> => {
-    if (attempt === 0) {
-      setRolesLoading(true);
-      setRolesError(null);
-    }
+  const loadRoles = useCallback(async (uid: string | undefined | null): Promise<void> => {
+    const requestId = ++roleLoadId.current;
+    setRolesLoading(Boolean(uid));
+    setRolesError(null);
+
     if (!uid) {
       setRoles([]);
       setRolesLoading(false);
       return;
     }
-    try {
-      const { data: rpcRoles, error: rpcError } = await supabase.rpc("get_my_roles");
-      if (!rpcError && Array.isArray(rpcRoles)) {
-        setRoles(rpcRoles as AppRole[]);
+
+    for (let attempt = 0; attempt < 7; attempt += 1) {
+      try {
+        const { data: rpcRoles, error: rpcError } = await supabase.rpc("get_my_roles");
+        if (!rpcError && Array.isArray(rpcRoles)) {
+          if (roleLoadId.current !== requestId) return;
+          setRoles(rpcRoles.filter((role): role is AppRole => ["admin", "editor", "viewer"].includes(role)));
+          setRolesLoading(false);
+          return;
+        }
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", uid);
+        if (error) throw error;
+        if (roleLoadId.current !== requestId) return;
+        setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
         setRolesLoading(false);
         return;
+      } catch (err) {
+        console.warn(`loadRoles failed (attempt ${attempt + 1})`, err);
+        if (attempt < 6) {
+          const delay = Math.min(20_000, 750 * Math.pow(1.8, attempt));
+          await new Promise((r) => setTimeout(r, delay));
+          if (roleLoadId.current !== requestId) return;
+          continue;
+        }
+        if (roleLoadId.current !== requestId) return;
+        setRoles([]);
+        setRolesError(
+          err instanceof Error
+            ? err.message
+            : typeof err === "object" && err && "message" in err
+              ? String((err as { message?: unknown }).message)
+              : "Could not verify your access rights.",
+        );
+        setRolesLoading(false);
       }
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid);
-      if (error) throw error;
-      setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
-      setRolesLoading(false);
-    } catch (err) {
-      console.warn(`loadRoles failed (attempt ${attempt + 1})`, err);
-      // Retry with backoff to handle transient backend errors (e.g. 503)
-      if (attempt < 5) {
-        const delay = 500 * Math.pow(2, attempt);
-        await new Promise((r) => setTimeout(r, delay));
-        return loadRoles(uid, attempt + 1);
-      }
-      setRolesError(err instanceof Error ? err.message : "Could not verify your access rights.");
-      setRolesLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
