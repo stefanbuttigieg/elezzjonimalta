@@ -114,33 +114,72 @@ cards and sitting-MP listings, alongside a link to the source announcement.
 ## Setup
 
 ### Prerequisites
-- [Bun](https://bun.sh) (recommended) or Node 20+
-- A connected Lovable Cloud / Supabase project (the `.env` is generated for
-  you when you open the project in Lovable)
+- [Bun](https://bun.sh) ≥ 1.1 (recommended) or Node.js ≥ 20
+- A connected Lovable Cloud project (Lovable generates `.env` automatically
+  when you open the project in the editor)
 
-### Install
+### 1. Install dependencies
 ```bash
 bun install
+# or: npm install / pnpm install
 ```
 
-### Environment
-The following variables are required and are managed automatically by Lovable
-Cloud:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
+### 2. Environment variables
+The app reads its backend config from Vite-style environment variables. When
+working inside Lovable these are managed for you in `.env` and must not be
+edited by hand. For local development outside Lovable, create a `.env` file
+at the project root with:
 
-Do **not** edit `.env`, `src/integrations/supabase/client.ts`, or
-`src/integrations/supabase/types.ts` by hand — they are regenerated.
-
-### Run locally
 ```bash
-bun run dev          # start Vite dev server
-bun run build        # production build
-bun run preview      # preview the production build
-bun run lint         # eslint
-bun run format       # prettier
+# Public (browser-visible) — required
+VITE_SUPABASE_URL="https://<project-ref>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="<anon/publishable key>"
+VITE_SUPABASE_PROJECT_ID="<project-ref>"
+
+# Server-only (used by createServerFn handlers / SSR) — required for
+# server-side reads, auth middleware, and admin operations
+SUPABASE_URL="https://<project-ref>.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="<anon/publishable key>"
+SUPABASE_SERVICE_ROLE_KEY="<service role key — server only, never expose>"
 ```
+
+Notes:
+- `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. Keep it server-only — never
+  prefix it with `VITE_` and never import it from client code.
+- The Lovable AI gateway and the FireCrawl connector are configured through
+  Lovable Cloud secrets (`LOVABLE_API_KEY`, `FIRECRAWL_API_KEY`) and do not
+  need to be set locally unless you are exercising those code paths.
+- Do **not** edit `.env`, `src/integrations/supabase/client.ts`, or
+  `src/integrations/supabase/types.ts` by hand — they are regenerated.
+
+### 3. Run locally
+```bash
+bun run dev          # Vite dev server (TanStack Start, SSR-enabled)
+bun run build        # production build (Cloudflare Workers target)
+bun run build:dev    # development-mode build (source maps, no minify)
+bun run preview      # preview the production build
+bun run lint         # ESLint
+bun run format       # Prettier
+```
+
+The dev server prints a local URL (typically <http://localhost:5173>). Routes
+are file-based under `src/routes/` and the route tree
+(`src/routeTree.gen.ts`) is regenerated automatically — do not edit it.
+
+### 4. Deployment
+
+The app targets **Cloudflare Workers** (edge SSR) via
+`@cloudflare/vite-plugin` and is published through Lovable.
+
+- **Frontend changes** (UI, client code, styles): deploy by clicking
+  **Publish → Update** in the Lovable editor.
+- **Backend changes** (database migrations, edge functions, server
+  functions): deploy automatically on save — no manual publish step needed.
+
+Stable URLs:
+- Production: <https://elezzjoni.app> · <https://www.elezzjoni.app>
+- Lovable preview: `https://project--<project-id>-dev.lovable.app`
+- Lovable production: `https://project--<project-id>.lovable.app`
 
 ### Project structure
 ```
@@ -155,7 +194,7 @@ src/
     site/                  # site-specific components (LocalityPicker, header, footer, …)
     ui/                    # shadcn-style primitives
   i18n/                    # EN / MT translations
-  integrations/supabase/   # auto-generated client & types
+  integrations/supabase/   # auto-generated client & types (do not edit)
   styles.css               # Tailwind v4 + design tokens
 supabase/
   migrations/              # database migrations
