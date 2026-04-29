@@ -633,6 +633,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "sittingMps.promote.success": "Ġie promoss għal kandidat",
     "sittingMps.demote.success": "Tneħħa mill-kandidati",
     "sittingMps.promote.error": "Ma stajniex naġġornaw l-istatus tal-kandidat",
+    "sittingMps.notContesting": "Mhux se jikkontesta l-2026",
+    "sittingMps.notContestingSource": "Aqra l-aħbar",
+
     "common.notFound": "Mhux misjub",
     "common.backHome": "Lura għad-dar",
     "common.sittingMp": "Membru Parlamentari",
