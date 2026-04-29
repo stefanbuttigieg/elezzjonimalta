@@ -311,7 +311,7 @@ function CandidateEditor({
       if (!v.full_name) throw new Error("Full name is required");
       const primaryDistrict =
         v.primary_district_id ||
-        (districtIds.length > 0 ? districtIds[0] : null);
+        (effectiveDistrictIds.length > 0 ? effectiveDistrictIds[0] : null);
       const payload = {
         slug: v.slug || slugify(v.full_name),
         full_name: v.full_name,
