@@ -184,7 +184,7 @@ function HeaderSearch({ lang }: { lang: Locale }) {
       onSubmit={submit}
       role="search"
       aria-label={t("nav.search")}
-      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary md:inline-flex"
+      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary lg:inline-flex"
     >
       <Search className="h-3.5 w-3.5 text-muted-foreground" />
       <input
