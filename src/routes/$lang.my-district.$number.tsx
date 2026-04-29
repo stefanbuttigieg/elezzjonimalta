@@ -101,6 +101,10 @@ async function loadMyDistrict(rawNumber: string): Promise<{
   }>) {
     const c = link.candidate;
     if (!c || c.status !== "published") continue;
+    // Sitting MPs (incumbents) only appear on a district page once they've
+    // been confirmed as contesting the 2026 election. Non-incumbents always
+    // show, since they wouldn't be in candidate_districts otherwise.
+    if (c.is_incumbent && !c.electoral_confirmed) continue;
     if (!byId.has(c.id)) byId.set(c.id, c);
   }
 
