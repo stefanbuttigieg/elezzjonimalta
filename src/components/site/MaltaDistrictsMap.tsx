@@ -38,15 +38,27 @@ export function MaltaDistrictsMap({
         const L = (await import("leaflet")).default;
         await import("leaflet/dist/leaflet.css");
 
-        const res = await fetch("/data/malta-districts.geojson");
-        const data = (await res.json()) as GeoJSON.FeatureCollection;
+        const res = await fetch("/data/malta-districts.geojson").catch(
+          () => null
+        );
         if (cancelled || !containerRef.current) return;
+
+        // Malta bounding box (SW, NE) — covers Malta, Gozo and Comino
+        const maltaBounds = L.latLngBounds(
+          L.latLng(35.78, 14.17),
+          L.latLng(36.10, 14.59)
+        );
 
         const map = L.map(containerRef.current, {
           zoomControl: true,
           scrollWheelZoom: false,
           attributionControl: true,
+          minZoom: 10,
+          maxBounds: maltaBounds.pad(0.5),
         });
+
+        // Always center on Malta first so the map is useful even if GeoJSON fails.
+        map.fitBounds(maltaBounds, { padding: [12, 12] });
 
         L.tileLayer(
           "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -73,6 +85,23 @@ export function MaltaDistrictsMap({
           weight: 2.5,
           fillOpacity: 0.45,
         };
+
+        cleanup = () => {
+          map.remove();
+        };
+
+        if (!res || !res.ok) {
+          // Tiles + Malta view are enough; skip overlay until GeoJSON is ready.
+          return;
+        }
+
+        let data: GeoJSON.FeatureCollection;
+        try {
+          data = (await res.json()) as GeoJSON.FeatureCollection;
+        } catch {
+          return;
+        }
+        if (cancelled) return;
 
         const layer = L.geoJSON(data as GeoJSON.GeoJsonObject, {
           style: () => baseStyle,
@@ -106,11 +135,10 @@ export function MaltaDistrictsMap({
           },
         }).addTo(map);
 
-        map.fitBounds(layer.getBounds(), { padding: [12, 12] });
-
-        cleanup = () => {
-          map.remove();
-        };
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [12, 12] });
+        }
       } catch (e) {
         console.error("Failed to load Malta districts map", e);
         if (!cancelled) setError("map_failed");
