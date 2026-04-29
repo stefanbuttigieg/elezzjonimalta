@@ -228,7 +228,7 @@ function CandidatePage() {
               </h2>
               {proposals.length > 0 ? (
                 <ul className="mt-3 space-y-3">
-                  {proposals.map((p) => {
+                  {proposals.map((p: ProposalRow) => {
                     const title =
                       locale === "mt" ? p.title_mt || p.title_en : p.title_en || p.title_mt;
                     const desc =
