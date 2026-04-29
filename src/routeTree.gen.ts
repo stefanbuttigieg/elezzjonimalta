@@ -20,8 +20,10 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
 import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
+import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
@@ -103,6 +105,11 @@ const AdminPartiesRoute = AdminPartiesRouteImport.update({
   path: '/parties',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNewsRoute = AdminNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
@@ -111,6 +118,11 @@ const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
@@ -259,8 +271,10 @@ export interface FileRoutesByFullPath {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -297,8 +311,10 @@ export interface FileRoutesByTo {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -338,8 +354,10 @@ export interface FileRoutesById {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -380,8 +398,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -418,8 +438,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -458,8 +480,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -569,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPartiesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/news': {
+      id: '/admin/news'
+      path: '/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/districts': {
       id: '/admin/districts'
       path: '/districts'
@@ -581,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/candidates'
       fullPath: '/admin/candidates'
       preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/api-logs': {
@@ -813,8 +851,10 @@ const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
+  AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
   AdminProposalsRoute: typeof AdminProposalsRoute
   AdminReviewRoute: typeof AdminReviewRoute
@@ -825,8 +865,10 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
+  AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
   AdminProposalsRoute: AdminProposalsRoute,
   AdminReviewRoute: AdminReviewRoute,

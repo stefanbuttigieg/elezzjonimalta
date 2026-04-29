@@ -24,6 +24,8 @@ import {
   ChevronRight,
   Home,
   Activity,
+  Newspaper,
+  History,
 } from "lucide-react";
 import {
   Sheet,
