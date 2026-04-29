@@ -147,7 +147,10 @@ async function main() {
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
     body: "data=" + encodeURIComponent(OVERPASS_QUERY),
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "elezzjoni-app/1.0 (district map builder)",
+    },
   });
   if (!res.ok) throw new Error(`Overpass HTTP ${res.status}`);
   const osm = await res.json();
