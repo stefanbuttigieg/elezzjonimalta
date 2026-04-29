@@ -724,6 +724,45 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.meta.title": "Riżorsi utli għall-elezzjoni — Vot Malta 2026",
     "resources.meta.description":
       "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali Maltija 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
+
+    "nav.myDistrict": "Distrett {number}",
+
+    "home.locality.label": "Fejn tivvota?",
+    "home.locality.placeholder": "Ikteb il-lokalità jew in-numru tad-distrett tiegħek…",
+    "home.locality.go": "Mur",
+    "home.locality.quickPick": "Jew agħżel distrett:",
+    "home.locality.showAll": "Uri kollha",
+    "home.locality.optionDistrict": "Distrett {number} — {name}",
+    "home.locality.optionDistrictHint": "Iftaħ il-paġna tad-distrett",
+    "home.locality.optionLocalityHint": "Distrett {number} · {name}",
+
+    "home.welcomeBack": "Merħba lura — id-distrett tiegħek hu {number}.",
+    "home.welcomeBack.cta": "Iftaħ id-distrett tiegħi",
+    "home.welcomeBack.clear": "Ibdel",
+
+    "myDistrict.eyebrow": "Id-distrett tiegħek",
+    "myDistrict.heading": "Distrett {number} — {name}",
+    "myDistrict.changeDistrict": "Ibdel id-distrett",
+    "myDistrict.candidates.title": "Kandidati li qed jikkontestaw hawn",
+    "myDistrict.candidates.empty":
+      "Għadhom ma ġewx ikkonfermati kandidati pubblikati għal dan id-distrett. Erġa' ċċekkja dalwaqt.",
+    "myDistrict.candidates.confirmed": "Kandidat ikkonfermat",
+    "myDistrict.candidates.prospective": "Kandidat prospettiv",
+    "myDistrict.candidates.incumbent": "Membru Parlamentari attwali",
+    "myDistrict.compareCta": "Qabbel il-kandidati",
+    "myDistrict.proposals.title": "X'qed iwiegħdu l-partiti hawn",
+    "myDistrict.proposals.empty":
+      "Għadhom ma ġewx ippubblikati proposti mill-partiti li qed jikkontestaw dan id-distrett.",
+    "myDistrict.proposals.seeAll": "Ara l-proposti kollha →",
+    "myDistrict.askCta.title": "Għandek mistoqsija?",
+    "myDistrict.askCta.body":
+      "Staqsi lill-assistent AI dwar il-kandidati, il-partiti jew il-proposti fid-distrett tiegħek.",
+    "myDistrict.askCta.button": "Staqsi lill-assistent",
+    "myDistrict.disclaimer":
+      "L-informazzjoni murija għad-Distrett {number} ġejja minn electoral.gov.mt, parlament.mt, websajts tal-partiti u ġurnali msemmijin.",
+    "myDistrict.notFound.title": "Id-distrett ma nstabx",
+    "myDistrict.notFound.body":
+      "Ma stajniex insibu dak id-distrett. Agħżel wieħed mil-lista tad-distretti elettorali Maltin.",
   },
 };
 
