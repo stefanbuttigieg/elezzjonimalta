@@ -344,6 +344,45 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.meta.title": "Useful election resources — Vot Malta 2026",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
+
+    "nav.myDistrict": "District {number}",
+
+    "home.locality.label": "Where do you vote?",
+    "home.locality.placeholder": "Type your locality or district number…",
+    "home.locality.go": "Go",
+    "home.locality.quickPick": "Or pick a district:",
+    "home.locality.showAll": "Show all",
+    "home.locality.optionDistrict": "District {number} — {name}",
+    "home.locality.optionDistrictHint": "Open the district hub",
+    "home.locality.optionLocalityHint": "District {number} · {name}",
+
+    "home.welcomeBack": "Welcome back — your district is {number}.",
+    "home.welcomeBack.cta": "Open my district",
+    "home.welcomeBack.clear": "Change",
+
+    "myDistrict.eyebrow": "Your district",
+    "myDistrict.heading": "District {number} — {name}",
+    "myDistrict.changeDistrict": "Change district",
+    "myDistrict.candidates.title": "Candidates contesting here",
+    "myDistrict.candidates.empty":
+      "No published candidates have been confirmed for this district yet. Check back soon.",
+    "myDistrict.candidates.confirmed": "Confirmed candidate",
+    "myDistrict.candidates.prospective": "Prospective candidate",
+    "myDistrict.candidates.incumbent": "Sitting MP",
+    "myDistrict.compareCta": "Compare candidates",
+    "myDistrict.proposals.title": "What parties here are promising",
+    "myDistrict.proposals.empty":
+      "No proposals have been published yet from parties contesting this district.",
+    "myDistrict.proposals.seeAll": "See all proposals →",
+    "myDistrict.askCta.title": "Got a question?",
+    "myDistrict.askCta.body":
+      "Ask the AI assistant about candidates, parties or proposals in your district.",
+    "myDistrict.askCta.button": "Ask the assistant",
+    "myDistrict.disclaimer":
+      "Information shown for District {number} is sourced from electoral.gov.mt, parlament.mt, party websites and named news outlets.",
+    "myDistrict.notFound.title": "District not found",
+    "myDistrict.notFound.body":
+      "We couldn't find that district. Pick one from the list of Maltese electoral districts.",
   },
   mt: {
     "site.name": "Vot Malta 2026",
@@ -685,6 +724,45 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.meta.title": "Riżorsi utli għall-elezzjoni — Vot Malta 2026",
     "resources.meta.description":
       "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali Maltija 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
+
+    "nav.myDistrict": "Distrett {number}",
+
+    "home.locality.label": "Fejn tivvota?",
+    "home.locality.placeholder": "Ikteb il-lokalità jew in-numru tad-distrett tiegħek…",
+    "home.locality.go": "Mur",
+    "home.locality.quickPick": "Jew agħżel distrett:",
+    "home.locality.showAll": "Uri kollha",
+    "home.locality.optionDistrict": "Distrett {number} — {name}",
+    "home.locality.optionDistrictHint": "Iftaħ il-paġna tad-distrett",
+    "home.locality.optionLocalityHint": "Distrett {number} · {name}",
+
+    "home.welcomeBack": "Merħba lura — id-distrett tiegħek hu {number}.",
+    "home.welcomeBack.cta": "Iftaħ id-distrett tiegħi",
+    "home.welcomeBack.clear": "Ibdel",
+
+    "myDistrict.eyebrow": "Id-distrett tiegħek",
+    "myDistrict.heading": "Distrett {number} — {name}",
+    "myDistrict.changeDistrict": "Ibdel id-distrett",
+    "myDistrict.candidates.title": "Kandidati li qed jikkontestaw hawn",
+    "myDistrict.candidates.empty":
+      "Għadhom ma ġewx ikkonfermati kandidati pubblikati għal dan id-distrett. Erġa' ċċekkja dalwaqt.",
+    "myDistrict.candidates.confirmed": "Kandidat ikkonfermat",
+    "myDistrict.candidates.prospective": "Kandidat prospettiv",
+    "myDistrict.candidates.incumbent": "Membru Parlamentari attwali",
+    "myDistrict.compareCta": "Qabbel il-kandidati",
+    "myDistrict.proposals.title": "X'qed iwiegħdu l-partiti hawn",
+    "myDistrict.proposals.empty":
+      "Għadhom ma ġewx ippubblikati proposti mill-partiti li qed jikkontestaw dan id-distrett.",
+    "myDistrict.proposals.seeAll": "Ara l-proposti kollha →",
+    "myDistrict.askCta.title": "Għandek mistoqsija?",
+    "myDistrict.askCta.body":
+      "Staqsi lill-assistent AI dwar il-kandidati, il-partiti jew il-proposti fid-distrett tiegħek.",
+    "myDistrict.askCta.button": "Staqsi lill-assistent",
+    "myDistrict.disclaimer":
+      "L-informazzjoni murija għad-Distrett {number} ġejja minn electoral.gov.mt, parlament.mt, websajts tal-partiti u ġurnali msemmijin.",
+    "myDistrict.notFound.title": "Id-distrett ma nstabx",
+    "myDistrict.notFound.body":
+      "Ma stajniex insibu dak id-distrett. Agħżel wieħed mil-lista tad-distretti elettorali Maltin.",
   },
 };
 

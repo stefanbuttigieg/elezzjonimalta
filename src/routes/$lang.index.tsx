@@ -13,10 +13,18 @@ import {
   Languages,
   Database,
   FileText,
+  MapPin,
+  X,
 } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
+import { LocalityPicker } from "@/components/site/LocalityPicker";
+import {
+  clearPreferredDistrict,
+  getPreferredDistrict,
+  type PreferredDistrict,
+} from "@/lib/preferredDistrict";
 
 const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
 
@@ -43,12 +51,54 @@ export const Route = createFileRoute("/$lang/")({
 function HomePage() {
   const t = useT();
   const { lang } = Route.useParams();
+  const locale: Locale = isLocale(lang) ? lang : "en";
+  const [preferred, setPreferred] = useState<PreferredDistrict | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setPreferred(getPreferredDistrict());
+    setHydrated(true);
+  }, []);
 
   return (
     <>
-      <Hero lang={lang as Locale} t={t} />
+      {hydrated && preferred ? (
+        <div className="border-b border-border bg-primary/5">
+          <div className="container mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <p className="flex items-center gap-2 text-sm text-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              {t("home.welcomeBack", {
+                number: preferred.number,
+                locality: preferred.locality ?? "",
+              })}
+            </p>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/$lang/my-district/$number"
+                params={{ lang: locale, number: String(preferred.number) }}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                {t("home.welcomeBack.cta")}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  clearPreferredDistrict();
+                  setPreferred(null);
+                }}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+                aria-label={t("home.welcomeBack.clear")}
+              >
+                <X className="h-3 w-3" />
+                {t("home.welcomeBack.clear")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      <Hero lang={locale} t={t} />
       <Principles t={t} />
-      <EntryGrid lang={lang as Locale} t={t} />
+      <EntryGrid lang={locale} t={t} />
     </>
   );
 }
@@ -74,21 +124,27 @@ function Hero({
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
               {t("home.hero.subtitle")}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+
+            <div className="mt-8">
+              <LocalityPicker lang={lang} />
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
               <Link
                 to="/$lang/candidates"
                 params={{ lang }}
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+                className="inline-flex items-center gap-1.5 font-semibold text-foreground/80 hover:text-foreground"
               >
                 {t("home.hero.ctaCandidates")}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
+              <span className="text-muted-foreground">·</span>
               <Link
                 to="/$lang/ask"
                 params={{ lang }}
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+                className="inline-flex items-center gap-1.5 font-semibold text-foreground/80 hover:text-foreground"
               >
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="h-3.5 w-3.5" />
                 {t("home.hero.ctaAsk")}
               </Link>
             </div>
