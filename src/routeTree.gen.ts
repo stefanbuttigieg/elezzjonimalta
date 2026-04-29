@@ -26,7 +26,6 @@ import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
-import { Route as LangPartiesRouteImport } from './routes/$lang.parties'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
@@ -37,6 +36,7 @@ import { Route as LangCandidatesRouteImport } from './routes/$lang.candidates'
 import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
+import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
 
 const AdminRoute = AdminRouteImport.update({
@@ -124,11 +124,6 @@ const LangPrivacyRoute = LangPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => LangRoute,
 } as any)
-const LangPartiesRoute = LangPartiesRouteImport.update({
-  id: '/parties',
-  path: '/parties',
-  getParentRoute: () => LangRoute,
-} as any)
 const LangDistrictsRoute = LangDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
@@ -179,10 +174,15 @@ const LangAboutRoute = LangAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => LangRoute,
 } as any)
+const LangPartiesIndexRoute = LangPartiesIndexRouteImport.update({
+  id: '/parties/',
+  path: '/parties/',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => LangPartiesRoute,
+  id: '/parties/$slug',
+  path: '/parties/$slug',
+  getParentRoute: () => LangRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -199,7 +199,6 @@ export interface FileRoutesByFullPath {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/search': typeof LangSearchRoute
@@ -215,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/parties/': typeof LangPartiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -228,7 +228,6 @@ export interface FileRoutesByTo {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/search': typeof LangSearchRoute
@@ -244,6 +243,7 @@ export interface FileRoutesByTo {
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/parties': typeof LangPartiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -260,7 +260,6 @@ export interface FileRoutesById {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/parties': typeof LangPartiesRouteWithChildren
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/search': typeof LangSearchRoute
@@ -276,6 +275,7 @@ export interface FileRoutesById {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/parties/': typeof LangPartiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -293,7 +293,6 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
-    | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/search'
@@ -309,6 +308,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/parties/$slug'
+    | '/$lang/parties/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -322,7 +322,6 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
-    | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/search'
@@ -338,6 +337,7 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/$lang/parties/$slug'
+    | '/$lang/parties'
   id:
     | '__root__'
     | '/'
@@ -353,7 +353,6 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
-    | '/$lang/parties'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/search'
@@ -369,6 +368,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/parties/$slug'
+    | '/$lang/parties/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -499,13 +499,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangPrivacyRouteImport
       parentRoute: typeof LangRoute
     }
-    '/$lang/parties': {
-      id: '/$lang/parties'
-      path: '/parties'
-      fullPath: '/$lang/parties'
-      preLoaderRoute: typeof LangPartiesRouteImport
-      parentRoute: typeof LangRoute
-    }
     '/$lang/districts': {
       id: '/$lang/districts'
       path: '/districts'
@@ -576,27 +569,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangAboutRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/parties/': {
+      id: '/$lang/parties/'
+      path: '/parties'
+      fullPath: '/$lang/parties/'
+      preLoaderRoute: typeof LangPartiesIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/parties/$slug': {
       id: '/$lang/parties/$slug'
-      path: '/$slug'
+      path: '/parties/$slug'
       fullPath: '/$lang/parties/$slug'
       preLoaderRoute: typeof LangPartiesSlugRouteImport
-      parentRoute: typeof LangPartiesRoute
+      parentRoute: typeof LangRoute
     }
   }
 }
-
-interface LangPartiesRouteChildren {
-  LangPartiesSlugRoute: typeof LangPartiesSlugRoute
-}
-
-const LangPartiesRouteChildren: LangPartiesRouteChildren = {
-  LangPartiesSlugRoute: LangPartiesSlugRoute,
-}
-
-const LangPartiesRouteWithChildren = LangPartiesRoute._addFileChildren(
-  LangPartiesRouteChildren,
-)
 
 interface LangRouteChildren {
   LangAboutRoute: typeof LangAboutRoute
@@ -609,13 +597,14 @@ interface LangRouteChildren {
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
-  LangPartiesRoute: typeof LangPartiesRouteWithChildren
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
   LangSearchRoute: typeof LangSearchRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
+  LangPartiesSlugRoute: typeof LangPartiesSlugRoute
+  LangPartiesIndexRoute: typeof LangPartiesIndexRoute
 }
 
 const LangRouteChildren: LangRouteChildren = {
@@ -629,13 +618,14 @@ const LangRouteChildren: LangRouteChildren = {
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
-  LangPartiesRoute: LangPartiesRouteWithChildren,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
   LangSearchRoute: LangSearchRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
+  LangPartiesSlugRoute: LangPartiesSlugRoute,
+  LangPartiesIndexRoute: LangPartiesIndexRoute,
 }
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
