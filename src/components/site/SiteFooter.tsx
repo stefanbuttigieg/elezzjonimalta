@@ -38,7 +38,7 @@ export function SiteFooter() {
               params={{ lang }}
               className="font-serif text-lg font-bold text-foreground"
             >
-              Vot Malta 2026
+              Elezzjoni
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               {t("footer.disclaimer")}

@@ -31,17 +31,17 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vot Malta 2026 — Research candidates for the General Election" },
+      { title: "Elezzjoni — Research candidates for the General Election" },
       {
         name: "description",
         content:
           "Independent, bilingual tool to research candidates and parties in Malta's 2026 General Election.",
       },
-      { name: "author", content: "Vot Malta 2026" },
+      { name: "author", content: "Elezzjoni" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Vot Malta 2026 — Research candidates for the General Election" },
-      { name: "twitter:title", content: "Vot Malta 2026 — Research candidates for the General Election" },
+      { property: "og:title", content: "Elezzjoni — Research candidates for the General Election" },
+      { name: "twitter:title", content: "Elezzjoni — Research candidates for the General Election" },
       { name: "description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
       { property: "og:description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
       { name: "twitter:description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
