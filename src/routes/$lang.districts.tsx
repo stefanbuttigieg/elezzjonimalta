@@ -201,6 +201,27 @@ function DistrictsPage() {
           </a>
         </div>
 
+        <div className="mt-8">
+          <h2 className="font-serif text-2xl font-bold text-foreground">
+            {t("districts.map.title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("districts.map.subtitle")}
+          </p>
+          <div className="mt-4">
+            <MaltaDistrictsMap
+              locale={locale}
+              candidateCounts={Object.fromEntries(
+                districts.map((d: DistrictRecord) => [
+                  d.number,
+                  candidateCounts[d.id] ?? 0,
+                ]),
+              )}
+              height={460}
+            />
+          </div>
+        </div>
+
         <div className="mt-8 grid gap-3 rounded-xl border border-border bg-surface p-4 shadow-card md:grid-cols-[1.6fr_1fr_auto] md:items-end">
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
