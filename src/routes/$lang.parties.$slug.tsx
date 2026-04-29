@@ -78,6 +78,7 @@ async function loadParty(slug: string) {
       )
       .eq("party_id", party.id)
       .eq("status", "published")
+      .eq("electoral_confirmed", true)
       .order("full_name", { ascending: true })
       .limit(60),
   ]);
