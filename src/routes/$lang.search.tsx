@@ -44,7 +44,7 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
   if (term.length < 2) return [];
   const like = `%${escapeLike(term)}%`;
 
-  const [candRes, partyRes, propRes] = await Promise.all([
+  const [candRes, partyRes, propRes, distRes] = await Promise.all([
     supabase
       .from("candidates")
       .select(
@@ -73,6 +73,14 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
         `title_en.ilike.${like},title_mt.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like},category.ilike.${like}`,
       )
       .limit(40),
+    supabase
+      .from("districts")
+      .select("id, number, name_en, name_mt, localities_en, localities_mt")
+      .eq("status", "published")
+      .or(
+        `name_en.ilike.${like},name_mt.ilike.${like},localities_en.ilike.${like},localities_mt.ilike.${like}`,
+      )
+      .limit(20),
   ]);
 
   const results: SearchResult[] = [];
