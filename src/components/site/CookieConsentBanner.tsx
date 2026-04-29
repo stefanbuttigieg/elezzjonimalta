@@ -50,7 +50,8 @@ export function CookieConsentBanner() {
           <p id="cookie-body" className="mt-1 text-sm text-muted-foreground">
             {t("cookies.banner.body")}{" "}
             <Link
-              to={`/${lang}/cookies`}
+              to="/$lang/cookies"
+              params={{ lang }}
               className="font-medium text-foreground underline-offset-2 hover:underline"
             >
               {t("cookies.banner.policy")}
