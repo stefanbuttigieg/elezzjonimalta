@@ -332,6 +332,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.tag.official": "Official",
     "resources.tag.civic": "Civic tool",
     "resources.tag.data": "Data & history",
+    "resources.tag.news": "News",
     "resources.votmt.title": "vot.mt — Voter Advice Application",
     "resources.votmt.desc":
       "An independent voter advice tool that matches you with parties and candidates based on where you stand on key Maltese policy questions. Useful for exploring how your views align with each contestant before election day.",
@@ -341,6 +342,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.maltaelections.title": "Malta Elections — historical results",
     "resources.maltaelections.desc":
       "An open dataset and explorer of Maltese election results going back decades — district by district, party by party, count by count. Indispensable for understanding how districts have voted historically.",
+    "resources.filqosor.title": "Fil-Qosor — Malta news without the spin",
+    "resources.filqosor.desc":
+      "An AI-powered news digest that reads every Maltese news outlet and summarises each story from every angle, with bias indicators. Useful for getting a balanced view of campaign coverage and political developments without wading through partisan reporting.",
     "resources.meta.title": "Useful election resources — Elezzjoni",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
@@ -740,6 +744,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.tag.official": "Uffiċjali",
     "resources.tag.civic": "Għodda ċivika",
     "resources.tag.data": "Data u storja",
+    "resources.tag.news": "Aħbarijiet",
     "resources.votmt.title": "vot.mt — Għodda ta' Pariri għall-Vot",
     "resources.votmt.desc":
       "Għodda indipendenti li tqabblek ma' partiti u kandidati skont il-pożizzjoni tiegħek fuq mistoqsijiet ċentrali tal-politika Maltija. Tajba biex tesplora kemm tikkonċilja l-fehmiet tiegħek ma' kull kontestatur qabel jum l-elezzjoni.",
@@ -749,6 +754,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.maltaelections.title": "Malta Elections — riżultati storiċi",
     "resources.maltaelections.desc":
       "Dataset miftuħ u explorer tar-riżultati elettorali Maltin li jmorru lura għexieren ta' snin — distrett b'distrett, partit b'partit, għadd b'għadd. Indispensabbli biex tifhem kif ivvutaw id-distretti tul iż-żmien.",
+    "resources.filqosor.title": "Fil-Qosor — l-aħbarijiet ta' Malta mingħajr spin",
+    "resources.filqosor.desc":
+      "Digest tal-aħbarijiet ibbażat fuq AI li jaqra kull mezz tal-aħbarijiet Malti u jiġbor fil-qosor kull storja minn kull angolu, b'indikaturi tal-preġudizzju. Utli biex tikseb stampa bilanċjata tal-kopertura tal-kampanja mingħajr ma tgħaddi minn rappurtaġġ partiġjan.",
     "resources.meta.title": "Riżorsi utli għall-elezzjoni — Elezzjoni",
     "resources.meta.description":
       "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",

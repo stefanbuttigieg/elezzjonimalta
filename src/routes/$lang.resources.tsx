@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink, Globe, Landmark, BarChart3 } from "lucide-react";
+import { ExternalLink, Globe, Landmark, BarChart3, Newspaper } from "lucide-react";
 import type { ComponentType } from "react";
 import { useT } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
@@ -42,6 +42,15 @@ const RESOURCES: Resource[] = [
     titleKey: "resources.maltaelections.title",
     descKey: "resources.maltaelections.desc",
     tagKey: "resources.tag.data",
+  },
+  {
+    id: "filqosor",
+    url: "https://filqosor.com/",
+    host: "filqosor.com",
+    Icon: Newspaper,
+    titleKey: "resources.filqosor.title",
+    descKey: "resources.filqosor.desc",
+    tagKey: "resources.tag.news",
   },
 ];
 
