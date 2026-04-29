@@ -98,6 +98,7 @@ function HomePage() {
         </div>
       ) : null}
       <Hero lang={locale} t={t} />
+      <DistrictsMapSection lang={locale} t={t} />
       <Principles t={t} />
       <EntryGrid lang={locale} t={t} />
     </>
