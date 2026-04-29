@@ -187,6 +187,10 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.partyBreakdown": "Party breakdown",
     "districts.partyBreakdown.none": "No party affiliations recorded yet",
     "districts.partyBreakdown.independent": "Independent",
+    "districts.number": "District {number}",
+    "districts.map.title": "Explore districts on the map",
+    "districts.map.subtitle": "Click any district to see its candidates and proposals.",
+    "districts.map.error": "Couldn't load the map. Please refresh the page.",
 
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
@@ -599,6 +603,10 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.partyBreakdown": "Tqassim skont il-partit",
     "districts.partyBreakdown.none": "Għadhom ma ġewx irreġistrati affiljazzjonijiet ma' partiti",
     "districts.partyBreakdown.independent": "Indipendenti",
+    "districts.number": "Distrett {number}",
+    "districts.map.title": "Esplora d-distretti fuq il-mappa",
+    "districts.map.subtitle": "Ikklikkja kwalunkwe distrett biex tara l-kandidati u l-proposti.",
+    "districts.map.error": "Ma rnexxiniex intellgħu l-mappa. Jekk jogħġbok aġġorna l-paġna.",
 
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",

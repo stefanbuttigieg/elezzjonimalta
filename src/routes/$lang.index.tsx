@@ -20,6 +20,7 @@ import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
 import { LocalityPicker } from "@/components/site/LocalityPicker";
+import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
 import {
   clearPreferredDistrict,
   getPreferredDistrict,
@@ -97,6 +98,7 @@ function HomePage() {
         </div>
       ) : null}
       <Hero lang={locale} t={t} />
+      <DistrictsMapSection lang={locale} t={t} />
       <Principles t={t} />
       <EntryGrid lang={locale} t={t} />
     </>
@@ -152,6 +154,45 @@ function Hero({
           <div className="md:col-span-2">
             <Countdown targetIso={ELECTION_DATE_ISO} t={t} />
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DistrictsMapSection({
+  lang,
+  t,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {t("districts.title")}
+            </p>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-4xl">
+              {t("districts.map.title")}
+            </h2>
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+              {t("districts.map.subtitle")}
+            </p>
+          </div>
+          <Link
+            to="/$lang/districts"
+            params={{ lang }}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/80 hover:text-foreground"
+          >
+            {t("home.hero.ctaCandidates")}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="mt-6">
+          <MaltaDistrictsMap locale={lang} height={420} />
         </div>
       </div>
     </section>

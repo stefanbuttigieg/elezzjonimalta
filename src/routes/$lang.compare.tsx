@@ -106,10 +106,13 @@ function ComparePage() {
   const navigate = useNavigate({ from: "/$lang/compare" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { candidates, proposals } = Route.useLoaderData();
+  const { candidates, proposals } = Route.useLoaderData() as {
+    candidates: Candidate[];
+    proposals: Proposal[];
+  };
   const locale = isLocale(lang) ? lang : "en";
 
-  const selectedIds = useMemo(
+  const selectedIds = useMemo<string[]>(
     () => (search.ids ? search.ids.split(",").filter(Boolean).slice(0, MAX) : []),
     [search.ids],
   );
