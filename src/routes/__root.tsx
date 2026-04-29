@@ -78,8 +78,11 @@ export const Route = createRootRoute({
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Detect locale from the URL so <html lang> is correct on SSR (WCAG 3.1.1).
+  const htmlLang = pathname.startsWith("/mt") ? "mt" : "en";
   return (
-    <html lang="en">
+    <html lang={htmlLang}>
       <head>
         <HeadContent />
       </head>
