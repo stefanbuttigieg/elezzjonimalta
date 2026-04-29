@@ -10,11 +10,16 @@ import {
   BadgeCheck,
   ExternalLink,
   Facebook,
+  FileText,
   Globe,
+  Landmark,
   MessageCircle,
+  Newspaper,
   Sparkles,
   Twitter,
   UserRound,
+  Users,
+  History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
@@ -60,15 +65,30 @@ type CandidateDetail = {
   source_url: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
+};
+
+type SourceKind = "official" | "manifesto" | "news" | "social" | "other";
+
+type CandidateSource = {
+  id: string;
+  kind: SourceKind;
+  label: string;
+  url: string;
+  publisher: string | null;
+  note_en: string | null;
+  note_mt: string | null;
+  retrieved_at: string;
+  updated_at: string;
 };
 
 async function loadCandidate(slug: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -79,16 +99,28 @@ async function loadCandidate(slug: string) {
 
   const candidate = data as CandidateDetail;
 
-  const { data: proposalsData, error: proposalsError } = await supabase
-    .from("proposals")
-    .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
-    .eq("candidate_id", candidate.id)
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const [proposalsRes, sourcesRes] = await Promise.all([
+    supabase
+      .from("proposals")
+      .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
+      .eq("candidate_id", candidate.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("candidate_sources")
+      .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
+      .eq("candidate_id", candidate.id)
+      .order("retrieved_at", { ascending: false }),
+  ]);
 
-  if (proposalsError) throw proposalsError;
+  if (proposalsRes.error) throw proposalsRes.error;
+  if (sourcesRes.error) throw sourcesRes.error;
 
-  return { candidate, proposals: (proposalsData ?? []) as ProposalRow[] };
+  return {
+    candidate,
+    proposals: (proposalsRes.data ?? []) as ProposalRow[],
+    sources: (sourcesRes.data ?? []) as CandidateSource[],
+  };
 }
 
 export const Route = createFileRoute("/$lang/candidates/$slug")({
@@ -126,11 +158,15 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
 function CandidatePage() {
   const t = useT();
   const { lang } = Route.useParams();
-  const { candidate, proposals } = Route.useLoaderData();
+  const { candidate, proposals, sources } = Route.useLoaderData();
   const locale: Locale = isLocale(lang) ? lang : "en";
 
   const bio =
     locale === "mt" ? candidate.bio_mt || candidate.bio_en : candidate.bio_en || candidate.bio_mt;
+
+  // Merge structured sources + legacy single-link fallbacks into a unified audit list.
+  const auditSources = buildAuditSources(candidate, sources);
+  const lastUpdated = computeLastUpdated(candidate, sources);
 
   return (
     <article className="border-b border-border bg-background">
@@ -277,42 +313,12 @@ function CandidatePage() {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("candidate.section.sources")}
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm">
-                {candidate.parlament_mt_url ? (
-                  <li>
-                    <a
-                      href={candidate.parlament_mt_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-foreground hover:underline"
-                    >
-                      parlament.mt
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </li>
-                ) : null}
-                {candidate.source_url ? (
-                  <li>
-                    <a
-                      href={candidate.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-foreground hover:underline"
-                    >
-                      {new URL(candidate.source_url).hostname.replace(/^www\./, "")}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </li>
-                ) : null}
-                {!candidate.parlament_mt_url && !candidate.source_url ? (
-                  <li className="text-muted-foreground">{t("candidate.sources.empty")}</li>
-                ) : null}
-              </ul>
-            </div>
+            <AuditTrail
+              sources={auditSources}
+              lastUpdated={lastUpdated}
+              locale={locale}
+              t={t}
+            />
           </aside>
         </section>
       </div>
@@ -362,6 +368,182 @@ function districtName(district: DistrictRef, locale: Locale) {
   const name =
     locale === "mt" ? district.name_mt || district.name_en : district.name_en || district.name_mt;
   return `${district.number} · ${name}`;
+}
+
+function safeHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function buildAuditSources(
+  candidate: CandidateDetail,
+  sources: CandidateSource[],
+): CandidateSource[] {
+  const seen = new Set(sources.map((s) => s.url));
+  const fallbacks: CandidateSource[] = [];
+  if (candidate.parlament_mt_url && !seen.has(candidate.parlament_mt_url)) {
+    fallbacks.push({
+      id: "fallback-parlament",
+      kind: "official",
+      label: "parlament.mt",
+      url: candidate.parlament_mt_url,
+      publisher: "Parliament of Malta",
+      note_en: null,
+      note_mt: null,
+      retrieved_at: candidate.updated_at,
+      updated_at: candidate.updated_at,
+    });
+    seen.add(candidate.parlament_mt_url);
+  }
+  if (candidate.source_url && !seen.has(candidate.source_url)) {
+    fallbacks.push({
+      id: "fallback-source",
+      kind: "news",
+      label: safeHostname(candidate.source_url),
+      url: candidate.source_url,
+      publisher: null,
+      note_en: null,
+      note_mt: null,
+      retrieved_at: candidate.updated_at,
+      updated_at: candidate.updated_at,
+    });
+  }
+  return [...sources, ...fallbacks];
+}
+
+function computeLastUpdated(
+  candidate: CandidateDetail,
+  sources: CandidateSource[],
+): string {
+  const all = [candidate.updated_at, ...sources.map((s) => s.updated_at)];
+  return all.reduce((a, b) => (new Date(a) > new Date(b) ? a : b));
+}
+
+const KIND_META: Record<
+  SourceKind,
+  { icon: typeof Globe; tone: string }
+> = {
+  official: { icon: Landmark, tone: "bg-blue-500/10 text-blue-700 dark:text-blue-300 ring-blue-500/20" },
+  manifesto: { icon: FileText, tone: "bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-amber-500/20" },
+  news: { icon: Newspaper, tone: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/20" },
+  social: { icon: Users, tone: "bg-purple-500/10 text-purple-700 dark:text-purple-300 ring-purple-500/20" },
+  other: { icon: Globe, tone: "bg-muted text-muted-foreground ring-border" },
+};
+
+function formatDate(iso: string, locale: Locale): string {
+  try {
+    return new Date(iso).toLocaleDateString(locale === "mt" ? "mt-MT" : "en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+function AuditTrail({
+  sources,
+  lastUpdated,
+  locale,
+  t,
+}: {
+  sources: CandidateSource[];
+  lastUpdated: string;
+  locale: Locale;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}) {
+  // Group by kind for a cleaner skim
+  const order: SourceKind[] = ["official", "manifesto", "news", "social", "other"];
+  const grouped = order
+    .map((kind) => ({ kind, items: sources.filter((s) => s.kind === kind) }))
+    .filter((g) => g.items.length > 0);
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("candidate.audit.title")}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">{t("candidate.audit.subtitle")}</p>
+        </div>
+        <span
+          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
+          title={lastUpdated}
+        >
+          <History className="h-3 w-3" />
+          {formatDate(lastUpdated, locale)}
+        </span>
+      </div>
+
+      {sources.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">{t("candidate.sources.empty")}</p>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {grouped.map(({ kind, items }) => {
+            const meta = KIND_META[kind];
+            const Icon = meta.icon;
+            return (
+              <div key={kind}>
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Icon className="h-3.5 w-3.5" />
+                  {t(`candidate.audit.kind.${kind}`)}
+                </p>
+                <ul className="mt-2 space-y-2">
+                  {items.map((s) => {
+                    const note = locale === "mt" ? s.note_mt || s.note_en : s.note_en || s.note_mt;
+                    return (
+                      <li
+                        key={s.id}
+                        className="rounded-lg border border-border bg-background p-2.5"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <a
+                            href={s.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-start gap-1 text-sm font-semibold text-foreground hover:text-primary hover:underline"
+                          >
+                            <span className="break-words">{s.label}</span>
+                            <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" />
+                          </a>
+                          <span
+                            className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ring-1 ${meta.tone}`}
+                          >
+                            {t(`candidate.audit.kind.${kind}`)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {s.publisher ? `${s.publisher} · ` : ""}
+                          {safeHostname(s.url)}
+                        </p>
+                        {note ? (
+                          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                            {note}
+                          </p>
+                        ) : null}
+                        <p className="mt-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {t("candidate.audit.retrieved")}: {formatDate(s.retrieved_at, locale)}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="mt-4 border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        {t("candidate.audit.footnote")}
+      </p>
+    </div>
+  );
 }
 
 function CandidateError({ error, reset }: { error: Error; reset: () => void }) {
