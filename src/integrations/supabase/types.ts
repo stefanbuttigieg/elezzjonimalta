@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_request_logs: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          ip_hash: string | null
+          method: string
+          query_string: string | null
+          response_time_ms: number | null
+          status_code: number
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_hash?: string | null
+          method: string
+          query_string?: string | null
+          response_time_ms?: number | null
+          status_code: number
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_hash?: string | null
+          method?: string
+          query_string?: string | null
+          response_time_ms?: number | null
+          status_code?: number
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       candidate_districts: {
         Row: {
           candidate_id: string
