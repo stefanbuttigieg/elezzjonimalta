@@ -138,7 +138,7 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-background xl:hidden">
+        <div className="border-t border-border bg-background md:hidden">
           <nav
             className="container mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
             aria-label="Mobile"
