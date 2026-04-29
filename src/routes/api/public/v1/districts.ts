@@ -5,6 +5,7 @@ import {
   clientKeyFromRequest,
   rateLimitHeaders,
 } from "@/server/rateLimit.server";
+import { logApiRequest } from "@/server/apiLogger.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,14 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+const ENDPOINT = "/api/public/v1/districts";
+
 export const Route = createFileRoute("/api/public/v1/districts")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
+        const startedAt = Date.now();
         const limit = checkRateLimit(clientKeyFromRequest(request, "districts"), {
           limit: 60,
           windowMs: 60_000,
@@ -28,6 +32,7 @@ export const Route = createFileRoute("/api/public/v1/districts")({
           ...rateLimitHeaders(limit),
         };
         if (!limit.allowed) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 429, startedAt });
           return new Response(
             JSON.stringify({ error: "rate_limited", message: "Too many requests" }),
             { status: 429, headers: baseHeaders }
@@ -43,12 +48,14 @@ export const Route = createFileRoute("/api/public/v1/districts")({
           .order("number", { ascending: true });
 
         if (error) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 500, startedAt });
           return new Response(
             JSON.stringify({ error: "internal_error", message: "Failed to load districts" }),
             { status: 500, headers: baseHeaders }
           );
         }
 
+        logApiRequest({ request, endpoint: ENDPOINT, statusCode: 200, startedAt });
         return new Response(
           JSON.stringify({
             data,

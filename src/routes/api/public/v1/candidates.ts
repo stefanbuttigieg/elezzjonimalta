@@ -5,6 +5,7 @@ import {
   clientKeyFromRequest,
   rateLimitHeaders,
 } from "@/server/rateLimit.server";
+import { logApiRequest } from "@/server/apiLogger.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,14 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+const ENDPOINT = "/api/public/v1/candidates";
+
 export const Route = createFileRoute("/api/public/v1/candidates")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
+        const startedAt = Date.now();
         const url = new URL(request.url);
         const districtParam = url.searchParams.get("district");
         const partyParam = url.searchParams.get("party");
@@ -36,6 +40,7 @@ export const Route = createFileRoute("/api/public/v1/candidates")({
           ...rateLimitHeaders(rl),
         };
         if (!rl.allowed) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 429, startedAt });
           return new Response(
             JSON.stringify({ error: "rate_limited", message: "Too many requests" }),
             { status: 429, headers: baseHeaders }
@@ -82,12 +87,14 @@ export const Route = createFileRoute("/api/public/v1/candidates")({
 
         const { data, error } = await query;
         if (error) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 500, startedAt });
           return new Response(
             JSON.stringify({ error: "internal_error", message: "Failed to load candidates" }),
             { status: 500, headers: baseHeaders }
           );
         }
 
+        logApiRequest({ request, endpoint: ENDPOINT, statusCode: 200, startedAt });
         return new Response(
           JSON.stringify({
             data,

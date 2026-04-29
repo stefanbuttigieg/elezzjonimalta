@@ -22,6 +22,7 @@ import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangSearchRouteImport } from './routes/$lang.search'
@@ -109,6 +110,11 @@ const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
+  id: '/api-logs',
+  path: '/api-logs',
   getParentRoute: () => AdminRoute,
 } as any)
 const LangTermsRoute = LangTermsRouteImport.update({
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/api-logs'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/api-logs'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/admin/api-logs'
     | '/admin/candidates'
     | '/admin/districts'
     | '/admin/parties'
@@ -556,6 +568,13 @@ declare module '@tanstack/react-router' {
       path: '/candidates'
       fullPath: '/admin/candidates'
       preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/api-logs': {
+      id: '/admin/api-logs'
+      path: '/api-logs'
+      fullPath: '/admin/api-logs'
+      preLoaderRoute: typeof AdminApiLogsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/$lang/terms': {
@@ -773,6 +792,7 @@ const LangRouteChildren: LangRouteChildren = {
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
+  AdminApiLogsRoute: typeof AdminApiLogsRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
@@ -784,6 +804,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminApiLogsRoute: AdminApiLogsRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
