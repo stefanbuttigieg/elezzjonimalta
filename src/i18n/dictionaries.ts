@@ -181,7 +181,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "common.notFound": "Not found",
     "common.backHome": "Back to home",
     "common.sittingMp": "Sitting MP",
-    "common.electoralConfirmed": "Officially confirmed",
+    "common.electoralConfirmed": "Confirmed via news sources",
     "common.partyList": "On party list",
     "common.draft": "Draft",
     "common.viewAll": "View all",
