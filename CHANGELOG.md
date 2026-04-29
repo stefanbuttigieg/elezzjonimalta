@@ -7,6 +7,36 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-04-29
 
 ### Added
+- **Admin News monitor** — automated scanner that ingests articles from Times
+  of Malta, Malta Independent, MaltaToday, Lovin Malta, and Newsbook (4× daily
+  via cron, plus on-demand "Run scan now"). Detects proposals, newly listed
+  candidates, and key election developments using Lovable AI, then queues them
+  for staff review with confidence scores, source links, and per-source filters.
+- **Convert findings into actions.** Each news finding now has a "Convert to
+  action" button that opens a dialog to:
+  - **Create a new candidate** (with party + district + bio, pre-filled from
+    extracted entities and source URL)
+  - **Update an existing candidate** (party, district, bio, notes)
+  - **Create a new proposal** (title, description, category, party/candidate
+    attribution)
+  - **Create a new party** (name, short name, color, website, description)
+  All conversions auto-link the source article, mark the finding as reviewed,
+  and write to the admin audit log.
+- **Admin audit log** — every staff action on candidates, proposals, parties,
+  and news findings is recorded with actor, before/after state, and metadata,
+  viewable at `/admin/audit`.
+- **Authenticated server-function fetch interceptor** — global fetch wrapper
+  that injects the current Supabase access token into all `/_serverFn/` calls
+  so admin server functions run with the correct user identity.
+- **Manually queued proposals** sourced from recent campaign coverage:
+  - **PN**: minimum-wage stipend for healthcare students; 25% increase in
+    post-secondary student stipends.
+  - **PL**: expand Gozo Channel fleet to five ships by 2029; new Malta–Gozo
+    electricity interconnector; modernise all schools in Gozo.
+
+### Earlier in this release
+
+### Added
 - **Global command palette (⌘K / Ctrl+K)** — a global search overlay
   available from every page. Live-queries candidates, parties, proposals,
   and **districts**, with arrow-key navigation, Enter to jump, and a
