@@ -163,7 +163,7 @@ export const convertFinding = createServerFn({ method: "POST" })
         createdEntity = { type: "candidate", id: row.id };
       } else if (data.target === "update_candidate") {
         if (!p.candidate_id) throw new Error("candidate_id required");
-        const updates: Record<string, unknown> = {};
+        const updates: Record<string, string> = {};
         if (p.bio_en) updates.bio_en = p.bio_en;
         if (p.party_id) updates.party_id = p.party_id;
         if (p.primary_district_id) updates.primary_district_id = p.primary_district_id;
@@ -215,7 +215,7 @@ export const convertFinding = createServerFn({ method: "POST" })
       }
 
       // Mark finding reviewed and link if applicable
-      const linkUpdate: Record<string, unknown> = {
+      const linkUpdate: Record<string, string> = {
         status: "reviewed",
         reviewed_by: userId,
         reviewed_at: new Date().toISOString(),
