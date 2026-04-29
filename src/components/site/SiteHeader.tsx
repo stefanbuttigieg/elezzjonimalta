@@ -82,7 +82,7 @@ export function SiteHeader() {
           {isStaff ? (
             <Link
               to="/admin"
-              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent md:inline-flex"
+              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent lg:inline-flex"
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               Admin
