@@ -38,8 +38,9 @@ export function MaltaDistrictsMap({
         const L = (await import("leaflet")).default;
         await import("leaflet/dist/leaflet.css");
 
-        const res = await fetch("/data/malta-districts.geojson");
-        const data = (await res.json()) as GeoJSON.FeatureCollection;
+        const res = await fetch("/data/malta-districts.geojson").catch(
+          () => null
+        );
         if (cancelled || !containerRef.current) return;
 
         // Malta bounding box (SW, NE) — covers Malta, Gozo and Comino
