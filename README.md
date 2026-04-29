@@ -99,6 +99,23 @@ Candidates who have publicly announced they will not contest the 2026
 election are flagged with a **"Not contesting for 2026"** badge on candidate
 cards and sitting-MP listings, alongside a link to the source announcement.
 
+### Global Search & Command Palette
+A single search experience covers **candidates, parties, proposals, and
+electoral districts** across every page of the site.
+
+- **Command palette:** press `⌘K` (macOS) or `Ctrl+K` (Windows / Linux)
+  anywhere to open an instant search overlay. Live-queries the database with
+  arrow-key navigation, Enter to jump to a result, and a "See all results"
+  fallback that opens the full search page.
+- **Reachable from every viewport:** the site header shows a search button
+  on small and medium screens, an inline search input at `xl`+, and the
+  mobile menu drawer includes a "Search" entry — all open the same palette.
+- **Full results page** at `/search` with filter tabs (All, Candidates,
+  Districts, Parties, Manifestos, Proposals) and grouped, ranked results.
+- **Direct linking:** candidate hits open the candidate detail page, party
+  hits open the party page, and district hits open the
+  `/my-district/:number` detail view.
+
 ### Keyboard Shortcuts
 Power users can navigate the site without a mouse. Press `?` anywhere to open
 the in-app shortcut reference. Available shortcuts:
@@ -106,6 +123,7 @@ the in-app shortcut reference. Available shortcuts:
 | Key | Action |
 | --- | --- |
 | `?` | Show / hide keyboard shortcuts dialog |
+| `⌘K` / `Ctrl+K` | Open the global command palette |
 | `/` | Focus the search field |
 | `h` | Go to home |
 | `c` | Go to candidates |
@@ -116,10 +134,11 @@ the in-app shortcut reference. Available shortcuts:
 | `x` | Go to compare |
 | `a` | Go to Ask AI |
 | `l` | Toggle language (EN ↔ MT) |
-| `Esc` | Close the shortcuts dialog |
+| `Esc` | Close the open dialog |
 
-Shortcuts are disabled while typing in inputs, textareas, or contenteditable
-fields, and ignore key combinations with `Ctrl`, `Cmd`, or `Alt`.
+Single-key shortcuts are disabled while typing in inputs, textareas, or
+contenteditable fields, and ignore key combinations with `Ctrl`, `Cmd`, or
+`Alt` (so they don't conflict with `⌘K`).
 
 ---
 
