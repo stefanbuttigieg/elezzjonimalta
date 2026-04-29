@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          note: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          note?: string | null
+        }
+        Relationships: []
+      }
       api_request_logs: {
         Row: {
           created_at: string
@@ -329,6 +371,7 @@ export type Database = {
       }
       news_findings: {
         Row: {
+          alert_seen_at: string | null
           article_id: string
           candidate_id: string | null
           confidence: number
@@ -347,6 +390,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alert_seen_at?: string | null
           article_id: string
           candidate_id?: string | null
           confidence?: number
@@ -365,6 +409,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alert_seen_at?: string | null
           article_id?: string
           candidate_id?: string | null
           confidence?: number
