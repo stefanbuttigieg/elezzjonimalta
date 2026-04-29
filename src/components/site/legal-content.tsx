@@ -180,20 +180,163 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Accessibility Statement",
       body: (
         <>
-          <p>We are committed to making Elezzjoni 2026 usable by everyone, in line with the EU Web Accessibility Directive and WCAG 2.1 Level AA.</p>
+          <p>
+            <strong>Elezzjoni</strong> is committed to making this site
+            accessible to everyone, in line with the EU Web Accessibility
+            Directive (Directive (EU) 2016/2102), the harmonised European
+            standard <strong>EN 301 549 v3.2.1</strong>, and{" "}
+            <strong>WCAG 2.1 Level AA</strong>.
+          </p>
+
+          <h2>Conformance status</h2>
+          <p>
+            This site is{" "}
+            <strong>partially conformant</strong> with WCAG 2.1 Level AA and
+            EN 301 549 v3.2.1. "Partially conformant" means that some parts
+            of the content do not yet fully meet the standard. The known gaps
+            are listed below and are being addressed.
+          </p>
+
+          <h2>Scope</h2>
+          <p>
+            This statement covers the public website at{" "}
+            <a
+              href="https://elezzjoni.app"
+              target="_blank"
+              rel="noreferrer"
+            >
+              elezzjoni.app
+            </a>{" "}
+            (and{" "}
+            <a
+              href="https://www.elezzjoni.app"
+              target="_blank"
+              rel="noreferrer"
+            >
+              www.elezzjoni.app
+            </a>
+            ), including the candidate, party, district, proposal, "ask AI"
+            and developer/API pages in both English and Maltese. The
+            staff-only admin dashboard is out of scope.
+          </p>
+
           <h2>What we do</h2>
           <ul>
-            <li>Semantic HTML, landmarks, and clear heading structure.</li>
-            <li>Keyboard navigation for every interactive element, with visible focus styles.</li>
-            <li>Sufficient colour contrast in light and dark modes.</li>
-            <li>Respect for users' motion preferences (prefers-reduced-motion).</li>
-            <li>Alt text on meaningful images and ARIA labels where needed.</li>
-            <li>Bilingual content with proper <code>lang</code> attributes.</li>
+            <li>Single, semantic HTML structure with{" "}
+              <code>main</code>, <code>header</code>, <code>nav</code>,{" "}
+              <code>footer</code> landmarks and a logical heading hierarchy.
+            </li>
+            <li>
+              Server-rendered <code>&lt;html lang&gt;</code> that matches the
+              URL locale (<code>/en</code> or <code>/mt</code>).
+            </li>
+            <li>
+              Visible "skip to content" link and visible keyboard focus on
+              every interactive element.
+            </li>
+            <li>
+              Every interactive element is keyboard reachable and operable;
+              no keyboard traps.
+            </li>
+            <li>
+              Form inputs have associated labels; required state and
+              autocomplete hints are exposed to assistive technology.
+            </li>
+            <li>
+              Icon-only buttons and links carry an{" "}
+              <code>aria-label</code> with the same accessible name as their
+              tooltip.
+            </li>
+            <li>
+              Images have meaningful <code>alt</code> text or{" "}
+              <code>alt=""</code> when decorative.
+            </li>
+            <li>
+              Colour contrast meets at least 4.5:1 for body text and 3:1 for
+              large text and non-text UI in both light and dark modes.
+            </li>
+            <li>
+              Status is never conveyed by colour alone — text labels and
+              icons are also used (e.g. the "Not contesting for 2026" tag).
+            </li>
+            <li>
+              Animations and transitions are disabled when the user has{" "}
+              <code>prefers-reduced-motion</code> set.
+            </li>
+            <li>
+              No autoplaying audio or video; no auto-refreshing content
+              longer than 5 seconds without a control.
+            </li>
+            <li>
+              Bilingual content (English / Maltese) with proper{" "}
+              <code>lang</code> attributes and matching{" "}
+              <code>hreflang</code> alternates.
+            </li>
           </ul>
+
           <h2>Known limitations</h2>
-          <p>Some scraped or AI-generated content may not yet have human-reviewed alt text or translation. We are progressively improving these.</p>
-          <h2>Feedback</h2>
-          <p>If you encounter an accessibility issue, please contact us via the Contact page. We aim to respond within 10 working days.</p>
+          <ul>
+            <li>
+              The interactive Malta district map (Leaflet) is operable by
+              mouse and touch and exposes district information by hover and
+              click. Equivalent textual access is provided by the
+              "13 districts" cards listed directly below the map and by the
+              per-district pages, which fully meet WCAG.
+            </li>
+            <li>
+              Some scraped or AI-generated bios and proposal summaries may
+              not yet have human-reviewed translations or alt text. We are
+              progressively improving these.
+            </li>
+            <li>
+              Embedded third-party content (e.g. external news source links)
+              is outside our control; we link out and cite the source so
+              users can rely on the original publisher's accessibility.
+            </li>
+            <li>
+              The site has not yet been independently audited; conformance
+              is based on internal review.
+            </li>
+          </ul>
+
+          <h2>Assistive technology and browsers tested</h2>
+          <p>
+            The site is built and tested with current versions of Chromium,
+            Firefox and WebKit on desktop and mobile. Screen-reader smoke
+            testing has been done with VoiceOver (macOS / iOS) and NVDA
+            (Windows + Firefox).
+          </p>
+
+          <h2>Feedback and contact</h2>
+          <p>
+            If you find an accessibility barrier on this site, please tell us
+            via the{" "}
+            <a href="/en/contact">Contact page</a>. We aim to acknowledge
+            within 5 working days and respond substantively within 10 working
+            days. Where we cannot fix something promptly, we will explain
+            why and offer the information through an alternative channel.
+          </p>
+
+          <h2>Enforcement</h2>
+          <p>
+            If you are not satisfied with our response, you can contact the
+            Maltese national accessibility enforcement body, the{" "}
+            <a
+              href="https://www.crpd.org.mt/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Commission for the Rights of Persons with Disability (CRPD)
+            </a>
+            .
+          </p>
+
+          <h2>Preparation of this statement</h2>
+          <p>
+            This statement was prepared on <strong>29 April 2026</strong>{" "}
+            using a self-evaluation method. It will be reviewed at least
+            annually and after any substantial change to the site.
+          </p>
         </>
       ),
     },
@@ -201,20 +344,160 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Stqarrija ta' Aċċessibbiltà",
       body: (
         <>
-          <p>Aħna impenjati li Elezzjoni 2026 ikun jista' jintuża minn kulħadd, skont id-Direttiva tal-UE dwar l-Aċċessibbiltà tal-Web u l-WCAG 2.1 Livell AA.</p>
+          <p>
+            <strong>Elezzjoni</strong> hu impenjat li dan is-sit ikun
+            aċċessibbli għal kulħadd, skont id-Direttiva tal-UE dwar
+            l-Aċċessibbiltà tal-Web (Direttiva (UE) 2016/2102), l-istandard
+            armonizzat Ewropew <strong>EN 301 549 v3.2.1</strong> u l-
+            <strong>WCAG 2.1 Livell AA</strong>.
+          </p>
+
+          <h2>Status ta' konformità</h2>
+          <p>
+            Dan is-sit huwa <strong>parzjalment konformi</strong> mal-WCAG 2.1
+            Livell AA u mal-EN 301 549 v3.2.1. "Parzjalment konformi" jfisser
+            li xi partijiet mill-kontenut għadhom ma jissodisfawx
+            kompletament l-istandard. Il-limitazzjonijiet magħrufa huma
+            elenkati hawn taħt u qed jiġu indirizzati.
+          </p>
+
+          <h2>Kamp ta' applikazzjoni</h2>
+          <p>
+            Din l-istqarrija tkopri s-sit pubbliku{" "}
+            <a
+              href="https://elezzjoni.app"
+              target="_blank"
+              rel="noreferrer"
+            >
+              elezzjoni.app
+            </a>
+            , inklużi l-paġni tal-kandidati, partiti, distretti, proposti,
+            "staqsi lill-AI" u l-paġni għall-iżviluppaturi/API kemm
+            bl-Ingliż kif ukoll bil-Malti. Il-pannell tal-amministrazzjoni
+            għall-istaff biss huwa barra mill-kamp ta' applikazzjoni.
+          </p>
+
           <h2>X'nagħmlu</h2>
           <ul>
-            <li>HTML semantiku, landmarks, u struttura ċara tat-titoli.</li>
-            <li>Navigazzjoni bit-tastiera għal kull element interattiv, b'focus styles viżibbli.</li>
-            <li>Kuntrast ta' kulur biżżejjed f'modi ċari u skuri.</li>
-            <li>Rispett għall-preferenzi ta' movement tal-utenti (prefers-reduced-motion).</li>
-            <li>Test alternattiv fuq immaġni siewja u ARIA labels fejn meħtieġ.</li>
-            <li>Kontenut biligwi b'attributi <code>lang</code> xierqa.</li>
+            <li>
+              Struttura HTML semantika b'<code>main</code>,{" "}
+              <code>header</code>, <code>nav</code> u <code>footer</code> u
+              ġerarkija ta' titoli loġika.
+            </li>
+            <li>
+              <code>&lt;html lang&gt;</code> server-rendered li jaqbel
+              mal-lingwa tal-URL (<code>/en</code> jew <code>/mt</code>).
+            </li>
+            <li>
+              Link viżibbli "aqbeż għall-kontenut" u focus tat-tastiera
+              viżibbli fuq kull element interattiv.
+            </li>
+            <li>
+              Kull element interattiv huwa raġġungibbli u operabbli
+              bit-tastiera; m'hemmx keyboard traps.
+            </li>
+            <li>
+              L-inputs tal-formoli għandhom labels assoċjati; l-istat
+              meħtieġ u l-hints tal-autocomplete huma esposti lit-teknoloġija
+              ta' assistenza.
+            </li>
+            <li>
+              Buttuni u links biss bl-ikoni għandhom <code>aria-label</code>{" "}
+              bl-istess isem aċċessibbli bħat-tooltip.
+            </li>
+            <li>
+              L-immaġini għandhom test alternattiv (<code>alt</code>)
+              sinifikanti jew <code>alt=""</code> meta jkunu dekorattivi.
+            </li>
+            <li>
+              Kuntrast ta' kulur ta' mill-inqas 4.5:1 għat-test tal-ġisem u
+              3:1 għat-test kbir u UI mhux test, kemm fil-mod ċar kif ukoll
+              skur.
+            </li>
+            <li>
+              L-istatus qatt mhu mwassal bil-kulur biss — jintużaw ukoll
+              labels tat-test u ikoni (eż. it-tag "Mhux qed jikkontesta
+              għall-2026").
+            </li>
+            <li>
+              L-animazzjonijiet u t-transizzjonijiet jiġu diżattivati meta
+              l-utent ikollu <code>prefers-reduced-motion</code>.
+            </li>
+            <li>
+              Ma jindaqqx awtomatikament l-ebda awdjo jew vidjo; m'hemmx
+              kontenut li jaġġorna awtomatikament għal aktar minn 5 sekondi
+              mingħajr kontroll.
+            </li>
+            <li>
+              Kontenut bilingwi (Ingliż / Malti) bl-attributi <code>lang</code>{" "}
+              xierqa u alternattivi <code>hreflang</code> li jaqblu.
+            </li>
           </ul>
+
           <h2>Limitazzjonijiet magħrufa</h2>
-          <p>Xi kontenut scraped jew ġenerat mill-AI jista' għadu ma jkollux test alternattiv jew traduzzjoni rieżaminati minn bniedem. Qed intejbu dawn b'mod gradwali.</p>
-          <h2>Feedback</h2>
-          <p>Jekk tiltaqa' ma' problema ta' aċċessibbiltà, jekk jogħġbok ikkuntattjana mill-paġna ta' Kuntatt. Naħdmu biex inwieġbu fi żmien 10 ijiem tax-xogħol.</p>
+          <ul>
+            <li>
+              Il-mappa interattiva tad-distretti ta' Malta (Leaflet) topera
+              bil-maws u bit-touch u tesponi l-informazzjoni tad-distrett
+              bil-hover u bil-klikk. Aċċess testwali ekwivalenti huwa
+              pprovdut mill-kards "13-il distrett" eżatt taħt il-mappa u
+              mill-paġni ta' kull distrett, li jissodisfaw bis-sħiħ WCAG.
+            </li>
+            <li>
+              Xi bijografiji jew sommarji ta' proposti scraped jew ġenerati
+              mill-AI jista' għadhom ma jkollhomx traduzzjonijiet jew test
+              alternattiv riveduti minn bniedem. Qed intejbu dawn b'mod
+              gradwali.
+            </li>
+            <li>
+              Kontenut ta' partijiet terzi inkluż (eż. links għal artikoli
+              tal-aħbarijiet) huwa barra mill-kontroll tagħna; nillinkjaw u
+              niċċitaw is-sors biex l-utenti jistgħu jiddependu fuq
+              l-aċċessibbiltà tal-pubblikatur oriġinali.
+            </li>
+            <li>
+              Is-sit għadu ma kienx ivverifikat b'mod indipendenti;
+              il-konformità hija bbażata fuq reviżjoni interna.
+            </li>
+          </ul>
+
+          <h2>Teknoloġija ta' assistenza u browsers ittestjati</h2>
+          <p>
+            Is-sit huwa mibni u ttestjat b'verżjonijiet attwali ta' Chromium,
+            Firefox u WebKit fuq desktop u mobile. Sar testjar bażiku ta'
+            screen-reader b'VoiceOver (macOS / iOS) u NVDA (Windows + Firefox).
+          </p>
+
+          <h2>Feedback u kuntatt</h2>
+          <p>
+            Jekk issib ostaklu ta' aċċessibbiltà fuq dan is-sit, jekk jogħġbok
+            avżana mill-paġna ta'{" "}
+            <a href="/mt/contact">Kuntatt</a>. Naħdmu biex nirrikonoxxu fi
+            żmien 5 ijiem tax-xogħol u nwieġbu sostantivament fi żmien 10
+            ijiem tax-xogħol. Fejn ma nistgħux nirranġaw xi ħaġa malajr,
+            nispjegaw għaliex u noffru l-informazzjoni minn kanal alternattiv.
+          </p>
+
+          <h2>Infurzar</h2>
+          <p>
+            Jekk m'intix sodisfatt bir-risposta tagħna, tista' tikkuntattja
+            l-korp nazzjonali Malti tal-infurzar tal-aċċessibbiltà,{" "}
+            <a
+              href="https://www.crpd.org.mt/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              il-Kummissjoni għad-Drittijiet ta' Persuni b'Diżabilità (CRPD)
+            </a>
+            .
+          </p>
+
+          <h2>Preparazzjoni ta' din l-istqarrija</h2>
+          <p>
+            Din l-istqarrija tħejjiet fid-<strong>29 ta' April 2026</strong>{" "}
+            bl-użu ta' metodu ta' awto-evalwazzjoni. Din se tiġi riveduta
+            mill-inqas darba fis-sena u wara kull tibdil sostanzjali fis-sit.
+          </p>
         </>
       ),
     },

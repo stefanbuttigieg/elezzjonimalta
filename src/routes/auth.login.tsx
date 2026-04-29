@@ -59,11 +59,17 @@ function LoginPage() {
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <label
+              htmlFor="login-email"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
               Email
             </label>
             <input
+              id="login-email"
+              name="email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -71,11 +77,17 @@ function LoginPage() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <label
+              htmlFor="login-password"
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
               Password
             </label>
             <input
+              id="login-password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               required
               minLength={8}
               value={password}
