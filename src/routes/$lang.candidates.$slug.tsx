@@ -10,11 +10,16 @@ import {
   BadgeCheck,
   ExternalLink,
   Facebook,
+  FileText,
   Globe,
+  Landmark,
   MessageCircle,
+  Newspaper,
   Sparkles,
   Twitter,
   UserRound,
+  Users,
+  History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
