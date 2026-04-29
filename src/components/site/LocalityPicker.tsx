@@ -141,14 +141,14 @@ export function LocalityPicker({ lang }: { lang: Locale }) {
           aria-activedescendant={
             open && results[activeIdx] ? `${listId}-opt-${activeIdx}` : undefined
           }
-          className="flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground md:text-lg"
+          className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground md:text-lg"
         />
         <button
           type="button"
           onClick={() => {
             if (results[0]) choose(results[0]);
           }}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           disabled={results.length === 0 && query.trim().length === 0}
         >
           <Search className="h-4 w-4" />

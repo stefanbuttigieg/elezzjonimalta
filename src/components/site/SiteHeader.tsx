@@ -53,12 +53,12 @@ export function SiteHeader() {
           <span className="sr-only">2026</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
+              className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
               activeProps={{ className: "bg-accent text-foreground" }}
             >
               {item.label}
@@ -72,7 +72,7 @@ export function SiteHeader() {
             <Link
               to="/$lang/my-district/$number"
               params={{ lang, number: String(preferred.number) }}
-              className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 md:inline-flex"
+              className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 lg:inline-flex"
               title={t("home.welcomeBack.cta")}
             >
               <MapPin className="h-3.5 w-3.5" />
@@ -82,7 +82,7 @@ export function SiteHeader() {
           {isStaff ? (
             <Link
               to="/admin"
-              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent md:inline-flex"
+              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent lg:inline-flex"
             >
               <ShieldCheck className="h-3.5 w-3.5" />
               Admin
@@ -92,7 +92,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border lg:hidden"
             aria-label={open ? t("nav.close") : t("nav.menu")}
             aria-expanded={open}
           >
@@ -102,7 +102,7 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-background md:hidden">
+        <div className="border-t border-border bg-background lg:hidden">
           <nav
             className="container mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3"
             aria-label="Mobile"
@@ -184,7 +184,7 @@ function HeaderSearch({ lang }: { lang: Locale }) {
       onSubmit={submit}
       role="search"
       aria-label={t("nav.search")}
-      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary md:inline-flex"
+      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary lg:inline-flex"
     >
       <Search className="h-3.5 w-3.5 text-muted-foreground" />
       <input
