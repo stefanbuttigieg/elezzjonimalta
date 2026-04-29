@@ -285,7 +285,21 @@ function CandidateEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.id]);
 
+  // Ensure the primary district is always part of the contesting-districts
+  // set, so the candidate shows up on that district's public page.
+  const effectiveDistrictIds = useMemo(() => {
+    if (v.primary_district_id && !districtIds.includes(v.primary_district_id)) {
+      return [...districtIds, v.primary_district_id];
+    }
+    return districtIds;
+  }, [districtIds, v.primary_district_id]);
+
   const toggleDistrict = (id: string) => {
+    // Don't allow unchecking the primary district — change the primary first.
+    if (id === v.primary_district_id) {
+      toast.info("Change the Primary district first to remove this one.");
+      return;
+    }
     setDistrictIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
@@ -297,7 +311,7 @@ function CandidateEditor({
       if (!v.full_name) throw new Error("Full name is required");
       const primaryDistrict =
         v.primary_district_id ||
-        (districtIds.length > 0 ? districtIds[0] : null);
+        (effectiveDistrictIds.length > 0 ? effectiveDistrictIds[0] : null);
       const payload = {
         slug: v.slug || slugify(v.full_name),
         full_name: v.full_name,
@@ -333,10 +347,14 @@ function CandidateEditor({
         if (error) throw error;
       }
 
-      // Sync candidate_districts for the 2026 election.
-      const toAdd = districtIds.filter((id) => !initialDistrictIds.includes(id));
+      // Sync candidate_districts for the 2026 election. Always include the
+      // primary district so the public site can show the candidate there.
+      const finalIds = primaryDistrict && !effectiveDistrictIds.includes(primaryDistrict)
+        ? [...effectiveDistrictIds, primaryDistrict]
+        : effectiveDistrictIds;
+      const toAdd = finalIds.filter((id) => !initialDistrictIds.includes(id));
       const toRemove = initialDistrictIds.filter(
-        (id) => !districtIds.includes(id)
+        (id) => !finalIds.includes(id)
       );
       if (toAdd.length > 0) {
         const { error } = await supabase.from("candidate_districts").insert(
@@ -415,7 +433,8 @@ function CandidateEditor({
           </p>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
             {districts.map((d) => {
-              const checked = districtIds.includes(d.id);
+              const checked = effectiveDistrictIds.includes(d.id);
+              const isPrimary = d.id === v.primary_district_id;
               return (
                 <label
                   key={d.id}
@@ -433,6 +452,11 @@ function CandidateEditor({
                   />
                   <span className="truncate">
                     {d.number} · {d.name_en}
+                    {isPrimary ? (
+                      <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                        primary
+                      </span>
+                    ) : null}
                   </span>
                 </label>
               );
