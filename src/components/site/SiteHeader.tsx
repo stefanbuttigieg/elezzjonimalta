@@ -1,6 +1,21 @@
 import { Link, useLocation, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Menu, X, ShieldCheck, Search, MapPin } from "lucide-react";
+import {
+  Menu,
+  X,
+  ShieldCheck,
+  Search,
+  MapPin,
+  Users,
+  Map as MapIcon,
+  Flag,
+  FileText,
+  Landmark,
+  Scale,
+  BookOpen,
+  MessagesSquare,
+  type LucideIcon,
+} from "lucide-react";
 import { getPreferredDistrict, type PreferredDistrict } from "@/lib/preferredDistrict";
 import { useT } from "@/i18n/useT";
 import { isLocale, LOCALES, type Locale } from "@/i18n/types";
@@ -24,15 +39,15 @@ export function SiteHeader() {
     setPreferred(getPreferredDistrict());
   }, [location.pathname]);
 
-  const navItems = [
-    { to: `/${lang}/candidates`, label: t("nav.candidates") },
-    { to: `/${lang}/districts`, label: t("nav.districts") },
-    { to: `/${lang}/parties`, label: t("nav.parties") },
-    { to: `/${lang}/proposals`, label: t("nav.proposals") },
-    { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
-    { to: `/${lang}/compare`, label: t("nav.compare") },
-    { to: `/${lang}/resources`, label: t("nav.resources") },
-    { to: `/${lang}/ask`, label: t("nav.askAi") },
+  const navItems: Array<{ to: string; label: string; icon: LucideIcon }> = [
+    { to: `/${lang}/candidates`, label: t("nav.candidates"), icon: Users },
+    { to: `/${lang}/districts`, label: t("nav.districts"), icon: MapIcon },
+    { to: `/${lang}/parties`, label: t("nav.parties"), icon: Flag },
+    { to: `/${lang}/proposals`, label: t("nav.proposals"), icon: FileText },
+    { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps"), icon: Landmark },
+    { to: `/${lang}/compare`, label: t("nav.compare"), icon: Scale },
+    { to: `/${lang}/resources`, label: t("nav.resources"), icon: BookOpen },
+    { to: `/${lang}/ask`, label: t("nav.askAi"), icon: MessagesSquare },
   ];
 
   return (
@@ -52,6 +67,27 @@ export function SiteHeader() {
           <span>Elezzjoni</span>
           <span className="sr-only">2026</span>
         </Link>
+
+        <nav
+          className="hidden items-center gap-0.5 md:flex xl:hidden"
+          aria-label="Primary"
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                title={item.label}
+                aria-label={item.label}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+                activeProps={{ className: "bg-accent text-foreground" }}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            );
+          })}
+        </nav>
 
         <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
           {navItems.map((item) => (
@@ -92,7 +128,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border xl:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border md:hidden"
             aria-label={open ? t("nav.close") : t("nav.menu")}
             aria-expanded={open}
           >
@@ -102,7 +138,7 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-background xl:hidden">
+        <div className="border-t border-border bg-background md:hidden">
           <nav
             className="container mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
             aria-label="Mobile"
