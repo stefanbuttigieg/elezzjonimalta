@@ -42,6 +42,9 @@ import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidat
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
 import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
+import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
+import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
+import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -208,6 +211,21 @@ const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
   path: '/candidates/$slug',
   getParentRoute: () => LangRoute,
 } as any)
+const ApiPublicV1PartiesRoute = ApiPublicV1PartiesRouteImport.update({
+  id: '/api/public/v1/parties',
+  path: '/api/public/v1/parties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1DistrictsRoute = ApiPublicV1DistrictsRouteImport.update({
+  id: '/api/public/v1/districts',
+  path: '/api/public/v1/districts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
+  id: '/api/public/v1/candidates',
+  path: '/api/public/v1/candidates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -243,6 +261,9 @@ export interface FileRoutesByFullPath {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
+  '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -276,6 +297,9 @@ export interface FileRoutesByTo {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
+  '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
+  '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -312,6 +336,9 @@ export interface FileRoutesById {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
+  '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -349,6 +376,9 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/v1/candidates'
+    | '/api/public/v1/districts'
+    | '/api/public/v1/parties'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -382,6 +412,9 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates'
     | '/$lang/parties'
+    | '/api/public/v1/candidates'
+    | '/api/public/v1/districts'
+    | '/api/public/v1/parties'
   id:
     | '__root__'
     | '/'
@@ -417,6 +450,9 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/v1/candidates'
+    | '/api/public/v1/districts'
+    | '/api/public/v1/parties'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -424,6 +460,9 @@ export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
+  ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
+  ApiPublicV1DistrictsRoute: typeof ApiPublicV1DistrictsRoute
+  ApiPublicV1PartiesRoute: typeof ApiPublicV1PartiesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -659,6 +698,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCandidatesSlugRouteImport
       parentRoute: typeof LangRoute
     }
+    '/api/public/v1/parties': {
+      id: '/api/public/v1/parties'
+      path: '/api/public/v1/parties'
+      fullPath: '/api/public/v1/parties'
+      preLoaderRoute: typeof ApiPublicV1PartiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/districts': {
+      id: '/api/public/v1/districts'
+      path: '/api/public/v1/districts'
+      fullPath: '/api/public/v1/districts'
+      preLoaderRoute: typeof ApiPublicV1DistrictsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/candidates': {
+      id: '/api/public/v1/candidates'
+      path: '/api/public/v1/candidates'
+      fullPath: '/api/public/v1/candidates'
+      preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -741,6 +801,9 @@ const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
+  ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
+  ApiPublicV1DistrictsRoute: ApiPublicV1DistrictsRoute,
+  ApiPublicV1PartiesRoute: ApiPublicV1PartiesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
