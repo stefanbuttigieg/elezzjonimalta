@@ -72,6 +72,16 @@ upcoming election.
 Every page, label, district name, and most editorial content is available in
 English and Maltese. Locale lives in the URL (`/en/...`, `/mt/...`).
 
+### Admin: News Monitor
+The admin section includes a **News monitor** that scans Times of Malta, The
+Malta Independent, MaltaToday, Lovin Malta, and Newsbook (4× daily via cron,
+plus on-demand) and uses Lovable AI to detect proposals, newly listed
+candidates, and key election developments. Findings are queued for staff
+review with confidence scores and source links, and each can be **converted in
+one click** into a new candidate, an update to an existing candidate, a new
+proposal, or a new party — auto-linking the source URL and writing to the
+admin audit log.
+
 ### Admin: API Request Logging
 The admin section includes an **API logs viewer** that records every call to
 the public API endpoints (`/api/public/v1/candidates`, `/parties`,
@@ -81,6 +91,11 @@ time, query string, user-agent, and a SHA-256 hashed IP (for privacy).
 - Logging is fire-and-forget and never delays the API response.
 - Includes 429 rate-limit and 500 error responses.
 - Visible to staff (read), deletable by admins.
+
+### Admin: Audit Log
+Every staff action on candidates, proposals, parties, and news findings is
+recorded with actor, before/after state, and metadata, viewable at
+`/admin/audit`.
 
 ### Public API (`/api/public/v1/*`)
 Stable, read-only JSON endpoints for candidates, parties, and districts —
