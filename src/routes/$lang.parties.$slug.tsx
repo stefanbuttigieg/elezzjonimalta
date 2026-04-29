@@ -9,6 +9,8 @@ import { ArrowLeft, ExternalLink, Globe, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { useAuth } from "@/lib/auth";
+import { EditPartyDialog } from "@/components/party/EditPartyDialog";
 
 type PartyDetail = {
   id: string;
