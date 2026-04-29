@@ -26,6 +26,10 @@ interface CandidateLite {
   id: string;
   full_name: string;
 }
+interface CategoryLite {
+  id: string;
+  name_en: string;
+}
 
 interface Proposal {
   id: string;
@@ -59,13 +63,14 @@ function ProposalsAdmin() {
   const [rows, setRows] = useState<Proposal[]>([]);
   const [parties, setParties] = useState<PartyLite[]>([]);
   const [candidates, setCandidates] = useState<CandidateLite[]>([]);
+  const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes] = await Promise.all([
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes] = await Promise.all([
       supabase
         .from("proposals")
         .select(
@@ -74,6 +79,7 @@ function ProposalsAdmin() {
         .order("created_at", { ascending: false }),
       supabase.from("parties").select("id, name_en, short_name").order("name_en"),
       supabase.from("candidates").select("id, full_name").order("full_name"),
+      supabase.from("proposal_categories").select("id, name_en").order("sort_order").order("name_en"),
     ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
@@ -81,6 +87,7 @@ function ProposalsAdmin() {
     setRows((proposalsRes.data ?? []) as Proposal[]);
     setParties((partiesRes.data ?? []) as PartyLite[]);
     setCandidates((candidatesRes.data ?? []) as CandidateLite[]);
+    setCategories((categoriesRes.data ?? []) as CategoryLite[]);
     setLoading(false);
   };
 
@@ -212,6 +219,7 @@ function ProposalsAdmin() {
           value={editing}
           parties={parties}
           candidates={candidates}
+          categories={categories}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -227,12 +235,14 @@ function ProposalEditor({
   value,
   parties,
   candidates,
+  categories,
   onClose,
   onSaved,
 }: {
   value: Proposal;
   parties: PartyLite[];
   candidates: CandidateLite[];
+  categories: CategoryLite[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -293,11 +303,21 @@ function ProposalEditor({
           />
         </Field>
         <Field label="Category">
-          <Input
+          <select
             value={v.category ?? ""}
-            onChange={(x) => setV({ ...v, category: x })}
-            placeholder="e.g. Economy, Health"
-          />
+            onChange={(e) => setV({ ...v, category: e.target.value || null })}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">— None —</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name_en}>
+                {c.name_en}
+              </option>
+            ))}
+            {v.category && !categories.some((c) => c.name_en === v.category) ? (
+              <option value={v.category}>{v.category} (legacy)</option>
+            ) : null}
+          </select>
         </Field>
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />

@@ -22,6 +22,7 @@ import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
@@ -113,6 +114,11 @@ const AdminNewsRoute = AdminNewsRouteImport.update({
 const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
@@ -273,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -356,6 +364,7 @@ export interface FileRoutesById {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
@@ -400,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/audit'
     | '/admin/candidates'
+    | '/admin/categories'
     | '/admin/districts'
     | '/admin/news'
     | '/admin/parties'
@@ -440,6 +450,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/audit'
     | '/admin/candidates'
+    | '/admin/categories'
     | '/admin/districts'
     | '/admin/news'
     | '/admin/parties'
@@ -482,6 +493,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/audit'
     | '/admin/candidates'
+    | '/admin/categories'
     | '/admin/districts'
     | '/admin/news'
     | '/admin/parties'
@@ -605,6 +617,13 @@ declare module '@tanstack/react-router' {
       path: '/districts'
       fullPath: '/admin/districts'
       preLoaderRoute: typeof AdminDistrictsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/candidates': {
@@ -853,6 +872,7 @@ interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
   AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
@@ -867,6 +887,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
   AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
