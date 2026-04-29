@@ -50,11 +50,13 @@ type NavItem = {
 const items: NavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/review", label: "Pending review", icon: ClipboardList },
+  { to: "/admin/news", label: "News monitor", icon: Newspaper },
   { to: "/admin/sitting-mps", label: "Sitting MPs", icon: ShieldCheck },
   { to: "/admin/candidates", label: "Candidates", icon: Users },
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/audit", label: "Audit log", icon: History },
   { to: "/admin/api-logs", label: "API logs", icon: Activity },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
 ];
