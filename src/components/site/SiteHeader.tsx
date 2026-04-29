@@ -39,15 +39,15 @@ export function SiteHeader() {
     setPreferred(getPreferredDistrict());
   }, [location.pathname]);
 
-  const navItems = [
-    { to: `/${lang}/candidates`, label: t("nav.candidates") },
-    { to: `/${lang}/districts`, label: t("nav.districts") },
-    { to: `/${lang}/parties`, label: t("nav.parties") },
-    { to: `/${lang}/proposals`, label: t("nav.proposals") },
-    { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
-    { to: `/${lang}/compare`, label: t("nav.compare") },
-    { to: `/${lang}/resources`, label: t("nav.resources") },
-    { to: `/${lang}/ask`, label: t("nav.askAi") },
+  const navItems: Array<{ to: string; label: string; icon: LucideIcon }> = [
+    { to: `/${lang}/candidates`, label: t("nav.candidates"), icon: Users },
+    { to: `/${lang}/districts`, label: t("nav.districts"), icon: MapIcon },
+    { to: `/${lang}/parties`, label: t("nav.parties"), icon: Flag },
+    { to: `/${lang}/proposals`, label: t("nav.proposals"), icon: FileText },
+    { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps"), icon: Landmark },
+    { to: `/${lang}/compare`, label: t("nav.compare"), icon: Scale },
+    { to: `/${lang}/resources`, label: t("nav.resources"), icon: BookOpen },
+    { to: `/${lang}/ask`, label: t("nav.askAi"), icon: MessagesSquare },
   ];
 
   return (
