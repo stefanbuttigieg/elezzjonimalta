@@ -151,7 +151,7 @@ export function MaltaDistrictsMap({
       cleanup?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale]);
+  }, [locale, JSON.stringify(candidateCounts)]);
 
   return (
     <div
