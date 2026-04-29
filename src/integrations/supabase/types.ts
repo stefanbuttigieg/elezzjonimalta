@@ -62,6 +62,56 @@ export type Database = {
           },
         ]
       }
+      candidate_sources: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["source_kind"]
+          label: string
+          note_en: string | null
+          note_mt: string | null
+          publisher: string | null
+          retrieved_at: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["source_kind"]
+          label: string
+          note_en?: string | null
+          note_mt?: string | null
+          publisher?: string | null
+          retrieved_at?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["source_kind"]
+          label?: string
+          note_en?: string | null
+          note_mt?: string | null
+          publisher?: string | null
+          retrieved_at?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_sources_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           bio_en: string | null
@@ -453,6 +503,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "editor" | "viewer"
       review_status: "draft" | "pending_review" | "published" | "archived"
+      source_kind: "official" | "manifesto" | "news" | "social" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -582,6 +633,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "editor", "viewer"],
       review_status: ["draft", "pending_review", "published", "archived"],
+      source_kind: ["official", "manifesto", "news", "social", "other"],
     },
   },
 } as const
