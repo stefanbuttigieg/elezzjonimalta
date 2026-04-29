@@ -37,9 +37,8 @@ export function MaltaDistrictsMap({
       try {
         const L = (await import("leaflet")).default;
         await import("leaflet/dist/leaflet.css");
-        const geo = (await import("@/data/malta-districts.geojson?url")).default;
 
-        const res = await fetch(geo);
+        const res = await fetch("/data/malta-districts.geojson");
         const data = (await res.json()) as GeoJSON.FeatureCollection;
         if (cancelled || !containerRef.current) return;
 
