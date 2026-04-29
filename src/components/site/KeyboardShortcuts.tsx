@@ -126,6 +126,7 @@ export function KeyboardShortcuts({ lang }: { lang: Locale }) {
 
   const shortcuts: ShortcutDef[] = [
     { keys: ["?"], labelKey: "shortcuts.help", fallback: "Show keyboard shortcuts" },
+    { keys: ["⌘", "K"], labelKey: "shortcuts.commandPalette", fallback: "Open command palette (global search)" },
     { keys: ["/"], labelKey: "shortcuts.search", fallback: "Focus search" },
     { keys: ["h"], labelKey: "shortcuts.home", fallback: "Go to home" },
     { keys: ["c"], labelKey: "shortcuts.candidates", fallback: "Go to candidates" },

@@ -85,7 +85,8 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
       title: c.full_name,
       subtitle: party ? pick(party.name_en, party.name_mt, locale) : null,
       snippet: pick(c.bio_en, c.bio_mt, locale)?.slice(0, 220) || null,
-      href: "/$lang/candidates",
+      href: "/$lang/candidates/$slug",
+      hrefParams: { slug: c.slug },
       accent: party?.color ?? null,
     });
   }

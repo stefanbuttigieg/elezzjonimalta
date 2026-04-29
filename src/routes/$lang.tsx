@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieConsentBanner } from "@/components/site/CookieConsentBanner";
 import { KeyboardShortcuts } from "@/components/site/KeyboardShortcuts";
+import { CommandPalette } from "@/components/site/CommandPalette";
 import { isLocale, LOCALE_HTML_LANG, type Locale } from "@/i18n/types";
 import { translate } from "@/i18n/useT";
 import { useEffect } from "react";
@@ -56,6 +57,7 @@ function LangLayout() {
       <SiteFooter />
       <CookieConsentBanner />
       {isLocale(lang) ? <KeyboardShortcuts lang={lang} /> : null}
+      <CommandPalette lang={lang} />
     </div>
   );
 }
