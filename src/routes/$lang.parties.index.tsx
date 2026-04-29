@@ -32,7 +32,7 @@ async function loadParties() {
   return { parties: (data ?? []) as PartyCard[] };
 }
 
-export const Route = createFileRoute("/$lang/parties")({
+export const Route = createFileRoute("/$lang/parties/")({
   loader: () => loadParties(),
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
