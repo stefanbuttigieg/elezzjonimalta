@@ -130,6 +130,7 @@ function PartyDetailPage() {
   const t = useT();
   const { lang } = Route.useParams();
   const { party, proposals, candidates } = Route.useLoaderData();
+  const { isStaff } = useAuth();
   const locale = isLocale(lang) ? lang : "en";
   const name = pickName(party, locale);
   const desc = (locale === "mt" ? party.description_mt : party.description_en) ?? "";
@@ -138,6 +139,11 @@ function PartyDetailPage() {
 
   return (
     <article className="bg-background">
+      {isStaff && (
+        <div className="container mx-auto flex max-w-6xl justify-end px-4 pt-4">
+          <EditPartyDialog party={party} />
+        </div>
+      )}
       {/* Cover */}
       <header className="relative overflow-hidden border-b border-border">
         {party.cover_image_url ? (
