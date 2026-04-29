@@ -26,6 +26,10 @@ interface CandidateLite {
   id: string;
   full_name: string;
 }
+interface CategoryLite {
+  id: string;
+  name_en: string;
+}
 
 interface Proposal {
   id: string;
@@ -59,13 +63,14 @@ function ProposalsAdmin() {
   const [rows, setRows] = useState<Proposal[]>([]);
   const [parties, setParties] = useState<PartyLite[]>([]);
   const [candidates, setCandidates] = useState<CandidateLite[]>([]);
+  const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes] = await Promise.all([
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes] = await Promise.all([
       supabase
         .from("proposals")
         .select(
@@ -74,6 +79,7 @@ function ProposalsAdmin() {
         .order("created_at", { ascending: false }),
       supabase.from("parties").select("id, name_en, short_name").order("name_en"),
       supabase.from("candidates").select("id, full_name").order("full_name"),
+      supabase.from("proposal_categories").select("id, name_en").order("sort_order").order("name_en"),
     ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
@@ -81,6 +87,7 @@ function ProposalsAdmin() {
     setRows((proposalsRes.data ?? []) as Proposal[]);
     setParties((partiesRes.data ?? []) as PartyLite[]);
     setCandidates((candidatesRes.data ?? []) as CandidateLite[]);
+    setCategories((categoriesRes.data ?? []) as CategoryLite[]);
     setLoading(false);
   };
 
