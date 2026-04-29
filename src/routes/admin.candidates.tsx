@@ -526,8 +526,39 @@ function CandidateEditor({
               />
               Confirmed on electoral.gov.mt
             </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={v.not_contesting_2026}
+                onChange={(e) => setV({ ...v, not_contesting_2026: e.target.checked })}
+              />
+              Not contesting 2026 election
+            </label>
           </div>
         </Field>
+        {v.not_contesting_2026 ? (
+          <>
+            <Field label="Not contesting — source URL" full>
+              <Input
+                value={v.not_contesting_source_url ?? ""}
+                onChange={(x) => setV({ ...v, not_contesting_source_url: x })}
+                placeholder="https://… article where they announced"
+              />
+            </Field>
+            <Field label="Not contesting — note (EN)" full>
+              <Textarea
+                value={v.not_contesting_note_en ?? ""}
+                onChange={(x) => setV({ ...v, not_contesting_note_en: x })}
+              />
+            </Field>
+            <Field label="Not contesting — note (MT)" full>
+              <Textarea
+                value={v.not_contesting_note_mt ?? ""}
+                onChange={(x) => setV({ ...v, not_contesting_note_mt: x })}
+              />
+            </Field>
+          </>
+        ) : null}
       </div>
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
