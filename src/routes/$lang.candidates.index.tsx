@@ -96,7 +96,7 @@ async function loadCandidates({
   };
 }
 
-export const Route = createFileRoute("/$lang/candidates")({
+export const Route = createFileRoute("/$lang/candidates/")({
   validateSearch: zodValidator(candidateSearchSchema),
   loaderDeps: ({ search: { q, party, district } }) => ({ q, party, district }),
   loader: ({ deps }) => loadCandidates(deps),
@@ -265,8 +265,12 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
     locale === "mt" ? candidate.bio_mt || candidate.bio_en : candidate.bio_en || candidate.bio_mt;
 
   return (
-    <article className="flex min-h-[260px] flex-col rounded-xl border border-border bg-surface p-5 shadow-card">
-      <div className="flex items-start gap-4">
+    <article className="flex min-h-[260px] flex-col rounded-xl border border-border bg-surface p-5 shadow-card transition-shadow hover:shadow-md">
+      <Link
+        to="/$lang/candidates/$slug"
+        params={{ lang: locale, slug: candidate.slug }}
+        className="flex items-start gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      >
         {candidate.photo_url ? (
           <img
             src={candidate.photo_url}
@@ -280,7 +284,7 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h2 className="font-serif text-xl font-bold leading-tight text-foreground">
+          <h2 className="font-serif text-xl font-bold leading-tight text-foreground hover:underline">
             {candidate.full_name}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -292,7 +296,7 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
               .join(" · ") || t("candidates.unassigned")}
           </p>
         </div>
-      </div>
+      </Link>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {candidate.is_incumbent ? <Badge label={t("common.sittingMp")} /> : null}
@@ -303,17 +307,26 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
         {bio || t("candidates.bio.empty")}
       </p>
 
-      {candidate.website ? (
-        <a
-          href={candidate.website}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:underline"
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <Link
+          to="/$lang/candidates/$slug"
+          params={{ lang: locale, slug: candidate.slug }}
+          className="text-sm font-semibold text-foreground hover:underline"
         >
-          {t("candidates.website")}
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
-      ) : null}
+          {t("candidate.viewProfile")} →
+        </Link>
+        {candidate.website ? (
+          <a
+            href={candidate.website}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            {t("candidates.website")}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : null}
+      </div>
     </article>
   );
 }
