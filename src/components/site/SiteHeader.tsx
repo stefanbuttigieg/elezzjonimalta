@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate, useParams } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
-import { Menu, X, ShieldCheck, Search } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Menu, X, ShieldCheck, Search, MapPin } from "lucide-react";
+import { getPreferredDistrict, type PreferredDistrict } from "@/lib/preferredDistrict";
 import { useT } from "@/i18n/useT";
 import { isLocale, LOCALES, type Locale } from "@/i18n/types";
 import { useAuth } from "@/lib/auth";
