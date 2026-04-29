@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieConsentBanner } from "@/components/site/CookieConsentBanner";
+import { KeyboardShortcuts } from "@/components/site/KeyboardShortcuts";
 import { isLocale, LOCALE_HTML_LANG, type Locale } from "@/i18n/types";
 import { translate } from "@/i18n/useT";
 import { useEffect } from "react";
@@ -54,6 +55,7 @@ function LangLayout() {
       </main>
       <SiteFooter />
       <CookieConsentBanner />
+      {isLocale(lang) ? <KeyboardShortcuts lang={lang} /> : null}
     </div>
   );
 }
