@@ -12,11 +12,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 
-type Kind = "candidate" | "party" | "manifesto" | "proposal";
+type Kind = "candidate" | "party" | "manifesto" | "proposal" | "district";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
-  type: fallback(z.enum(["all", "candidates", "parties", "manifestos", "proposals"]), "all").default("all"),
+  type: fallback(z.enum(["all", "candidates", "parties", "manifestos", "proposals", "districts"]), "all").default("all"),
 });
 
 type SearchResult = {
