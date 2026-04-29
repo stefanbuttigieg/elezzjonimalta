@@ -36,6 +36,10 @@ interface Candidate {
   source_url: string | null;
   imported_from: string | null;
   notes: string | null;
+  not_contesting_2026: boolean;
+  not_contesting_source_url: string | null;
+  not_contesting_note_en: string | null;
+  not_contesting_note_mt: string | null;
 }
 
 interface PartyOpt { id: string; name_en: string; }
