@@ -20,8 +20,10 @@ import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
 import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
+import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
@@ -46,6 +48,7 @@ import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidate
 import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
 import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
 import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
+import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -102,6 +105,11 @@ const AdminPartiesRoute = AdminPartiesRouteImport.update({
   path: '/parties',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNewsRoute = AdminNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
@@ -110,6 +118,11 @@ const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
   id: '/candidates',
   path: '/candidates',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
@@ -232,6 +245,11 @@ const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
   path: '/api/public/v1/candidates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksScanNewsRoute = ApiPublicHooksScanNewsRouteImport.update({
+  id: '/api/public/hooks/scan-news',
+  path: '/api/public/hooks/scan-news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -253,8 +271,10 @@ export interface FileRoutesByFullPath {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -268,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
@@ -290,8 +311,10 @@ export interface FileRoutesByTo {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -305,6 +328,7 @@ export interface FileRoutesByTo {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
+  '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
@@ -330,8 +354,10 @@ export interface FileRoutesById {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
   '/admin/review': typeof AdminReviewRoute
@@ -345,6 +371,7 @@ export interface FileRoutesById {
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
@@ -371,8 +398,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -386,6 +415,7 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/scan-news'
     | '/api/public/v1/candidates'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
@@ -408,8 +438,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -423,6 +455,7 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates'
     | '/$lang/parties'
+    | '/api/public/hooks/scan-news'
     | '/api/public/v1/candidates'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
@@ -447,8 +480,10 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/audit'
     | '/admin/candidates'
     | '/admin/districts'
+    | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
     | '/admin/review'
@@ -462,6 +497,7 @@ export interface FileRouteTypes {
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/scan-news'
     | '/api/public/v1/candidates'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
@@ -472,6 +508,7 @@ export interface RootRouteChildren {
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
+  ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
   ApiPublicV1DistrictsRoute: typeof ApiPublicV1DistrictsRoute
   ApiPublicV1PartiesRoute: typeof ApiPublicV1PartiesRoute
@@ -556,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPartiesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/news': {
+      id: '/admin/news'
+      path: '/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/districts': {
       id: '/admin/districts'
       path: '/districts'
@@ -568,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/candidates'
       fullPath: '/admin/candidates'
       preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/api-logs': {
@@ -738,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/scan-news': {
+      id: '/api/public/hooks/scan-news'
+      path: '/api/public/hooks/scan-news'
+      fullPath: '/api/public/hooks/scan-news'
+      preLoaderRoute: typeof ApiPublicHooksScanNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -793,8 +851,10 @@ const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
+  AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
   AdminProposalsRoute: typeof AdminProposalsRoute
   AdminReviewRoute: typeof AdminReviewRoute
@@ -805,8 +865,10 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
+  AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
   AdminProposalsRoute: AdminProposalsRoute,
   AdminReviewRoute: AdminReviewRoute,
@@ -822,6 +884,7 @@ const rootRouteChildren: RootRouteChildren = {
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
+  ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
   ApiPublicV1DistrictsRoute: ApiPublicV1DistrictsRoute,
   ApiPublicV1PartiesRoute: ApiPublicV1PartiesRoute,

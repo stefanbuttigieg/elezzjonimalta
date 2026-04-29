@@ -24,6 +24,8 @@ import {
   ChevronRight,
   Home,
   Activity,
+  Newspaper,
+  History,
 } from "lucide-react";
 import {
   Sheet,
@@ -48,11 +50,13 @@ type NavItem = {
 const items: NavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/review", label: "Pending review", icon: ClipboardList },
+  { to: "/admin/news", label: "News monitor", icon: Newspaper },
   { to: "/admin/sitting-mps", label: "Sitting MPs", icon: ShieldCheck },
   { to: "/admin/candidates", label: "Candidates", icon: Users },
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/audit", label: "Audit log", icon: History },
   { to: "/admin/api-logs", label: "API logs", icon: Activity },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
 ];
@@ -149,10 +153,28 @@ function AdminLayout() {
   const visibleItems = items.filter((i) => !i.adminOnly || isAdmin);
   const active = findActiveItem(pathname, visibleItems);
 
+  const [unreadFindings, setUnreadFindings] = useState(0);
+  useEffect(() => {
+    if (!isStaff) return;
+    let cancelled = false;
+    const load = async () => {
+      const { count } = await (await import("@/integrations/supabase/client")).supabase
+        .from("news_findings")
+        .select("*", { count: "exact", head: true })
+        .is("alert_seen_at", null)
+        .eq("status", "pending");
+      if (!cancelled) setUnreadFindings(count ?? 0);
+    };
+    void load();
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isStaff, pathname]);
+
   const renderNav = (onNavigate?: () => void) => (
     <nav className="px-3 pb-6">
       {visibleItems.map((item) => {
         const isActive = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+        const badge = item.to === "/admin/news" && unreadFindings > 0 ? unreadFindings : null;
         return (
           <Link
             key={item.to}
@@ -166,7 +188,12 @@ function AdminLayout() {
             }
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {badge ? (
+              <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
+                {badge}
+              </span>
+            ) : null}
           </Link>
         );
       })}
