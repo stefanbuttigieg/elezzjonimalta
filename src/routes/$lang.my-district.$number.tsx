@@ -173,7 +173,12 @@ export const Route = createFileRoute("/$lang/my-district/$number")({
 function MyDistrictPage() {
   const t = useT();
   const { lang, number } = Route.useParams();
-  const { district, candidates, proposals } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData() as {
+    district: DistrictRow;
+    candidates: CandidateRow[];
+    proposals: ProposalRow[];
+  };
+  const { district, candidates, proposals } = loaderData;
   const locale: Locale = isLocale(lang) ? lang : "en";
 
   const name =
