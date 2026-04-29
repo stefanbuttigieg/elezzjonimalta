@@ -7,8 +7,8 @@ import { writeAudit } from "./auditLog.server";
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-const PER_SOURCE_LIMIT = 12;
-const TOTAL_LIMIT = 60;
+const PER_SOURCE_LIMIT = 3;
+const TOTAL_LIMIT = 10;
 const ARTICLE_CONTENT_LIMIT = 6000;
 
 type Trigger = "cron" | "manual";
