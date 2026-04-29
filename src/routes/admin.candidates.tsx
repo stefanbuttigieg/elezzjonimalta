@@ -258,17 +258,51 @@ function CandidateEditor({
 }) {
   const [v, setV] = useState<Candidate>(value);
   const [saving, setSaving] = useState(false);
+  const [districtIds, setDistrictIds] = useState<string[]>([]);
+  const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
   const isNew = !v.id;
+
+  useEffect(() => {
+    if (!v.id) {
+      setDistrictIds([]);
+      setInitialDistrictIds([]);
+      return;
+    }
+    void (async () => {
+      const { data, error } = await supabase
+        .from("candidate_districts")
+        .select("district_id")
+        .eq("candidate_id", v.id)
+        .eq("election_year", 2026);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      const ids = (data ?? []).map((r: { district_id: string }) => r.district_id);
+      setDistrictIds(ids);
+      setInitialDistrictIds(ids);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v.id]);
+
+  const toggleDistrict = (id: string) => {
+    setDistrictIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
   const save = async () => {
     setSaving(true);
     try {
       if (!v.full_name) throw new Error("Full name is required");
+      const primaryDistrict =
+        v.primary_district_id ||
+        (districtIds.length > 0 ? districtIds[0] : null);
       const payload = {
         slug: v.slug || slugify(v.full_name),
         full_name: v.full_name,
         party_id: v.party_id || null,
-        primary_district_id: v.primary_district_id || null,
+        primary_district_id: primaryDistrict,
         is_incumbent: v.is_incumbent,
         electoral_confirmed: v.electoral_confirmed,
         bio_en: v.bio_en || null,
@@ -282,10 +316,48 @@ function CandidateEditor({
         source_url: v.source_url || null,
         notes: v.notes || null,
       };
-      const { error } = isNew
-        ? await supabase.from("candidates").insert(payload)
-        : await supabase.from("candidates").update(payload).eq("id", v.id);
-      if (error) throw error;
+      let candidateId = v.id;
+      if (isNew) {
+        const { data, error } = await supabase
+          .from("candidates")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        candidateId = (data as { id: string }).id;
+      } else {
+        const { error } = await supabase
+          .from("candidates")
+          .update(payload)
+          .eq("id", v.id);
+        if (error) throw error;
+      }
+
+      // Sync candidate_districts for the 2026 election.
+      const toAdd = districtIds.filter((id) => !initialDistrictIds.includes(id));
+      const toRemove = initialDistrictIds.filter(
+        (id) => !districtIds.includes(id)
+      );
+      if (toAdd.length > 0) {
+        const { error } = await supabase.from("candidate_districts").insert(
+          toAdd.map((district_id) => ({
+            candidate_id: candidateId,
+            district_id,
+            election_year: 2026,
+          }))
+        );
+        if (error) throw error;
+      }
+      if (toRemove.length > 0) {
+        const { error } = await supabase
+          .from("candidate_districts")
+          .delete()
+          .eq("candidate_id", candidateId)
+          .eq("election_year", 2026)
+          .in("district_id", toRemove);
+        if (error) throw error;
+      }
+
       toast.success(isNew ? "Candidate created" : "Candidate updated");
       onSaved();
     } catch (e) {
@@ -335,6 +407,37 @@ function CandidateEditor({
               </option>
             ))}
           </select>
+        </Field>
+        <Field label="Contesting districts (2026)" full>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Select every district this candidate is contesting in 2026. The
+            primary district above is used as the main display affiliation.
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
+            {districts.map((d) => {
+              const checked = districtIds.includes(d.id);
+              return (
+                <label
+                  key={d.id}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    checked
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleDistrict(d.id)}
+                    className="h-3.5 w-3.5"
+                  />
+                  <span className="truncate">
+                    {d.number} · {d.name_en}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
         </Field>
         <Field label="Photo URL">
           <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
