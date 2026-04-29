@@ -439,6 +439,7 @@ function CandidateEditor({
             })}
           </div>
         </Field>
+        <Field label="Photo URL">
           <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
         </Field>
         <Field label="Website">
