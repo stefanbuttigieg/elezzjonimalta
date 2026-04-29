@@ -283,6 +283,222 @@ export type Database = {
         }
         Relationships: []
       }
+      news_articles: {
+        Row: {
+          created_at: string
+          error: string | null
+          fetched_at: string
+          id: string
+          published_at: string | null
+          scan_status: string
+          source_id: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          published_at?: string | null
+          scan_status?: string
+          source_id: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          fetched_at?: string
+          id?: string
+          published_at?: string | null
+          scan_status?: string
+          source_id?: string
+          title?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_articles_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "news_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_findings: {
+        Row: {
+          article_id: string
+          candidate_id: string | null
+          confidence: number
+          created_at: string
+          extracted: Json
+          id: string
+          kind: Database["public"]["Enums"]["news_finding_kind"]
+          proposal_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string
+          status: Database["public"]["Enums"]["news_finding_status"]
+          summary_en: string | null
+          summary_mt: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          candidate_id?: string | null
+          confidence?: number
+          created_at?: string
+          extracted?: Json
+          id?: string
+          kind: Database["public"]["Enums"]["news_finding_kind"]
+          proposal_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id: string
+          status?: Database["public"]["Enums"]["news_finding_status"]
+          summary_en?: string | null
+          summary_mt?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          candidate_id?: string | null
+          confidence?: number
+          created_at?: string
+          extracted?: Json
+          id?: string
+          kind?: Database["public"]["Enums"]["news_finding_kind"]
+          proposal_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string
+          status?: Database["public"]["Enums"]["news_finding_status"]
+          summary_en?: string | null
+          summary_mt?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_findings_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_findings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_findings_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_findings_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "news_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_scan_runs: {
+        Row: {
+          articles_discovered: number
+          articles_scanned: number
+          created_at: string
+          error: string | null
+          findings_created: number
+          finished_at: string | null
+          id: string
+          source_id: string | null
+          started_at: string
+          trigger: Database["public"]["Enums"]["news_scan_trigger"]
+          triggered_by: string | null
+        }
+        Insert: {
+          articles_discovered?: number
+          articles_scanned?: number
+          created_at?: string
+          error?: string | null
+          findings_created?: number
+          finished_at?: string | null
+          id?: string
+          source_id?: string | null
+          started_at?: string
+          trigger: Database["public"]["Enums"]["news_scan_trigger"]
+          triggered_by?: string | null
+        }
+        Update: {
+          articles_discovered?: number
+          articles_scanned?: number
+          created_at?: string
+          error?: string | null
+          findings_created?: number
+          finished_at?: string | null
+          id?: string
+          source_id?: string | null
+          started_at?: string
+          trigger?: Database["public"]["Enums"]["news_scan_trigger"]
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_scan_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "news_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_sources: {
+        Row: {
+          base_url: string
+          created_at: string
+          enabled: boolean
+          id: string
+          last_scanned_at: string | null
+          name: string
+          sitemap_url: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_scanned_at?: string | null
+          name: string
+          sitemap_url?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_scanned_at?: string | null
+          name?: string
+          sitemap_url?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parliament_terms: {
         Row: {
           candidate_id: string
@@ -550,6 +766,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
+      news_finding_kind:
+        | "proposal"
+        | "new_candidate"
+        | "election_development"
+        | "not_relevant"
+      news_finding_status: "pending" | "accepted" | "dismissed" | "reviewed"
+      news_scan_trigger: "cron" | "manual"
       review_status: "draft" | "pending_review" | "published" | "archived"
       source_kind: "official" | "manifesto" | "news" | "social" | "other"
     }
@@ -680,6 +903,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor", "viewer"],
+      news_finding_kind: [
+        "proposal",
+        "new_candidate",
+        "election_development",
+        "not_relevant",
+      ],
+      news_finding_status: ["pending", "accepted", "dismissed", "reviewed"],
+      news_scan_trigger: ["cron", "manual"],
       review_status: ["draft", "pending_review", "published", "archived"],
       source_kind: ["official", "manifesto", "news", "social", "other"],
     },

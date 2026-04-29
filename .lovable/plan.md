@@ -1,66 +1,92 @@
-## Locality-first entry point
+# News Ingestion & Detection Pipeline
 
-Let voters land on the homepage, type or pick their **locality** (or district number) and immediately jump to a personalised "your district" view that surfaces everything they need: the district, its candidates, the party split, related proposals and useful resources.
+A scheduled + on-demand process that scans 5 Maltese news sites, uses AI to detect election-relevant content (proposals, new candidates, electoral developments), and queues findings for staff review in the admin portal.
 
-### What the user sees
+## Sources monitored
+- timesofmalta.com
+- independent.com.mt
+- maltatoday.com.mt
+- lovinmalta.com
+- newsbook.com.mt
 
-1. **Homepage hero gets a locality search box** as the first interactive element — replacing the current generic "Browse candidates / Ask the assistant" CTAs as the primary action.
-   - A single combobox: type a locality (e.g. *Mellieħa*, *Sliema*, *Żejtun*) **or** a district number (1–13).
-   - Live, fuzzy suggestions as you type, drawn from the existing `districts.localities_en/mt` lists.
-   - Bilingual: searches both EN and MT names so "Birkirkara" and "Ħal Qormi" both work.
-   - Two affordances under the input:
-     - "Use my district 6" quick chips for the 13 districts (collapsed behind a "Browse all districts" toggle on mobile).
-     - "Skip — explore everything" small link to the existing entry grid below.
+## How it works (user view)
 
-2. **On selection** the user is taken to a new **"My district" page** at `/{lang}/my-district/{number}` that shows, in one scroll:
-   - District header (number, name, list of localities, source link).
-   - Party breakdown bar (reuses the chart from the districts page).
-   - **All confirmed 2026 candidates contesting that district** (including dual-district candidates via `candidate_districts`), grouped by party, each linking to their profile.
-   - **Proposals that mention that district's parties or candidates** (filter `proposals` by party_id of candidates in this district) — a short "What candidates here are promising" section, capped at ~6 with a "See all proposals" link.
-   - "Compare candidates here" CTA → preloads the compare tool with this district's top candidates.
-   - "Useful resources" footer (vot.mt, electoral.gov.mt, maltaelections.io) reusing the resources copy.
+1. **Automatic runs**: 4×/day (06:00, 11:00, 16:00, 21:00 Malta time) via `pg_cron`.
+2. **Manual run**: a new admin page **"News monitor"** with a **"Run scan now"** button (admin-only, with optional per-source toggle).
+3. Each run:
+   - Discovers recent article URLs per source (sitemap / listing pages).
+   - Skips URLs already seen (dedup table).
+   - Fetches the article, extracts clean text (Firecrawl `scrape` → markdown).
+   - Asks Lovable AI (`google/gemini-2.5-flash`) to classify and extract:
+     - `kind`: `proposal` | `new_candidate` | `election_development` | `not_relevant`
+     - structured fields (title, summary EN/MT, candidate name, party hint, district hint, proposal category, etc.)
+     - `confidence` 0–1
+   - Saves the finding to a `news_findings` table with status `pending`.
+4. Admin reviews findings in **News monitor**:
+   - Filter by source / kind / status / confidence.
+   - For each finding: **Create proposal**, **Create candidate**, **Link to existing**, **Dismiss**, or **Mark reviewed**.
+   - "Create…" pre-fills the existing proposal/candidate dialog with the AI-extracted fields and source URL.
 
-3. **Persistence**: the chosen locality / district is saved to `localStorage` (`vot.preferredDistrict`). On future visits the homepage shows a "Welcome back — jump back to District 6 (Qormi)" banner above the hero, with a "Change" button. Respects existing cookie consent (only stored after consent, otherwise session-only).
+## Database changes
 
-4. **Header shortcut**: once a district is set, the site header gets a small "My district" link next to the locale switcher so it's reachable from any page.
+New tables (RLS: staff read/write; no public access):
 
-### Where it fits
+- `news_sources` — seeded with the 5 outlets (`id, slug, name, base_url, sitemap_url, enabled, last_scanned_at`).
+- `news_articles` — dedup of fetched URLs (`id, source_id, url UNIQUE, title, published_at, fetched_at, content_hash, scan_status`).
+- `news_findings` — AI output (`id, article_id, kind, confidence, title, summary_en, summary_mt, extracted jsonb, candidate_id nullable, proposal_id nullable, status: pending|accepted|dismissed|reviewed, created_at, reviewed_by, reviewed_at`).
+- `news_scan_runs` — audit log (`id, started_at, finished_at, trigger: cron|manual, source_id nullable, articles_scanned, findings_created, error`).
 
-```text
-/                       Landing → redirects to /en
-/{lang}                 Homepage with new locality picker as hero
-/{lang}/my-district/$n  NEW personalised district hub (server-loaded, SEO-friendly)
-/{lang}/districts       Existing list page, unchanged
-/{lang}/candidates      Existing candidate list, unchanged
-```
+## Server endpoints
 
-The new page is a real route (not a hash), so it's shareable, indexable, and gets its own SEO metadata per district (e.g. *"District 6 — Qormi, Siġġiewi, Luqa — Vot Malta 2026"*).
+- `src/routes/api/public/hooks/scan-news.ts` (POST) — triggered by `pg_cron`. Validates an internal `X-Cron-Secret` header (new `NEWS_CRON_SECRET`). Iterates enabled sources, calls Firecrawl, calls Lovable AI, writes rows. Caps per-run cost (e.g., 15 new articles per source per run).
+- `src/server/newsScan.functions.ts` — `runNewsScan({ sourceIds? })` server function for the manual button (admin-only via `requireSupabaseAuth` + role check).
+- Shared logic in `src/server/newsScan.server.ts` (Firecrawl client, AI prompt, Supabase admin writes).
 
-### Accessibility & UX
+## Admin UI
 
-- Combobox follows ARIA combobox pattern (listbox, `aria-activedescendant`, keyboard navigation with ↑/↓/Enter/Esc).
-- Locality matching is accent-insensitive (`Ħal Qormi` matches `hal qormi`).
-- If a locality maps to multiple districts (rare but possible after boundary changes) the picker shows a small disambiguation dropdown.
-- No JS fallback: the picker is a normal `<form>` posting to the districts page with the query, so server-rendered visitors and assistive tech can still navigate.
+- New route `src/routes/admin.news.tsx` ("News monitor") + sidebar item in `src/routes/admin.tsx`.
+  - Header: last run time, next scheduled run, **Run scan now** button (with per-source checkboxes).
+  - Tabs: **Pending** / **Reviewed** / **Dismissed** / **All runs**.
+  - Findings table: source · kind · confidence · title · published date · actions.
+  - Row actions open existing Proposal/Candidate drawers prefilled from `extracted` jsonb.
+- Dashboard card on `admin.index.tsx`: "Pending findings: N".
 
-### Technical implementation
+## AI & scraping
 
-- **Data**:
-  - Reuse the existing `loadDistricts()` query (already returns localities + party breakdown). Build a flat `[{ locality, districtNumber, districtId }]` index in memory on the client for fuzzy matching (≤200 entries — trivial).
-  - The new `/$lang/my-district/$number` route adds a server loader that fetches the district by number, all candidates with `primary_district_id = district.id` **plus** candidates joined via `candidate_districts` for `election_year = 2026`, and proposals filtered by those candidates' party IDs.
-- **New files**:
-  - `src/components/site/LocalityPicker.tsx` — accessible combobox component used in the hero.
-  - `src/lib/localityIndex.ts` — pure helpers to normalise/search locality strings.
-  - `src/routes/$lang.my-district.$number.tsx` — the personalised hub route with `head()` per district.
-  - `src/lib/preferredDistrict.ts` — tiny `localStorage` helper gated on cookie consent.
-- **Edits**:
-  - `src/routes/$lang.index.tsx` — replace hero CTA block with the LocalityPicker; add the "Welcome back" banner above the hero when a preference exists.
-  - `src/components/site/SiteHeader.tsx` — add a conditional "My district" link.
-  - `src/i18n/dictionaries.ts` — add the new strings (EN + MT) for picker placeholder, button labels, "Welcome back…", new page headings, empty/error states.
-- **No DB changes** required — all needed columns and joins already exist (`districts.localities_en/mt`, `candidate_districts`, `candidates.primary_district_id`).
+- **Firecrawl** (already connected — `FIRECRAWL_API_KEY` present): `scrape` with `formats: ['markdown']`, `onlyMainContent: true`. Sitemap discovery via `map` filtered to recent paths.
+- **Lovable AI** via `LOVABLE_API_KEY`: `google/gemini-2.5-flash` (cheap, sufficient). Structured JSON output with a strict schema; reject non-JSON.
+- Neutrality preserved: AI extracts facts only, never opinions; everything is staff-reviewed before publishing.
 
-### Out of scope (can come later)
+## Cron setup
 
-- Geolocation auto-detect (requires permission prompt, browser only, and a polygon dataset Malta doesn't ship cleanly).
-- Personalised proposal scoring (we'd need a tagging model on proposals).
-- An "alerts when a candidate in your district publishes something" feature.
+`pg_cron` + `pg_net` job calling `https://elezzjonimalta.lovable.app/api/public/hooks/scan-news` 4×/day with the `X-Cron-Secret` header.
+
+## Cost & safety controls
+
+- Per-run hard caps: max 15 new articles/source, max 75 total.
+- Skip URLs already in `news_articles`.
+- Truncate scraped content to ~6k chars before sending to AI.
+- All Firecrawl/AI errors logged to `news_scan_runs.error`, never throw mid-run.
+- Manual run rate-limited to once per 60s per admin.
+
+## Files to add / edit
+
+Add:
+- `supabase` migration: 4 new tables + RLS + seed `news_sources`.
+- `src/server/newsScan.server.ts`
+- `src/server/newsScan.functions.ts`
+- `src/routes/api/public/hooks/scan-news.ts`
+- `src/routes/admin.news.tsx`
+
+Edit:
+- `src/routes/admin.tsx` — add "News monitor" sidebar entry.
+- `src/routes/admin.index.tsx` — add pending findings card.
+- `CHANGELOG.md`, `README.md`.
+
+Secret to add: `NEWS_CRON_SECRET` (random string, used by pg_cron call).
+
+## Out of scope (can follow later)
+
+- Auto-publishing without review.
+- Sentiment analysis or partisan tone scoring (intentionally avoided — neutrality).
+- Social media monitoring (Facebook/Twitter) — requires separate APIs.
