@@ -39,6 +39,12 @@ interface Source {
   last_scanned_at: string | null;
 }
 
+interface PartyOpt { id: string; name_en: string; short_name: string | null }
+interface DistrictOpt { id: string; number: number; name_en: string }
+interface CandidateOpt { id: string; full_name: string; party_id: string | null }
+
+type ConvertTarget = "new_candidate" | "update_candidate" | "new_proposal" | "new_party";
+
 interface Finding {
   id: string;
   kind: Kind;
