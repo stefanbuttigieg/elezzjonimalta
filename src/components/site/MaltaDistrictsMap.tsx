@@ -86,6 +86,23 @@ export function MaltaDistrictsMap({
           fillOpacity: 0.45,
         };
 
+        cleanup = () => {
+          map.remove();
+        };
+
+        if (!res || !res.ok) {
+          // Tiles + Malta view are enough; skip overlay until GeoJSON is ready.
+          return;
+        }
+
+        let data: GeoJSON.FeatureCollection;
+        try {
+          data = (await res.json()) as GeoJSON.FeatureCollection;
+        } catch {
+          return;
+        }
+        if (cancelled) return;
+
         const layer = L.geoJSON(data as GeoJSON.GeoJsonObject, {
           style: () => baseStyle,
           onEachFeature: (feature, lyr) => {
@@ -118,11 +135,10 @@ export function MaltaDistrictsMap({
           },
         }).addTo(map);
 
-        map.fitBounds(layer.getBounds(), { padding: [12, 12] });
-
-        cleanup = () => {
-          map.remove();
-        };
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [12, 12] });
+        }
       } catch (e) {
         console.error("Failed to load Malta districts map", e);
         if (!cancelled) setError("map_failed");
