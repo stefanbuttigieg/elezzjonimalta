@@ -364,6 +364,12 @@ function NewsMonitor() {
                 >
                   <RotateCcw className="h-3.5 w-3.5" /> Re-process
                 </button>
+                <button
+                  onClick={() => setConvertFor(f)}
+                  className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  <Wand2 className="h-3.5 w-3.5" /> Convert to action
+                </button>
               </div>
             </article>
           ))
