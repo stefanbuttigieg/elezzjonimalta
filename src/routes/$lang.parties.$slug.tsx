@@ -164,9 +164,9 @@ function PartyDetailPage() {
           />
         )}
 
-        <div className="container mx-auto max-w-6xl px-4">
+        <div className="container relative z-10 mx-auto max-w-6xl px-4">
           <div className="-mt-12 flex flex-col gap-4 pb-8 sm:-mt-16 md:-mt-28 md:flex-row md:items-end md:gap-6">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-border bg-background p-3 shadow-lg sm:h-28 sm:w-28 md:h-40 md:w-40">
+            <div className="relative z-10 flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-border bg-background p-3 shadow-lg sm:h-28 sm:w-28 md:h-40 md:w-40">
               {party.logo_url ? (
                 <img
                   src={party.logo_url}
