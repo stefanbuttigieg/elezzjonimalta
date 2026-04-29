@@ -313,42 +313,12 @@ function CandidatePage() {
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("candidate.section.sources")}
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm">
-                {candidate.parlament_mt_url ? (
-                  <li>
-                    <a
-                      href={candidate.parlament_mt_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-foreground hover:underline"
-                    >
-                      parlament.mt
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </li>
-                ) : null}
-                {candidate.source_url ? (
-                  <li>
-                    <a
-                      href={candidate.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-foreground hover:underline"
-                    >
-                      {new URL(candidate.source_url).hostname.replace(/^www\./, "")}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </li>
-                ) : null}
-                {!candidate.parlament_mt_url && !candidate.source_url ? (
-                  <li className="text-muted-foreground">{t("candidate.sources.empty")}</li>
-                ) : null}
-              </ul>
-            </div>
+            <AuditTrail
+              sources={auditSources}
+              lastUpdated={lastUpdated}
+              locale={locale}
+              t={t}
+            />
           </aside>
         </section>
       </div>
