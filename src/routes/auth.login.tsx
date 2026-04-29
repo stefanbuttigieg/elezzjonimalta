@@ -48,13 +48,13 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-card">
         <Link to="/" className="font-serif text-xl font-bold tracking-tight text-foreground">
-          Vot Malta <span className="text-muted-foreground">2026</span>
+          Elezzjoni <span className="text-muted-foreground">2026</span>
         </Link>
         <h1 className="mt-6 font-serif text-2xl font-bold text-foreground">
           {mode === "sign-in" ? "Sign in" : "Create account"}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Editorial access for Vot Malta admins and editors.
+          Editorial access for Elezzjoni admins and editors.
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">

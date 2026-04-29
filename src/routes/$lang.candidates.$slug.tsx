@@ -133,7 +133,7 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const candidate = loaderData?.candidate;
     const name = candidate?.full_name ?? translate(lang, "candidates.title");
-    const title = `${name} — Vot Malta 2026`;
+    const title = `${name} — Elezzjoni 2026`;
     const bio =
       lang === "mt"
         ? candidate?.bio_mt || candidate?.bio_en

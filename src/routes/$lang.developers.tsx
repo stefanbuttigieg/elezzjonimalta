@@ -8,8 +8,8 @@ export const Route = createFileRoute("/$lang/developers")({
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title =
       lang === "mt"
-        ? "API għall-iżviluppaturi — Vot Malta 2026"
-        : "Developer API — Vot Malta 2026";
+        ? "API għall-iżviluppaturi — Elezzjoni 2026"
+        : "Developer API — Elezzjoni 2026";
     const description =
       lang === "mt"
         ? "Endpoints pubbliċi JSON read-only għad-data tal-Elezzjoni Ġenerali Maltija 2026: partiti, distretti u kandidati."

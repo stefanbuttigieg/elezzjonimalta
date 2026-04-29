@@ -158,7 +158,7 @@ export const Route = createFileRoute("/$lang/search")({
   },
   head: ({ params }) => {
     const locale: Locale = isLocale(params.lang) ? params.lang : "en";
-    const title = locale === "mt" ? "Fittex — Vot Malta 2026" : "Search — Vot Malta 2026";
+    const title = locale === "mt" ? "Fittex — Elezzjoni 2026" : "Search — Elezzjoni 2026";
     const description =
       locale === "mt"
         ? "Fittex kandidati, partiti, manifesti u proposti."
