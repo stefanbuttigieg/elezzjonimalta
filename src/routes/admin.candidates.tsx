@@ -337,6 +337,10 @@ function CandidateEditor({
         status: v.status,
         source_url: v.source_url || null,
         notes: v.notes || null,
+        not_contesting_2026: v.not_contesting_2026,
+        not_contesting_source_url: v.not_contesting_source_url || null,
+        not_contesting_note_en: v.not_contesting_note_en || null,
+        not_contesting_note_mt: v.not_contesting_note_mt || null,
       };
       let candidateId = v.id;
       if (isNew) {
