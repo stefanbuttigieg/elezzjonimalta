@@ -68,6 +68,27 @@ export function SiteHeader() {
           <span className="sr-only">2026</span>
         </Link>
 
+        <nav
+          className="hidden items-center gap-0.5 md:flex xl:hidden"
+          aria-label="Primary"
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                title={item.label}
+                aria-label={item.label}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+                activeProps={{ className: "bg-accent text-foreground" }}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            );
+          })}
+        </nav>
+
         <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
           {navItems.map((item) => (
             <Link
