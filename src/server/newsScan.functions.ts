@@ -25,7 +25,7 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId, claims } = context;
-    await assertStaff(supabase, userId);
+    await assertStaff(supabase as never);
     const email = (claims as { email?: string }).email ?? null;
     const result = await runNewsScan({
       trigger: "manual",
@@ -47,7 +47,7 @@ export const updateFindingStatus = createServerFn({ method: "POST" })
   .inputValidator((input) => FindingActionInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId, claims } = context;
-    await assertStaff(supabase, userId);
+    await assertStaff(supabase as never);
     const email = (claims as { email?: string }).email ?? null;
 
     const { data: before } = await supabaseAdmin
@@ -89,7 +89,7 @@ export const ackFindingAlerts = createServerFn({ method: "POST" })
   .inputValidator((input) => AckInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    await assertStaff(supabase, userId);
+    await assertStaff(supabase as never);
     if (data.findingIds.length === 0) return { ok: true };
     const { error } = await supabaseAdmin
       .from("news_findings")
@@ -105,7 +105,7 @@ export const reprocessFinding = createServerFn({ method: "POST" })
   .inputValidator((input) => ReprocessInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId, claims } = context;
-    await assertStaff(supabase, userId);
+    await assertStaff(supabase as never);
     const email = (claims as { email?: string }).email ?? null;
 
     const { data: finding } = await supabaseAdmin
