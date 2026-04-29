@@ -24,16 +24,22 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId, claims } = context;
-    await assertStaff(supabase as never);
-    const email = (claims as { email?: string }).email ?? null;
-    const result = await runNewsScan({
-      trigger: "manual",
-      sourceIds: data.sourceIds,
-      triggeredBy: userId,
-      triggeredByEmail: email,
-    });
-    return result;
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+      const email = (claims as { email?: string }).email ?? null;
+      const result = await runNewsScan({
+        trigger: "manual",
+        sourceIds: data.sourceIds,
+        triggeredBy: userId,
+        triggeredByEmail: email,
+      });
+      return { ok: true as const, ...result };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("triggerNewsScan failed:", message);
+      return { ok: false as const, error: message };
+    }
   });
 
 const FindingActionInput = z.object({
