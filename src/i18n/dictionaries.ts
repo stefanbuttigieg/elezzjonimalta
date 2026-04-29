@@ -791,6 +791,34 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.notFound.title": "Id-distrett ma nstabx",
     "myDistrict.notFound.body":
       "Ma stajniex insibu dak id-distrett. Agħżel wieħed mil-lista tad-distretti elettorali Maltin.",
+
+    "developers.eyebrow": "Għall-iżviluppaturi",
+    "developers.title": "API pubbliku",
+    "developers.intro":
+      "API żgħir, JSON u read-only li jesponi d-data ppubblikata ta' Vot Malta 2026 — partiti, distretti elettorali u kandidati. Ma jeħtieġx API key.",
+    "developers.facts.format": "Format",
+    "developers.facts.auth": "Awtentikazzjoni",
+    "developers.facts.authValue": "L-ebda",
+    "developers.facts.cors": "CORS",
+    "developers.rate.title": "Limitu ta' talbiet",
+    "developers.rate.body":
+      "Biex inżommu s-servizz responsiv għal kulħadd, l-endpoints pubbliċi huma limitati skont l-IP tal-klijent.",
+    "developers.rate.perMinute": "talbiet kull minuta għal kull IP, għal kull endpoint",
+    "developers.rate.headers":
+      "Kull risposta tinkludi l-headers X-RateLimit-Limit, X-RateLimit-Remaining u X-RateLimit-Reset.",
+    "developers.rate.exceeded":
+      "Jekk taqbeż il-limitu, tirċievi HTTP 429 b'header Retry-After.",
+    "developers.rate.disclaimer":
+      "Nota: il-limitu jiġi infurzat kull server instance u jerġa' jibda mill-bidu kull restart, allura hu protezzjoni tal-użu ġust aktar milli limitu strett. Jekk teħtieġ limitu ogħla u garantit, ikkuntattjana.",
+    "developers.endpoints.title": "Endpoints",
+    "developers.endpoints.queryParams": "Parametri tal-query",
+    "developers.endpoints.example": "Eżempju",
+    "developers.response.title": "Forma tar-risposta",
+    "developers.response.body":
+      "L-endpoints kollha jirritornaw envelope JSON b'array data u oġġett meta li jiddeskrivi r-riżultat.",
+    "developers.attribution.title": "Attribuzzjoni",
+    "developers.attribution.body":
+      "Id-data hija miftuħa u liberament użabbli. Jekk jogħġbok ikkredita lil \"Vot Malta 2026\" b'link lura għas-sit, u ċċekkja l-paġna About għad-dettalji tas-sorsi.",
   },
 };
 
