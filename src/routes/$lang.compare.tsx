@@ -428,9 +428,6 @@ function ComparePage() {
           </div>
         )}
       </div>
-
-      {/* Hidden dependency to satisfy router import */}
-      <span hidden>{router ? "" : ""}</span>
     </section>
   );
 }
