@@ -105,6 +105,142 @@ export const ackFindingAlerts = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const ConvertInput = z.object({
+  findingId: z.string().uuid(),
+  target: z.enum(["new_candidate", "update_candidate", "new_proposal", "new_party"]),
+  payload: z.record(z.string(), z.unknown()),
+});
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+}
+
+export const convertFinding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => ConvertInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+      const email = (claims as { email?: string }).email ?? null;
+
+      const { data: finding, error: fErr } = await supabaseAdmin
+        .from("news_findings")
+        .select("id, article_id, articles:news_articles!inner(url)")
+        .eq("id", data.findingId)
+        .single();
+      if (fErr || !finding) throw new Error("finding not found");
+      const sourceUrl = (finding as { articles?: { url?: string } }).articles?.url ?? null;
+
+      const p = data.payload as Record<string, string | undefined>;
+      let createdEntity: { type: string; id: string } | null = null;
+
+      if (data.target === "new_candidate") {
+        if (!p.full_name) throw new Error("full_name required");
+        const slug = p.slug || slugify(p.full_name) + "-" + Math.random().toString(36).slice(2, 6);
+        const { data: row, error } = await supabaseAdmin
+          .from("candidates")
+          .insert({
+            full_name: p.full_name,
+            slug,
+            party_id: p.party_id || null,
+            primary_district_id: p.primary_district_id || null,
+            bio_en: p.bio_en || null,
+            source_url: sourceUrl,
+            status: "pending_review",
+            imported_from: "news_monitor",
+            notes: p.notes || null,
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        createdEntity = { type: "candidate", id: row.id };
+      } else if (data.target === "update_candidate") {
+        if (!p.candidate_id) throw new Error("candidate_id required");
+        const updates: Record<string, unknown> = {};
+        if (p.bio_en) updates.bio_en = p.bio_en;
+        if (p.party_id) updates.party_id = p.party_id;
+        if (p.primary_district_id) updates.primary_district_id = p.primary_district_id;
+        if (p.notes) updates.notes = p.notes;
+        if (sourceUrl) updates.source_url = sourceUrl;
+        const { error } = await supabaseAdmin
+          .from("candidates")
+          .update(updates)
+          .eq("id", p.candidate_id);
+        if (error) throw new Error(error.message);
+        createdEntity = { type: "candidate", id: p.candidate_id };
+      } else if (data.target === "new_proposal") {
+        if (!p.title_en) throw new Error("title_en required");
+        const { data: row, error } = await supabaseAdmin
+          .from("proposals")
+          .insert({
+            title_en: p.title_en,
+            description_en: p.description_en || null,
+            category: p.category || null,
+            party_id: p.party_id || null,
+            candidate_id: p.candidate_id || null,
+            source_url: sourceUrl,
+            status: "pending_review",
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        createdEntity = { type: "proposal", id: row.id };
+      } else if (data.target === "new_party") {
+        if (!p.name_en) throw new Error("name_en required");
+        const slug = p.slug || slugify(p.name_en);
+        const { data: row, error } = await supabaseAdmin
+          .from("parties")
+          .insert({
+            name_en: p.name_en,
+            slug,
+            short_name: p.short_name || null,
+            color: p.color || null,
+            website: p.website || null,
+            description_en: p.description_en || null,
+            source_url: sourceUrl,
+            status: "draft",
+            imported_from: "news_monitor",
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(error.message);
+        createdEntity = { type: "party", id: row.id };
+      }
+
+      // Mark finding reviewed and link if applicable
+      const linkUpdate: Record<string, unknown> = {
+        status: "reviewed",
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      };
+      if (createdEntity?.type === "candidate") linkUpdate.candidate_id = createdEntity.id;
+      if (createdEntity?.type === "proposal") linkUpdate.proposal_id = createdEntity.id;
+      await supabaseAdmin.from("news_findings").update(linkUpdate).eq("id", data.findingId);
+
+      await writeAudit(supabaseAdmin, {
+        entityType: createdEntity?.type ?? "news_finding",
+        entityId: createdEntity?.id ?? data.findingId,
+        action: `convert_${data.target}`,
+        actorId: userId,
+        actorEmail: email,
+        metadata: { findingId: data.findingId, payload: data.payload },
+      });
+
+      return { ok: true as const, entity: createdEntity };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("convertFinding failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
 const ReprocessInput = z.object({ findingId: z.string().uuid() });
 export const reprocessFinding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
