@@ -347,10 +347,14 @@ function CandidateEditor({
         if (error) throw error;
       }
 
-      // Sync candidate_districts for the 2026 election.
-      const toAdd = districtIds.filter((id) => !initialDistrictIds.includes(id));
+      // Sync candidate_districts for the 2026 election. Always include the
+      // primary district so the public site can show the candidate there.
+      const finalIds = primaryDistrict && !effectiveDistrictIds.includes(primaryDistrict)
+        ? [...effectiveDistrictIds, primaryDistrict]
+        : effectiveDistrictIds;
+      const toAdd = finalIds.filter((id) => !initialDistrictIds.includes(id));
       const toRemove = initialDistrictIds.filter(
-        (id) => !districtIds.includes(id)
+        (id) => !finalIds.includes(id)
       );
       if (toAdd.length > 0) {
         const { error } = await supabase.from("candidate_districts").insert(
