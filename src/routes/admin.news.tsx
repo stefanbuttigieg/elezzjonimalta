@@ -119,15 +119,21 @@ function NewsMonitor() {
       .order("created_at", { ascending: false })
       .limit(200);
     if (tab !== "all") q = q.eq("status", tab);
-    const [findingsRes, sourcesRes, runsRes] = await Promise.all([
+    const [findingsRes, sourcesRes, runsRes, partiesRes, districtsRes, candidatesRes] = await Promise.all([
       q,
       supabase.from("news_sources").select("*").order("name"),
       supabase.from("news_scan_runs").select("*").order("started_at", { ascending: false }).limit(15),
+      supabase.from("parties").select("id, name_en, short_name").order("name_en"),
+      supabase.from("districts").select("id, number, name_en").order("number"),
+      supabase.from("candidates").select("id, full_name, party_id").order("full_name").limit(2000),
     ]);
     if (findingsRes.error) toast.error(findingsRes.error.message);
     setFindings((findingsRes.data ?? []) as unknown as Finding[]);
     setSources((sourcesRes.data ?? []) as Source[]);
     setRuns((runsRes.data ?? []) as Run[]);
+    setParties((partiesRes.data ?? []) as PartyOpt[]);
+    setDistricts((districtsRes.data ?? []) as DistrictOpt[]);
+    setCandidates((candidatesRes.data ?? []) as CandidateOpt[]);
     setLoading(false);
   }, [tab]);
 
