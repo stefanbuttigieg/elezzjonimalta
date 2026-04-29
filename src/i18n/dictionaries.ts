@@ -187,6 +187,10 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.partyBreakdown": "Party breakdown",
     "districts.partyBreakdown.none": "No party affiliations recorded yet",
     "districts.partyBreakdown.independent": "Independent",
+    "districts.number": "District {number}",
+    "districts.map.title": "Explore districts on the map",
+    "districts.map.subtitle": "Click any district to see its candidates and proposals.",
+    "districts.map.error": "Couldn't load the map. Please refresh the page.",
 
     "common.loading": "Loading…",
     "common.error": "Something went wrong.",
