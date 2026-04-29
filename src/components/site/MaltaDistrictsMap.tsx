@@ -107,14 +107,15 @@ export function MaltaDistrictsMap({
           style: () => baseStyle,
           onEachFeature: (feature, lyr) => {
             const props = (feature as DistrictFeature).properties;
-            const count = candidateCounts[props.number] ?? 0;
+            const districtNumber = Number(props.number);
+            const count = candidateCounts[districtNumber] ?? 0;
             const candidatesLabel =
               count > 0
                 ? t("districts.candidates.count", { count })
                 : t("districts.candidates.none");
             lyr.bindTooltip(
               `<div style="font-weight:600">${t("districts.number", {
-                number: props.number,
+                number: districtNumber,
               })}</div><div>${props.name}</div><div style="font-size:11px;opacity:0.75;margin-top:2px">${candidatesLabel}</div>`,
               { sticky: true, direction: "top", offset: [0, -4] }
             );
