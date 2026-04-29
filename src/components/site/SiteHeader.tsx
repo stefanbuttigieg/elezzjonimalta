@@ -26,6 +26,7 @@ export function SiteHeader() {
     { to: `/${lang}/proposals`, label: t("nav.proposals") },
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
     { to: `/${lang}/compare`, label: t("nav.compare") },
+    { to: `/${lang}/resources`, label: t("nav.resources") },
     { to: `/${lang}/ask`, label: t("nav.askAi") },
   ];
 
