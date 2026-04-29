@@ -42,11 +42,22 @@ export function MaltaDistrictsMap({
         const data = (await res.json()) as GeoJSON.FeatureCollection;
         if (cancelled || !containerRef.current) return;
 
+        // Malta bounding box (SW, NE) — covers Malta, Gozo and Comino
+        const maltaBounds = L.latLngBounds(
+          L.latLng(35.78, 14.17),
+          L.latLng(36.10, 14.59)
+        );
+
         const map = L.map(containerRef.current, {
           zoomControl: true,
           scrollWheelZoom: false,
           attributionControl: true,
+          minZoom: 10,
+          maxBounds: maltaBounds.pad(0.5),
         });
+
+        // Always center on Malta first so the map is useful even if GeoJSON fails.
+        map.fitBounds(maltaBounds, { padding: [12, 12] });
 
         L.tileLayer(
           "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
