@@ -57,11 +57,16 @@ export function MaltaDistrictsMap({
           }
         ).addTo(map);
 
+        const primary =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--primary")
+            .trim() || "#1e3a8a";
+
         const baseStyle = {
-          color: "hsl(var(--primary))",
+          color: primary,
           weight: 1.5,
           opacity: 1,
-          fillColor: "hsl(var(--primary))",
+          fillColor: primary,
           fillOpacity: 0.18,
         };
         const hoverStyle = {
