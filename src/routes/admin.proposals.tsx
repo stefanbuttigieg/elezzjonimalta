@@ -219,6 +219,7 @@ function ProposalsAdmin() {
           value={editing}
           parties={parties}
           candidates={candidates}
+          categories={categories}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -234,12 +235,14 @@ function ProposalEditor({
   value,
   parties,
   candidates,
+  categories,
   onClose,
   onSaved,
 }: {
   value: Proposal;
   parties: PartyLite[];
   candidates: CandidateLite[];
+  categories: CategoryLite[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -300,11 +303,21 @@ function ProposalEditor({
           />
         </Field>
         <Field label="Category">
-          <Input
+          <select
             value={v.category ?? ""}
-            onChange={(x) => setV({ ...v, category: x })}
-            placeholder="e.g. Economy, Health"
-          />
+            onChange={(e) => setV({ ...v, category: e.target.value || null })}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">— None —</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.name_en}>
+                {c.name_en}
+              </option>
+            ))}
+            {v.category && !categories.some((c) => c.name_en === v.category) ? (
+              <option value={v.category}>{v.category} (legacy)</option>
+            ) : null}
+          </select>
         </Field>
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
