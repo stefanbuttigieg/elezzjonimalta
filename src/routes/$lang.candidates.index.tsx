@@ -120,7 +120,7 @@ export const Route = createFileRoute("/$lang/candidates/")({
 
 function CandidatesPage() {
   const t = useT();
-  const navigate = useNavigate({ from: "/$lang/candidates" });
+  const navigate = useNavigate({ from: "/$lang/candidates/" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
   const { candidates, parties, districts } = Route.useLoaderData();
@@ -186,7 +186,7 @@ function CandidatesPage() {
           />
 
           <Link
-            to="/$lang/candidates"
+            to="/$lang/candidates/"
             params={{ lang: locale }}
             search={{ q: "", party: "all", district: "all" }}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
