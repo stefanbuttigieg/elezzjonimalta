@@ -68,6 +68,17 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <HeaderSearch lang={lang} />
+          {preferred ? (
+            <Link
+              to="/$lang/my-district/$number"
+              params={{ lang, number: String(preferred.number) }}
+              className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 md:inline-flex"
+              title={t("home.welcomeBack.cta")}
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              {t("nav.myDistrict", { number: preferred.number })}
+            </Link>
+          ) : null}
           {isStaff ? (
             <Link
               to="/admin"
