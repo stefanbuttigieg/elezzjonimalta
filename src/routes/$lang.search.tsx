@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Search, UserRound, Flag, FileText, BookOpen } from "lucide-react";
+import { Search, UserRound, Flag, FileText, BookOpen, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
