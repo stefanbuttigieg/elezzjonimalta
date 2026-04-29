@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, UserRound, Flag, FileText, Loader2 } from "lucide-react";
+import { Search, UserRound, Flag, FileText, MapPin, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 
-type Kind = "candidate" | "party" | "proposal";
+type Kind = "candidate" | "party" | "proposal" | "district";
 
 type Hit = {
   id: string;
@@ -21,6 +21,7 @@ const ICON: Record<Kind, typeof UserRound> = {
   candidate: UserRound,
   party: Flag,
   proposal: FileText,
+  district: MapPin,
 };
 
 function pick(en: string | null | undefined, mt: string | null | undefined, locale: Locale): string {
