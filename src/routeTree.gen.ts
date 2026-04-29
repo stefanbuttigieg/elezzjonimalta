@@ -24,6 +24,7 @@ import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangSearchRouteImport } from './routes/$lang.search'
+import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
@@ -113,6 +114,11 @@ const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
 const LangSearchRoute = LangSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangResourcesRoute = LangResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => LangRoute,
 } as any)
 const LangProposalsRoute = LangProposalsRouteImport.update({
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByTo {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
+  '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
@@ -365,6 +376,7 @@ export interface FileRouteTypes {
     | '/$lang/districts'
     | '/$lang/privacy'
     | '/$lang/proposals'
+    | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
@@ -497,6 +509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangSearchRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/resources': {
+      id: '/$lang/resources'
+      path: '/resources'
+      fullPath: '/$lang/resources'
+      preLoaderRoute: typeof LangResourcesRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/proposals': {
       id: '/$lang/proposals'
       path: '/proposals'
@@ -617,6 +636,7 @@ interface LangRouteChildren {
   LangDistrictsRoute: typeof LangDistrictsRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
+  LangResourcesRoute: typeof LangResourcesRoute
   LangSearchRoute: typeof LangSearchRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
@@ -639,6 +659,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangDistrictsRoute: LangDistrictsRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
+  LangResourcesRoute: LangResourcesRoute,
   LangSearchRoute: LangSearchRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,

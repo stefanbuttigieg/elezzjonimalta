@@ -19,6 +19,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "nav.compare": "Compare",
     "nav.askAi": "Ask AI",
     "nav.proposals": "Proposals",
+    "nav.resources": "Resources",
     "nav.developers": "Developers",
     "nav.about": "About",
     "nav.menu": "Menu",
