@@ -383,6 +383,34 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.notFound.title": "District not found",
     "myDistrict.notFound.body":
       "We couldn't find that district. Pick one from the list of Maltese electoral districts.",
+
+    "developers.eyebrow": "For developers",
+    "developers.title": "Public API",
+    "developers.intro":
+      "A small, read-only JSON API exposing published Vot Malta 2026 data — parties, electoral districts and candidates. No API key required.",
+    "developers.facts.format": "Format",
+    "developers.facts.auth": "Authentication",
+    "developers.facts.authValue": "None",
+    "developers.facts.cors": "CORS",
+    "developers.rate.title": "Rate limit",
+    "developers.rate.body":
+      "To keep the service responsive for everyone, public endpoints are throttled per client IP.",
+    "developers.rate.perMinute": "requests per minute per IP, per endpoint",
+    "developers.rate.headers":
+      "Every response includes X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers.",
+    "developers.rate.exceeded":
+      "Exceeding the limit returns HTTP 429 with a Retry-After header.",
+    "developers.rate.disclaimer":
+      "Note: the limit is enforced per server instance and resets on restart, so it is a fair-use guard rather than a strict cap. If you need a higher, guaranteed limit, get in touch.",
+    "developers.endpoints.title": "Endpoints",
+    "developers.endpoints.queryParams": "Query parameters",
+    "developers.endpoints.example": "Example",
+    "developers.response.title": "Response shape",
+    "developers.response.body":
+      "All endpoints return a JSON envelope with a data array and a meta object describing the result.",
+    "developers.attribution.title": "Attribution",
+    "developers.attribution.body":
+      "Data is open and free to reuse. Please credit \"Vot Malta 2026\" with a link back to the site, and check the About page for sourcing details.",
   },
   mt: {
     "site.name": "Vot Malta 2026",
