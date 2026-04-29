@@ -643,6 +643,28 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.meta.title": "Qabbel kandidati — Vot Malta 2026",
     "compare.meta.description":
       "Qiegħed kandidati tal-Elezzjoni Ġenerali Maltija 2026 ħdejn xulxin — partit, distrett, rekord, bijografija u proposti.",
+
+    "resources.title": "Riżorsi utli",
+    "resources.subtitle":
+      "Għodod esterni u sorsi uffiċjali għall-Elezzjoni Ġenerali Maltija 2026. M'aħniex affiljati ma' ebda waħda — qed nissuġġerixxuhom għax verament jiswew.",
+    "resources.visit": "Żur is-sit",
+    "resources.disclaimer":
+      "Il-links jinfetħu f'tab ġdida. Vot Malta 2026 mhix responsabbli mill-kontenut jew id-disponibbiltà ta' siti esterni.",
+    "resources.tag.official": "Uffiċjali",
+    "resources.tag.civic": "Għodda ċivika",
+    "resources.tag.data": "Data u storja",
+    "resources.votmt.title": "vot.mt — Għodda ta' Pariri għall-Vot",
+    "resources.votmt.desc":
+      "Għodda indipendenti li tqabblek ma' partiti u kandidati skont il-pożizzjoni tiegħek fuq mistoqsijiet ċentrali tal-politika Maltija. Tajba biex tesplora kemm tikkonċilja l-fehmiet tiegħek ma' kull kontestatur qabel jum l-elezzjoni.",
+    "resources.electoral.title": "Kummissjoni Elettorali ta' Malta",
+    "resources.electoral.desc":
+      "L-istituzzjoni uffiċjali responsabbli mit-tmexxija tal-elezzjonijiet Maltin. Iċċekkja r-reġistrazzjoni tal-vot, sib il-post tal-votazzjoni, niżżel il-listi uffiċjali tan-nominazzjonijiet, u aqra r-regoli u r-riżultati ppubblikati mill-Istat.",
+    "resources.maltaelections.title": "Malta Elections — riżultati storiċi",
+    "resources.maltaelections.desc":
+      "Dataset miftuħ u explorer tar-riżultati elettorali Maltin li jmorru lura għexieren ta' snin — distrett b'distrett, partit b'partit, għadd b'għadd. Indispensabbli biex tifhem kif ivvutaw id-distretti tul iż-żmien.",
+    "resources.meta.title": "Riżorsi utli għall-elezzjoni — Vot Malta 2026",
+    "resources.meta.description":
+      "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali Maltija 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
   },
 };
 
