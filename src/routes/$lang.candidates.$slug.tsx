@@ -65,15 +65,30 @@ type CandidateDetail = {
   source_url: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
+};
+
+type SourceKind = "official" | "manifesto" | "news" | "social" | "other";
+
+type CandidateSource = {
+  id: string;
+  kind: SourceKind;
+  label: string;
+  url: string;
+  publisher: string | null;
+  note_en: string | null;
+  note_mt: string | null;
+  retrieved_at: string;
+  updated_at: string;
 };
 
 async function loadCandidate(slug: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -84,16 +99,28 @@ async function loadCandidate(slug: string) {
 
   const candidate = data as CandidateDetail;
 
-  const { data: proposalsData, error: proposalsError } = await supabase
-    .from("proposals")
-    .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
-    .eq("candidate_id", candidate.id)
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const [proposalsRes, sourcesRes] = await Promise.all([
+    supabase
+      .from("proposals")
+      .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
+      .eq("candidate_id", candidate.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("candidate_sources")
+      .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
+      .eq("candidate_id", candidate.id)
+      .order("retrieved_at", { ascending: false }),
+  ]);
 
-  if (proposalsError) throw proposalsError;
+  if (proposalsRes.error) throw proposalsRes.error;
+  if (sourcesRes.error) throw sourcesRes.error;
 
-  return { candidate, proposals: (proposalsData ?? []) as ProposalRow[] };
+  return {
+    candidate,
+    proposals: (proposalsRes.data ?? []) as ProposalRow[],
+    sources: (sourcesRes.data ?? []) as CandidateSource[],
+  };
 }
 
 export const Route = createFileRoute("/$lang/candidates/$slug")({
