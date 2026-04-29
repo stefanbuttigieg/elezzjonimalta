@@ -141,7 +141,7 @@ export function LocalityPicker({ lang }: { lang: Locale }) {
           aria-activedescendant={
             open && results[activeIdx] ? `${listId}-opt-${activeIdx}` : undefined
           }
-          className="flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground md:text-lg"
+          className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground md:text-lg"
         />
         <button
           type="button"
