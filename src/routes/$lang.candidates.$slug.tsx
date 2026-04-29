@@ -65,6 +65,10 @@ type CandidateDetail = {
   source_url: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  not_contesting_2026: boolean;
+  not_contesting_source_url: string | null;
+  not_contesting_note_en: string | null;
+  not_contesting_note_mt: string | null;
   updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
