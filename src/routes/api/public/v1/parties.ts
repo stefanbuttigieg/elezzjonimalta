@@ -5,6 +5,7 @@ import {
   clientKeyFromRequest,
   rateLimitHeaders,
 } from "@/server/rateLimit.server";
+import { logApiRequest } from "@/server/apiLogger.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,14 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+const ENDPOINT = "/api/public/v1/parties";
+
 export const Route = createFileRoute("/api/public/v1/parties")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
+        const startedAt = Date.now();
         const limit = checkRateLimit(clientKeyFromRequest(request, "parties"), {
           limit: 60,
           windowMs: 60_000,
@@ -28,6 +32,7 @@ export const Route = createFileRoute("/api/public/v1/parties")({
           ...rateLimitHeaders(limit),
         };
         if (!limit.allowed) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 429, startedAt });
           return new Response(
             JSON.stringify({ error: "rate_limited", message: "Too many requests" }),
             { status: 429, headers: baseHeaders }
@@ -43,12 +48,14 @@ export const Route = createFileRoute("/api/public/v1/parties")({
           .order("name_en", { ascending: true });
 
         if (error) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 500, startedAt });
           return new Response(
             JSON.stringify({ error: "internal_error", message: "Failed to load parties" }),
             { status: 500, headers: baseHeaders }
           );
         }
 
+        logApiRequest({ request, endpoint: ENDPOINT, statusCode: 200, startedAt });
         return new Response(
           JSON.stringify({
             data,

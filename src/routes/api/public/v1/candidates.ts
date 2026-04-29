@@ -5,6 +5,7 @@ import {
   clientKeyFromRequest,
   rateLimitHeaders,
 } from "@/server/rateLimit.server";
+import { logApiRequest } from "@/server/apiLogger.server";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,14 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
+const ENDPOINT = "/api/public/v1/candidates";
+
 export const Route = createFileRoute("/api/public/v1/candidates")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
+        const startedAt = Date.now();
         const url = new URL(request.url);
         const districtParam = url.searchParams.get("district");
         const partyParam = url.searchParams.get("party");
