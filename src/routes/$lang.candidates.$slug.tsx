@@ -65,6 +65,10 @@ type CandidateDetail = {
   source_url: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  not_contesting_2026: boolean;
+  not_contesting_source_url: string | null;
+  not_contesting_note_en: string | null;
+  not_contesting_note_mt: string | null;
   updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
@@ -88,7 +92,7 @@ async function loadCandidate(slug: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -209,7 +213,12 @@ function CandidatePage() {
 
             <div className="mt-4 flex flex-wrap gap-2">
               {candidate.is_incumbent ? <Pill label={t("common.sittingMp")} /> : null}
-              {candidate.electoral_confirmed ? (
+              {candidate.not_contesting_2026 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  {t("sittingMps.notContesting")}
+                </span>
+              ) : null}
+              {candidate.electoral_confirmed && !candidate.not_contesting_2026 ? (
                 <Pill label={t("common.electoralConfirmed")} />
               ) : null}
               {candidate.party ? (
@@ -223,6 +232,33 @@ function CandidatePage() {
                 </Link>
               ) : null}
             </div>
+
+            {candidate.not_contesting_2026 ? (
+              <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  {t("sittingMps.notContesting")}
+                </p>
+                {(() => {
+                  const note = locale === "mt"
+                    ? candidate.not_contesting_note_mt || candidate.not_contesting_note_en
+                    : candidate.not_contesting_note_en || candidate.not_contesting_note_mt;
+                  return note ? (
+                    <p className="mt-1 text-sm leading-relaxed text-foreground/80">{note}</p>
+                  ) : null;
+                })()}
+                {candidate.not_contesting_source_url ? (
+                  <a
+                    href={candidate.not_contesting_source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    {t("sittingMps.notContestingSource")}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Link
