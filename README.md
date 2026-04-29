@@ -94,6 +94,11 @@ to official documents, party sites, or the Maltese Parliament register.
 Staff and admin roles are stored in a dedicated `user_roles` table and
 enforced via Postgres RLS, so authorisation cannot be bypassed from the client.
 
+### "Not Contesting 2026" Tag
+Candidates who have publicly announced they will not contest the 2026
+election are flagged with a **"Not contesting for 2026"** badge on candidate
+cards and sitting-MP listings, alongside a link to the source announcement.
+
 ---
 
 ## Tech Stack
