@@ -18,6 +18,7 @@ export function SiteFooter() {
     { to: `/${lang}/parties`, label: t("nav.parties") },
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps") },
     { to: `/${lang}/compare`, label: t("nav.compare") },
+    { to: `/${lang}/resources`, label: t("nav.resources") },
     { to: `/${lang}/ask`, label: t("nav.askAi") },
   ];
   const project = [
