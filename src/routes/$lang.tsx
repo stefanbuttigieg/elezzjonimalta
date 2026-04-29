@@ -57,6 +57,7 @@ function LangLayout() {
       <SiteFooter />
       <CookieConsentBanner />
       {isLocale(lang) ? <KeyboardShortcuts lang={lang} /> : null}
+      <CommandPalette lang={lang} />
     </div>
   );
 }
