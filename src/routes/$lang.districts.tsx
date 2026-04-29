@@ -52,7 +52,7 @@ export type PartyBreakdownEntry = {
 };
 
 async function loadDistricts() {
-  const [districtsResult, candidatesResult, partiesResult] = await Promise.all([
+  const [districtsResult, candidatesResult, partiesResult, linkedResult] = await Promise.all([
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt, source_url")
@@ -60,36 +60,66 @@ async function loadDistricts() {
       .order("number", { ascending: true }),
     supabase
       .from("candidates")
-      .select("primary_district_id, party_id")
-      .eq("status", "published"),
+      .select("id, primary_district_id, party_id, is_incumbent, electoral_confirmed, status"),
     supabase
       .from("parties")
       .select("id, short_name, name_en, name_mt, color, slug")
       .eq("status", "published"),
+    supabase
+      .from("candidate_districts")
+      .select("candidate_id, district_id, election_year")
+      .eq("election_year", 2026),
   ]);
 
   if (districtsResult.error) throw districtsResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
   if (partiesResult.error) throw partiesResult.error;
+  if (linkedResult.error) throw linkedResult.error;
 
   const partiesById = new Map<string, PartyRow>();
   for (const party of (partiesResult.data ?? []) as PartyRow[]) {
     partiesById.set(party.id, party);
   }
 
-  const counts = new Map<string, number>();
-  // districtId -> partyId|"__independent__" -> count
-  const breakdown = new Map<string, Map<string, number>>();
-
-  for (const row of (candidatesResult.data ?? []) as CandidateCountRow[]) {
-    if (!row.primary_district_id) continue;
-    counts.set(row.primary_district_id, (counts.get(row.primary_district_id) ?? 0) + 1);
-
-    const key = row.party_id ?? "__independent__";
-    const inner = breakdown.get(row.primary_district_id) ?? new Map<string, number>();
-    inner.set(key, (inner.get(key) ?? 0) + 1);
-    breakdown.set(row.primary_district_id, inner);
+  // Build candidate lookup with eligibility for 2026 district pages.
+  type CandidateMeta = {
+    id: string;
+    party_id: string | null;
+    is_incumbent: boolean;
+    electoral_confirmed: boolean;
+    status: string;
+  };
+  const candidateById = new Map<string, CandidateMeta>();
+  for (const c of (candidatesResult.data ?? []) as CandidateMeta[]) {
+    candidateById.set(c.id, c);
   }
+  const isEligible = (c: CandidateMeta | undefined) =>
+    !!c && c.status === "published" && (!c.is_incumbent || c.electoral_confirmed);
+
+  const counts = new Map<string, number>();
+  // districtId -> partyId|"__independent__" -> count (deduped by candidate)
+  const breakdown = new Map<string, Map<string, number>>();
+  // Track candidate_id per district to dedupe across multiple links.
+  const seenPerDistrict = new Map<string, Set<string>>();
+
+  for (const link of (linkedResult.data ?? []) as Array<{
+    candidate_id: string;
+    district_id: string;
+  }>) {
+    const c = candidateById.get(link.candidate_id);
+    if (!isEligible(c)) continue;
+    const seen = seenPerDistrict.get(link.district_id) ?? new Set<string>();
+    if (seen.has(link.candidate_id)) continue;
+    seen.add(link.candidate_id);
+    seenPerDistrict.set(link.district_id, seen);
+
+    counts.set(link.district_id, (counts.get(link.district_id) ?? 0) + 1);
+    const key = c!.party_id ?? "__independent__";
+    const inner = breakdown.get(link.district_id) ?? new Map<string, number>();
+    inner.set(key, (inner.get(key) ?? 0) + 1);
+    breakdown.set(link.district_id, inner);
+  }
+
 
   const partyBreakdown: Record<string, PartyBreakdownEntry[]> = {};
   for (const [districtId, inner] of breakdown.entries()) {
