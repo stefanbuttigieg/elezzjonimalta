@@ -41,7 +41,6 @@ async function loadCompare() {
         "id, slug, full_name, bio_en, bio_mt, photo_url, is_incumbent, electoral_confirmed, facebook, twitter, website, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(number, name_en, name_mt)",
       )
       .eq("status", "published")
-      .eq("is_incumbent", false)
       .order("full_name", { ascending: true }),
     supabase
       .from("proposals")
