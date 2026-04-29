@@ -76,14 +76,16 @@ function Hero({
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to={`/${lang}/candidates`}
+                to="/$lang/candidates"
+                params={{ lang }}
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
               >
                 {t("home.hero.ctaCandidates")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                to={`/${lang}/ask`}
+                to="/$lang/ask"
+                params={{ lang }}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
               >
                 <Sparkles className="h-4 w-4" />
