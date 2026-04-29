@@ -11,6 +11,7 @@ import { ExternalLink, Filter, Map as MapIcon, RotateCcw, Search, Users } from "
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
 
 const districtSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
