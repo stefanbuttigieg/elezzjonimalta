@@ -23,6 +23,7 @@ import {
   Menu,
   ChevronRight,
   Home,
+  Activity,
 } from "lucide-react";
 import {
   Sheet,
@@ -52,6 +53,7 @@ const items: NavItem[] = [
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/api-logs", label: "API logs", icon: Activity },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
 ];
 
