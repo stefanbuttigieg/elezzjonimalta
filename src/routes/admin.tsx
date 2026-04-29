@@ -88,6 +88,7 @@ function AdminLayout() {
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadFindings, setUnreadFindings] = useState(0);
 
   // Close the mobile menu whenever the route changes
   useEffect(() => {
@@ -97,6 +98,22 @@ function AdminLayout() {
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth/login" });
   }, [loading, session, navigate]);
+
+  useEffect(() => {
+    if (!isStaff) return;
+    let cancelled = false;
+    const load = async () => {
+      const { count } = await (await import("@/integrations/supabase/client")).supabase
+        .from("news_findings")
+        .select("*", { count: "exact", head: true })
+        .is("alert_seen_at", null)
+        .eq("status", "pending");
+      if (!cancelled) setUnreadFindings(count ?? 0);
+    };
+    void load();
+    const id = setInterval(load, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [isStaff, pathname]);
 
   if (loading || (session && rolesLoading)) {
     return (
