@@ -35,8 +35,21 @@ export type EditablePartyFields = {
   wikipedia_url: string | null;
 };
 
-type FormState = Omit<EditablePartyFields, "id" | "founded_year"> & {
+type FormState = {
+  name_en: string;
+  name_mt: string;
+  short_name: string;
+  color: string;
+  logo_url: string;
+  cover_image_url: string;
+  description_en: string;
+  description_mt: string;
+  slogan_en: string;
+  slogan_mt: string;
   founded_year: string;
+  leader_name: string;
+  website: string;
+  wikipedia_url: string;
 };
 
 function toForm(p: EditablePartyFields): FormState {
