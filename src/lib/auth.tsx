@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         // Load roles immediately — do not block on profile upserts
         void loadRoles(uid);
-        void ensureAccountRecords(newSession?.user);
+        void ensureProfileRecord(newSession?.user);
       }, 0);
     };
 
