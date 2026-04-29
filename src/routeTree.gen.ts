@@ -32,12 +32,13 @@ import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
 import { Route as LangCompareRouteImport } from './routes/$lang.compare'
 import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
-import { Route as LangCandidatesRouteImport } from './routes/$lang.candidates'
 import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
 import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
+import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidates.index'
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
+import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -154,11 +155,6 @@ const LangChangelogRoute = LangChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => LangRoute,
 } as any)
-const LangCandidatesRoute = LangCandidatesRouteImport.update({
-  id: '/candidates',
-  path: '/candidates',
-  getParentRoute: () => LangRoute,
-} as any)
 const LangAskRoute = LangAskRouteImport.update({
   id: '/ask',
   path: '/ask',
@@ -179,9 +175,19 @@ const LangPartiesIndexRoute = LangPartiesIndexRouteImport.update({
   path: '/parties/',
   getParentRoute: () => LangRoute,
 } as any)
+const LangCandidatesIndexRoute = LangCandidatesIndexRouteImport.update({
+  id: '/candidates/',
+  path: '/candidates/',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
   id: '/parties/$slug',
   path: '/parties/$slug',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
+  id: '/candidates/$slug',
+  path: '/candidates/$slug',
   getParentRoute: () => LangRoute,
 } as any)
 
@@ -192,7 +198,6 @@ export interface FileRoutesByFullPath {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
-  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -213,7 +218,9 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -221,7 +228,6 @@ export interface FileRoutesByTo {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
-  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -242,7 +248,9 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
 }
 export interface FileRoutesById {
@@ -253,7 +261,6 @@ export interface FileRoutesById {
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
-  '/$lang/candidates': typeof LangCandidatesRoute
   '/$lang/changelog': typeof LangChangelogRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
@@ -274,7 +281,9 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
+  '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
 }
 export interface FileRouteTypes {
@@ -286,7 +295,6 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
-    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -307,7 +315,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/candidates/$slug'
     | '/$lang/parties/$slug'
+    | '/$lang/candidates/'
     | '/$lang/parties/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -315,7 +325,6 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
-    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -336,7 +345,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang'
     | '/admin'
+    | '/$lang/candidates/$slug'
     | '/$lang/parties/$slug'
+    | '/$lang/candidates'
     | '/$lang/parties'
   id:
     | '__root__'
@@ -346,7 +357,6 @@ export interface FileRouteTypes {
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
-    | '/$lang/candidates'
     | '/$lang/changelog'
     | '/$lang/compare'
     | '/$lang/contact'
@@ -367,7 +377,9 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
+    | '/$lang/candidates/$slug'
     | '/$lang/parties/$slug'
+    | '/$lang/candidates/'
     | '/$lang/parties/'
   fileRoutesById: FileRoutesById
 }
@@ -541,13 +553,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangChangelogRouteImport
       parentRoute: typeof LangRoute
     }
-    '/$lang/candidates': {
-      id: '/$lang/candidates'
-      path: '/candidates'
-      fullPath: '/$lang/candidates'
-      preLoaderRoute: typeof LangCandidatesRouteImport
-      parentRoute: typeof LangRoute
-    }
     '/$lang/ask': {
       id: '/$lang/ask'
       path: '/ask'
@@ -576,11 +581,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangPartiesIndexRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/candidates/': {
+      id: '/$lang/candidates/'
+      path: '/candidates'
+      fullPath: '/$lang/candidates/'
+      preLoaderRoute: typeof LangCandidatesIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/parties/$slug': {
       id: '/$lang/parties/$slug'
       path: '/parties/$slug'
       fullPath: '/$lang/parties/$slug'
       preLoaderRoute: typeof LangPartiesSlugRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/candidates/$slug': {
+      id: '/$lang/candidates/$slug'
+      path: '/candidates/$slug'
+      fullPath: '/$lang/candidates/$slug'
+      preLoaderRoute: typeof LangCandidatesSlugRouteImport
       parentRoute: typeof LangRoute
     }
   }
@@ -590,7 +609,6 @@ interface LangRouteChildren {
   LangAboutRoute: typeof LangAboutRoute
   LangAccessibilityRoute: typeof LangAccessibilityRoute
   LangAskRoute: typeof LangAskRoute
-  LangCandidatesRoute: typeof LangCandidatesRoute
   LangChangelogRoute: typeof LangChangelogRoute
   LangCompareRoute: typeof LangCompareRoute
   LangContactRoute: typeof LangContactRoute
@@ -603,7 +621,9 @@ interface LangRouteChildren {
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
+  LangCandidatesSlugRoute: typeof LangCandidatesSlugRoute
   LangPartiesSlugRoute: typeof LangPartiesSlugRoute
+  LangCandidatesIndexRoute: typeof LangCandidatesIndexRoute
   LangPartiesIndexRoute: typeof LangPartiesIndexRoute
 }
 
@@ -611,7 +631,6 @@ const LangRouteChildren: LangRouteChildren = {
   LangAboutRoute: LangAboutRoute,
   LangAccessibilityRoute: LangAccessibilityRoute,
   LangAskRoute: LangAskRoute,
-  LangCandidatesRoute: LangCandidatesRoute,
   LangChangelogRoute: LangChangelogRoute,
   LangCompareRoute: LangCompareRoute,
   LangContactRoute: LangContactRoute,
@@ -624,7 +643,9 @@ const LangRouteChildren: LangRouteChildren = {
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
+  LangCandidatesSlugRoute: LangCandidatesSlugRoute,
   LangPartiesSlugRoute: LangPartiesSlugRoute,
+  LangCandidatesIndexRoute: LangCandidatesIndexRoute,
   LangPartiesIndexRoute: LangPartiesIndexRoute,
 }
 
@@ -661,12 +682,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
