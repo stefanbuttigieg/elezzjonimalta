@@ -408,7 +408,214 @@ function NewsMonitor() {
           </table>
         </div>
       </section>
+
+      {convertFor ? (
+        <ConvertDialog
+          finding={convertFor}
+          parties={parties}
+          districts={districts}
+          candidates={candidates}
+          onClose={() => setConvertFor(null)}
+          onSubmit={async (target, payload) => {
+            const result = await convertFn({ data: { findingId: convertFor.id, target, payload } });
+            if (result.ok) {
+              toast.success(`Created ${result.entity?.type ?? "entity"}`);
+              setConvertFor(null);
+              await load();
+            } else {
+              toast.error(result.error);
+            }
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+interface ConvertDialogProps {
+  finding: Finding;
+  parties: PartyOpt[];
+  districts: DistrictOpt[];
+  candidates: CandidateOpt[];
+  onClose: () => void;
+  onSubmit: (target: ConvertTarget, payload: Record<string, string>) => Promise<void>;
+}
+
+function ConvertDialog({ finding, parties, districts, candidates, onClose, onSubmit }: ConvertDialogProps) {
+  const ex = finding.extracted ?? {};
+  const defaultTarget: ConvertTarget =
+    finding.kind === "new_candidate"
+      ? "new_candidate"
+      : finding.kind === "proposal"
+        ? "new_proposal"
+        : "new_proposal";
+  const [target, setTarget] = useState<ConvertTarget>(defaultTarget);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({
+    full_name: ex.candidate_name ?? "",
+    title_en: finding.title ?? "",
+    description_en: finding.summary_en ?? "",
+    name_en: ex.party_hint ?? "",
+    bio_en: finding.summary_en ?? "",
+    notes: finding.summary_en ?? "",
+  });
+  const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await onSubmit(target, form);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-background p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h2 className="font-serif text-lg font-bold text-foreground">Convert to action</h2>
+            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{finding.title ?? finding.summary_en}</p>
+          </div>
+          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-accent">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {(
+            [
+              ["new_candidate", "New candidate"],
+              ["update_candidate", "Update candidate"],
+              ["new_proposal", "New proposal"],
+              ["new_party", "New party"],
+            ] as const
+          ).map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setTarget(v)}
+              className={
+                "rounded-md border px-3 py-2 text-xs font-medium " +
+                (target === v
+                  ? "border-primary bg-primary/10 text-foreground"
+                  : "border-border bg-background text-muted-foreground hover:bg-accent")
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          {target === "new_candidate" ? (
+            <>
+              <Field label="Full name *" value={form.full_name ?? ""} onChange={(v) => set("full_name", v)} />
+              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
+                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+              <SelectField label="Primary district" value={form.primary_district_id ?? ""} onChange={(v) => set("primary_district_id", v)}
+                options={[{ value: "", label: "— none —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
+              <TextArea label="Bio (EN)" value={form.bio_en ?? ""} onChange={(v) => set("bio_en", v)} />
+            </>
+          ) : null}
+
+          {target === "update_candidate" ? (
+            <>
+              <SelectField label="Candidate *" value={form.candidate_id ?? ""} onChange={(v) => set("candidate_id", v)}
+                options={[{ value: "", label: "— select —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
+              <SelectField label="Set party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
+                options={[{ value: "", label: "— unchanged —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+              <SelectField label="Set district" value={form.primary_district_id ?? ""} onChange={(v) => set("primary_district_id", v)}
+                options={[{ value: "", label: "— unchanged —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
+              <TextArea label="Append to notes" value={form.notes ?? ""} onChange={(v) => set("notes", v)} />
+              <TextArea label="Replace bio (EN)" value={form.bio_en ?? ""} onChange={(v) => set("bio_en", v)} />
+            </>
+          ) : null}
+
+          {target === "new_proposal" ? (
+            <>
+              <Field label="Title *" value={form.title_en ?? ""} onChange={(v) => set("title_en", v)} />
+              <TextArea label="Description (EN)" value={form.description_en ?? ""} onChange={(v) => set("description_en", v)} />
+              <Field label="Category" value={form.category ?? ""} onChange={(v) => set("category", v)} placeholder="e.g. Health, Transport" />
+              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
+                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+              <SelectField label="Candidate" value={form.candidate_id ?? ""} onChange={(v) => set("candidate_id", v)}
+                options={[{ value: "", label: "— none —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
+            </>
+          ) : null}
+
+          {target === "new_party" ? (
+            <>
+              <Field label="Name (EN) *" value={form.name_en ?? ""} onChange={(v) => set("name_en", v)} />
+              <Field label="Short name" value={form.short_name ?? ""} onChange={(v) => set("short_name", v)} />
+              <Field label="Color (hex)" value={form.color ?? ""} onChange={(v) => set("color", v)} placeholder="#1f6feb" />
+              <Field label="Website" value={form.website ?? ""} onChange={(v) => set("website", v)} />
+              <TextArea label="Description (EN)" value={form.description_en ?? ""} onChange={(v) => set("description_en", v)} />
+            </>
+          ) : null}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-accent">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting} className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+              {submitting ? "Creating…" : "Create"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+      />
+    </label>
+  );
+}
+
+function TextArea({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <textarea
+        value={value}
+        rows={3}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+      />
+    </label>
+  );
+}
+
+function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 
