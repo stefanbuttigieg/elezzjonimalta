@@ -174,13 +174,26 @@ async function main() {
     const name = f.properties.name;
     let district = LOCALITY_TO_DISTRICT[name];
 
-    // Disambiguate Malta vs Gozo namesakes using `is_in` / region tags.
+    // Disambiguate Malta vs Gozo namesakes. Region tags in OSM are unreliable
+    // for Maltese councils, so we fall back to geographic position: anything
+    // with a centroid latitude >= 36.0 is on Gozo/Comino.
     const region =
       f.properties["is_in:region"] ||
       f.properties["addr:region"] ||
       f.properties["is_in"] ||
       "";
-    const inGozo = /gozo|għawdex/i.test(region);
+    let inGozo = /gozo|għawdex/i.test(region);
+    if (!inGozo) {
+      // Centroid latitude check
+      const coordsStr = JSON.stringify(f.geometry.coordinates);
+      const nums = coordsStr.match(/-?[\d.]+/g);
+      if (nums) {
+        const lats = [];
+        for (let i = 1; i < nums.length; i += 2) lats.push(Number(nums[i]));
+        const avgLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+        if (avgLat >= 36.0) inGozo = true;
+      }
+    }
 
     if (name === "Iż-Żebbuġ") district = inGozo ? 13 : 7;
     if (name === "Ir-Rabat") district = inGozo ? 13 : 7;
