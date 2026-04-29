@@ -344,6 +344,45 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.meta.title": "Useful election resources — Vot Malta 2026",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
+
+    "nav.myDistrict": "District {number}",
+
+    "home.locality.label": "Where do you vote?",
+    "home.locality.placeholder": "Type your locality or district number…",
+    "home.locality.go": "Go",
+    "home.locality.quickPick": "Or pick a district:",
+    "home.locality.showAll": "Show all",
+    "home.locality.optionDistrict": "District {number} — {name}",
+    "home.locality.optionDistrictHint": "Open the district hub",
+    "home.locality.optionLocalityHint": "District {number} · {name}",
+
+    "home.welcomeBack": "Welcome back — your district is {number}.",
+    "home.welcomeBack.cta": "Open my district",
+    "home.welcomeBack.clear": "Change",
+
+    "myDistrict.eyebrow": "Your district",
+    "myDistrict.heading": "District {number} — {name}",
+    "myDistrict.changeDistrict": "Change district",
+    "myDistrict.candidates.title": "Candidates contesting here",
+    "myDistrict.candidates.empty":
+      "No published candidates have been confirmed for this district yet. Check back soon.",
+    "myDistrict.candidates.confirmed": "Confirmed candidate",
+    "myDistrict.candidates.prospective": "Prospective candidate",
+    "myDistrict.candidates.incumbent": "Sitting MP",
+    "myDistrict.compareCta": "Compare candidates",
+    "myDistrict.proposals.title": "What parties here are promising",
+    "myDistrict.proposals.empty":
+      "No proposals have been published yet from parties contesting this district.",
+    "myDistrict.proposals.seeAll": "See all proposals →",
+    "myDistrict.askCta.title": "Got a question?",
+    "myDistrict.askCta.body":
+      "Ask the AI assistant about candidates, parties or proposals in your district.",
+    "myDistrict.askCta.button": "Ask the assistant",
+    "myDistrict.disclaimer":
+      "Information shown for District {number} is sourced from electoral.gov.mt, parlament.mt, party websites and named news outlets.",
+    "myDistrict.notFound.title": "District not found",
+    "myDistrict.notFound.body":
+      "We couldn't find that district. Pick one from the list of Maltese electoral districts.",
   },
   mt: {
     "site.name": "Vot Malta 2026",
