@@ -58,7 +58,7 @@ async function loadSittingMps() {
     supabase
       .from("candidates")
       .select(
-        "id, full_name, slug, photo_url, party_id, primary_district_id, parlament_mt_url, status, electoral_confirmed"
+        "id, full_name, slug, photo_url, party_id, primary_district_id, parlament_mt_url, status, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt"
       )
       .eq("is_incumbent", true)
       .order("full_name", { ascending: true }),
