@@ -139,25 +139,25 @@ function PartyDetailPage() {
       {/* Cover */}
       <header className="relative overflow-hidden border-b border-border">
         {party.cover_image_url ? (
-          <div className="relative h-[280px] w-full md:h-[420px]">
+          <div className="relative h-[180px] w-full sm:h-[260px] md:h-[420px]">
             <img
               src={party.cover_image_url}
               alt=""
               className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-background" />
           </div>
         ) : (
           <div
-            className="h-40 w-full"
+            className="h-32 w-full md:h-40"
             style={{ backgroundColor: accent }}
             aria-hidden="true"
           />
         )}
 
         <div className="container mx-auto max-w-6xl px-4">
-          <div className="-mt-20 flex flex-col gap-6 pb-8 md:-mt-28 md:flex-row md:items-end">
-            <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl border border-border bg-background p-3 shadow-lg md:h-40 md:w-40">
+          <div className="-mt-12 flex flex-col gap-4 pb-8 sm:-mt-16 md:-mt-28 md:flex-row md:items-end md:gap-6">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-border bg-background p-3 shadow-lg sm:h-28 sm:w-28 md:h-40 md:w-40">
               {party.logo_url ? (
                 <img
                   src={party.logo_url}
@@ -170,20 +170,20 @@ function PartyDetailPage() {
                 </span>
               )}
             </div>
-            <div className="flex-1 pb-2">
+            <div className="flex-1 md:pb-2">
               <Link
                 to="/$lang/parties"
                 params={{ lang: locale }}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/90 hover:text-white md:text-foreground/80 md:hover:text-foreground"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground md:text-foreground/80"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 {t("parties.backToList")}
               </Link>
-              <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-foreground md:text-5xl">
+              <h1 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-5xl">
                 {name}
               </h1>
               {slogan && (
-                <p className="mt-2 font-serif text-base italic text-white/90 md:text-muted-foreground md:text-lg">
+                <p className="mt-2 font-serif text-base italic text-muted-foreground md:text-lg">
                   “{slogan}”
                 </p>
               )}
