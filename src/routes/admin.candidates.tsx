@@ -452,6 +452,11 @@ function CandidateEditor({
                   />
                   <span className="truncate">
                     {d.number} · {d.name_en}
+                    {isPrimary ? (
+                      <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                        primary
+                      </span>
+                    ) : null}
                   </span>
                 </label>
               );
