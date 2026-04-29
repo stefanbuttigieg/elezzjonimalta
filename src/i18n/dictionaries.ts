@@ -383,6 +383,34 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.notFound.title": "District not found",
     "myDistrict.notFound.body":
       "We couldn't find that district. Pick one from the list of Maltese electoral districts.",
+
+    "developers.eyebrow": "For developers",
+    "developers.title": "Public API",
+    "developers.intro":
+      "A small, read-only JSON API exposing published Vot Malta 2026 data — parties, electoral districts and candidates. No API key required.",
+    "developers.facts.format": "Format",
+    "developers.facts.auth": "Authentication",
+    "developers.facts.authValue": "None",
+    "developers.facts.cors": "CORS",
+    "developers.rate.title": "Rate limit",
+    "developers.rate.body":
+      "To keep the service responsive for everyone, public endpoints are throttled per client IP.",
+    "developers.rate.perMinute": "requests per minute per IP, per endpoint",
+    "developers.rate.headers":
+      "Every response includes X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset headers.",
+    "developers.rate.exceeded":
+      "Exceeding the limit returns HTTP 429 with a Retry-After header.",
+    "developers.rate.disclaimer":
+      "Note: the limit is enforced per server instance and resets on restart, so it is a fair-use guard rather than a strict cap. If you need a higher, guaranteed limit, get in touch.",
+    "developers.endpoints.title": "Endpoints",
+    "developers.endpoints.queryParams": "Query parameters",
+    "developers.endpoints.example": "Example",
+    "developers.response.title": "Response shape",
+    "developers.response.body":
+      "All endpoints return a JSON envelope with a data array and a meta object describing the result.",
+    "developers.attribution.title": "Attribution",
+    "developers.attribution.body":
+      "Data is open and free to reuse. Please credit \"Vot Malta 2026\" with a link back to the site, and check the About page for sourcing details.",
   },
   mt: {
     "site.name": "Vot Malta 2026",
@@ -763,6 +791,34 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.notFound.title": "Id-distrett ma nstabx",
     "myDistrict.notFound.body":
       "Ma stajniex insibu dak id-distrett. Agħżel wieħed mil-lista tad-distretti elettorali Maltin.",
+
+    "developers.eyebrow": "Għall-iżviluppaturi",
+    "developers.title": "API pubbliku",
+    "developers.intro":
+      "API żgħir, JSON u read-only li jesponi d-data ppubblikata ta' Vot Malta 2026 — partiti, distretti elettorali u kandidati. Ma jeħtieġx API key.",
+    "developers.facts.format": "Format",
+    "developers.facts.auth": "Awtentikazzjoni",
+    "developers.facts.authValue": "L-ebda",
+    "developers.facts.cors": "CORS",
+    "developers.rate.title": "Limitu ta' talbiet",
+    "developers.rate.body":
+      "Biex inżommu s-servizz responsiv għal kulħadd, l-endpoints pubbliċi huma limitati skont l-IP tal-klijent.",
+    "developers.rate.perMinute": "talbiet kull minuta għal kull IP, għal kull endpoint",
+    "developers.rate.headers":
+      "Kull risposta tinkludi l-headers X-RateLimit-Limit, X-RateLimit-Remaining u X-RateLimit-Reset.",
+    "developers.rate.exceeded":
+      "Jekk taqbeż il-limitu, tirċievi HTTP 429 b'header Retry-After.",
+    "developers.rate.disclaimer":
+      "Nota: il-limitu jiġi infurzat kull server instance u jerġa' jibda mill-bidu kull restart, allura hu protezzjoni tal-użu ġust aktar milli limitu strett. Jekk teħtieġ limitu ogħla u garantit, ikkuntattjana.",
+    "developers.endpoints.title": "Endpoints",
+    "developers.endpoints.queryParams": "Parametri tal-query",
+    "developers.endpoints.example": "Eżempju",
+    "developers.response.title": "Forma tar-risposta",
+    "developers.response.body":
+      "L-endpoints kollha jirritornaw envelope JSON b'array data u oġġett meta li jiddeskrivi r-riżultat.",
+    "developers.attribution.title": "Attribuzzjoni",
+    "developers.attribution.body":
+      "Id-data hija miftuħa u liberament użabbli. Jekk jogħġbok ikkredita lil \"Vot Malta 2026\" b'link lura għas-sit, u ċċekkja l-paġna About għad-dettalji tas-sorsi.",
   },
 };
 
