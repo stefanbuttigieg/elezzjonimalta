@@ -19,6 +19,10 @@ export function SiteHeader() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const { isStaff } = useAuth();
+  const [preferred, setPreferred] = useState<PreferredDistrict | null>(null);
+  useEffect(() => {
+    setPreferred(getPreferredDistrict());
+  }, [location.pathname]);
 
   const navItems = [
     { to: `/${lang}/candidates`, label: t("nav.candidates") },
