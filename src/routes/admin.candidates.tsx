@@ -64,6 +64,10 @@ const empty: Candidate = {
   source_url: "",
   imported_from: "",
   notes: "",
+  not_contesting_2026: false,
+  not_contesting_source_url: "",
+  not_contesting_note_en: "",
+  not_contesting_note_mt: "",
 };
 
 function CandidatesAdmin() {
