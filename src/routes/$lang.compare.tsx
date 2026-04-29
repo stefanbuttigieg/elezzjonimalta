@@ -112,7 +112,7 @@ function ComparePage() {
   };
   const locale = isLocale(lang) ? lang : "en";
 
-  const selectedIds = useMemo(
+  const selectedIds = useMemo<string[]>(
     () => (search.ids ? search.ids.split(",").filter(Boolean).slice(0, MAX) : []),
     [search.ids],
   );
