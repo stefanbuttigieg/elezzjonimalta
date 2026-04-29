@@ -31,6 +31,10 @@ type MpRow = {
   parlament_mt_url: string | null;
   status: string;
   electoral_confirmed: boolean;
+  not_contesting_2026: boolean;
+  not_contesting_source_url: string | null;
+  not_contesting_note_en: string | null;
+  not_contesting_note_mt: string | null;
 };
 
 type PartyRow = {
@@ -54,7 +58,7 @@ async function loadSittingMps() {
     supabase
       .from("candidates")
       .select(
-        "id, full_name, slug, photo_url, party_id, primary_district_id, parlament_mt_url, status, electoral_confirmed"
+        "id, full_name, slug, photo_url, party_id, primary_district_id, parlament_mt_url, status, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt"
       )
       .eq("is_incumbent", true)
       .order("full_name", { ascending: true }),
@@ -333,17 +337,46 @@ function MpCard({
         </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-2 text-xs">
-        {isCandidate ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-700 dark:text-emerald-400">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            {t("sittingMps.alreadyCandidate")}
-          </span>
-        ) : (
-          <span className="inline-flex rounded-full border border-dashed border-border bg-background px-2.5 py-1 font-medium text-muted-foreground">
-            {t("sittingMps.notCandidate")}
-          </span>
-        )}
+      <div className="mt-4 flex flex-col gap-2 text-xs">
+        <div className="flex items-center gap-2">
+          {mp.not_contesting_2026 ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 font-semibold text-amber-700 dark:text-amber-400">
+              {t("sittingMps.notContesting")}
+            </span>
+          ) : isCandidate ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t("sittingMps.alreadyCandidate")}
+            </span>
+          ) : (
+            <span className="inline-flex rounded-full border border-dashed border-border bg-background px-2.5 py-1 font-medium text-muted-foreground">
+              {t("sittingMps.notCandidate")}
+            </span>
+          )}
+        </div>
+        {mp.not_contesting_2026 ? (
+          <>
+            {(() => {
+              const note = locale === "mt"
+                ? mp.not_contesting_note_mt || mp.not_contesting_note_en
+                : mp.not_contesting_note_en || mp.not_contesting_note_mt;
+              return note ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">{note}</p>
+              ) : null;
+            })()}
+            {mp.not_contesting_source_url ? (
+              <a
+                href={mp.not_contesting_source_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 self-start text-xs font-medium text-primary hover:underline"
+              >
+                {t("sittingMps.notContestingSource")}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : null}
+          </>
+        ) : null}
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">

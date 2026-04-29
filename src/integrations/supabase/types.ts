@@ -159,6 +159,10 @@ export type Database = {
           id: string
           imported_from: string | null
           is_incumbent: boolean
+          not_contesting_2026: boolean
+          not_contesting_note_en: string | null
+          not_contesting_note_mt: string | null
+          not_contesting_source_url: string | null
           notes: string | null
           parlament_mt_url: string | null
           party_id: string | null
@@ -181,6 +185,10 @@ export type Database = {
           id?: string
           imported_from?: string | null
           is_incumbent?: boolean
+          not_contesting_2026?: boolean
+          not_contesting_note_en?: string | null
+          not_contesting_note_mt?: string | null
+          not_contesting_source_url?: string | null
           notes?: string | null
           parlament_mt_url?: string | null
           party_id?: string | null
@@ -203,6 +211,10 @@ export type Database = {
           id?: string
           imported_from?: string | null
           is_incumbent?: boolean
+          not_contesting_2026?: boolean
+          not_contesting_note_en?: string | null
+          not_contesting_note_mt?: string | null
+          not_contesting_source_url?: string | null
           notes?: string | null
           parlament_mt_url?: string | null
           party_id?: string | null

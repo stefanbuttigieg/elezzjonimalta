@@ -214,6 +214,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "sittingMps.promote.success": "Promoted to candidate",
     "sittingMps.demote.success": "Removed from candidates",
     "sittingMps.promote.error": "Could not update candidate status",
+    "sittingMps.notContesting": "Not contesting 2026",
+    "sittingMps.notContestingSource": "Read announcement",
+
     "common.notFound": "Not found",
     "common.backHome": "Back to home",
     "common.sittingMp": "Sitting MP",
@@ -630,6 +633,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "sittingMps.promote.success": "Ġie promoss għal kandidat",
     "sittingMps.demote.success": "Tneħħa mill-kandidati",
     "sittingMps.promote.error": "Ma stajniex naġġornaw l-istatus tal-kandidat",
+    "sittingMps.notContesting": "Mhux se jikkontesta l-2026",
+    "sittingMps.notContestingSource": "Aqra l-aħbar",
+
     "common.notFound": "Mhux misjub",
     "common.backHome": "Lura għad-dar",
     "common.sittingMp": "Membru Parlamentari",
