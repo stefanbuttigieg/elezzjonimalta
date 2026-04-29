@@ -6,7 +6,7 @@ import { isLocale, type Locale } from "@/i18n/types";
 export const Route = createFileRoute("/$lang/about")({
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
-    return { meta: [{ title: `${LEGAL_CONTENT.about[lang].title} — Vot Malta 2026` }] };
+    return { meta: [{ title: `${LEGAL_CONTENT.about[lang].title} — Elezzjoni 2026` }] };
   },
   component: () => {
     const { lang } = Route.useParams();

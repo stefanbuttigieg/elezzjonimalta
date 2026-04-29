@@ -179,7 +179,7 @@ function AdminLayout() {
       <aside className="hidden w-60 shrink-0 border-r border-border bg-surface md:block">
         <div className="px-5 py-6">
           <Link to="/" className="font-serif text-lg font-bold tracking-tight text-foreground">
-            Vot Malta <span className="text-muted-foreground">Admin</span>
+            Elezzjoni <span className="text-muted-foreground">Admin</span>
           </Link>
           <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">
             {roles.join(" · ") || "no role"}
@@ -221,7 +221,7 @@ function AdminLayout() {
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="border-b border-border px-5 py-4 text-left">
                 <SheetTitle className="font-serif text-base">
-                  Vot Malta <span className="text-muted-foreground">Admin</span>
+                  Elezzjoni <span className="text-muted-foreground">Admin</span>
                 </SheetTitle>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                   {roles.join(" · ") || "no role"}

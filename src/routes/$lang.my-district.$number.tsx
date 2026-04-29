@@ -154,8 +154,8 @@ export const Route = createFileRoute("/$lang/my-district/$number")({
       : `District ${number}`;
     const title =
       lang === "mt"
-        ? `Distrett ${number} — ${districtName} | Vot Malta 2026`
-        : `District ${number} — ${districtName} | Vot Malta 2026`;
+        ? `Distrett ${number} — ${districtName} | Elezzjoni 2026`
+        : `District ${number} — ${districtName} | Elezzjoni 2026`;
     const description =
       lang === "mt"
         ? `Il-kandidati, il-partiti u l-proposti għad-Distrett ${number} (${districtName}) fl-Elezzjoni Ġenerali Maltija 2026.`

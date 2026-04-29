@@ -18,9 +18,9 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Vot Malta 2026 is an independent, non-partisan information service. By accessing this site
+            Elezzjoni 2026 is an independent, non-partisan information service. By accessing this site
             or its API you agree to use the data for lawful informational, journalistic, civic, or
-            research purposes, and to attribute Vot Malta 2026 as the source where applicable.
+            research purposes, and to attribute Elezzjoni 2026 as the source where applicable.
           </p>
           <h2>Editorial nature</h2>
           <p>
@@ -51,9 +51,9 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Vot Malta 2026 hu servizz ta' informazzjoni indipendenti u imparzjali. Billi taċċessa dan
+            Elezzjoni 2026 hu servizz ta' informazzjoni indipendenti u imparzjali. Billi taċċessa dan
             is-sit jew l-API tiegħu int taqbel li tuża d-data għal skopijiet legali ta' informazzjoni,
-            ġurnaliżmu, ċiviċi, jew riċerka, u li tagħti attribuzzjoni lil Vot Malta 2026 bħala s-sors
+            ġurnaliżmu, ċiviċi, jew riċerka, u li tagħti attribuzzjoni lil Elezzjoni 2026 bħala s-sors
             fejn applikabbli.
           </p>
           <h2>Natura editorjali</h2>
@@ -148,7 +148,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Cookie Policy",
       body: (
         <>
-          <p>This page explains the cookies and similar technologies used on Vot Malta 2026 and how you can control them.</p>
+          <p>This page explains the cookies and similar technologies used on Elezzjoni 2026 and how you can control them.</p>
           <h2>Categories</h2>
           <h3>Essential</h3>
           <p>Required for the site to work: cookie consent state, language preference, security tokens for logged-in editors. These cannot be disabled.</p>
@@ -163,7 +163,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Politika tal-Cookies",
       body: (
         <>
-          <p>Din il-paġna tispjega l-cookies u t-teknoloġiji simili użati fuq Vot Malta 2026 u kif tista' tikkontrollahom.</p>
+          <p>Din il-paġna tispjega l-cookies u t-teknoloġiji simili użati fuq Elezzjoni 2026 u kif tista' tikkontrollahom.</p>
           <h2>Kategoriji</h2>
           <h3>Essenzjali</h3>
           <p>Meħtieġa biex is-sit jaħdem: stat tal-kunsens tal-cookies, preferenza tal-lingwa, tokens ta' sigurtà għall-edituri loggjati. Dawn ma jistgħux jiġu diżattivati.</p>
@@ -180,7 +180,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Accessibility Statement",
       body: (
         <>
-          <p>We are committed to making Vot Malta 2026 usable by everyone, in line with the EU Web Accessibility Directive and WCAG 2.1 Level AA.</p>
+          <p>We are committed to making Elezzjoni 2026 usable by everyone, in line with the EU Web Accessibility Directive and WCAG 2.1 Level AA.</p>
           <h2>What we do</h2>
           <ul>
             <li>Semantic HTML, landmarks, and clear heading structure.</li>
@@ -201,7 +201,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Stqarrija ta' Aċċessibbiltà",
       body: (
         <>
-          <p>Aħna impenjati li Vot Malta 2026 ikun jista' jintuża minn kulħadd, skont id-Direttiva tal-UE dwar l-Aċċessibbiltà tal-Web u l-WCAG 2.1 Livell AA.</p>
+          <p>Aħna impenjati li Elezzjoni 2026 ikun jista' jintuża minn kulħadd, skont id-Direttiva tal-UE dwar l-Aċċessibbiltà tal-Web u l-WCAG 2.1 Livell AA.</p>
           <h2>X'nagħmlu</h2>
           <ul>
             <li>HTML semantiku, landmarks, u struttura ċara tat-titoli.</li>
@@ -224,7 +224,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "About & Methodology",
       body: (
         <>
-          <p>Vot Malta 2026 is an independent civic-tech project. We are not affiliated with any political party, candidate, or with the Electoral Commission of Malta.</p>
+          <p>Elezzjoni 2026 is an independent civic-tech project. We are not affiliated with any political party, candidate, or with the Electoral Commission of Malta.</p>
           <h2>Sources</h2>
           <ul>
             <li><a href="https://electoral.gov.mt/" target="_blank" rel="noreferrer">electoral.gov.mt</a> — official candidate confirmation.</li>
@@ -247,7 +247,7 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       title: "Dwarna u Metodoloġija",
       body: (
         <>
-          <p>Vot Malta 2026 hu proġett ta' civic-tech indipendenti. M'aħniex affiljati ma' xi partit politiku, kandidat, jew mal-Kummissjoni Elettorali ta' Malta.</p>
+          <p>Elezzjoni 2026 hu proġett ta' civic-tech indipendenti. M'aħniex affiljati ma' xi partit politiku, kandidat, jew mal-Kummissjoni Elettorali ta' Malta.</p>
           <h2>Sorsi</h2>
           <ul>
             <li><a href="https://electoral.gov.mt/" target="_blank" rel="noreferrer">electoral.gov.mt</a> — konferma uffiċjali tal-kandidati.</li>

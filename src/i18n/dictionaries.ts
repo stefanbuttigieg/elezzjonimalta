@@ -335,7 +335,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "External tools and official sources for Malta's 2026 General Election. We're not affiliated with any of these — we link to them because they're genuinely useful.",
     "resources.visit": "Visit site",
     "resources.disclaimer":
-      "Links open in a new tab. Vot Malta 2026 is not responsible for the content or availability of external sites.",
+      "Links open in a new tab. Elezzjoni 2026 is not responsible for the content or availability of external sites.",
     "resources.tag.official": "Official",
     "resources.tag.civic": "Civic tool",
     "resources.tag.data": "Data & history",
