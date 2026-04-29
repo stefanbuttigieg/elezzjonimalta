@@ -78,32 +78,20 @@ async function loadMyDistrict(rawNumber: string) {
 
   const districtTyped = district as DistrictRow;
 
-  // Candidates: those with primary_district_id matching the district AND
-  // those linked via candidate_districts for the 2026 election.
-  const [primaryRes, linkedRes] = await Promise.all([
-    supabase
-      .from("candidates")
-      .select(
-        "id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, primary_district_id, party:parties(id, slug, name_en, name_mt, short_name, color)"
-      )
-      .eq("status", "published")
-      .eq("primary_district_id", districtTyped.id),
-    supabase
-      .from("candidate_districts")
-      .select(
-        "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
-      )
-      .eq("district_id", districtTyped.id)
-      .eq("election_year", 2026),
-  ]);
+  // Candidates: only those linked via candidate_districts for the 2026
+  // election and published. Sitting MPs only show up here if they have been
+  // confirmed as running for 2026.
+  const linkedRes = await supabase
+    .from("candidate_districts")
+    .select(
+      "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
+    )
+    .eq("district_id", districtTyped.id)
+    .eq("election_year", 2026);
 
-  if (primaryRes.error) throw primaryRes.error;
   if (linkedRes.error) throw linkedRes.error;
 
   const byId = new Map<string, CandidateRow>();
-  for (const row of (primaryRes.data ?? []) as CandidateRow[]) {
-    byId.set(row.id, row);
-  }
   for (const link of (linkedRes.data ?? []) as Array<{
     candidate: (CandidateRow & { status: string }) | null;
   }>) {
