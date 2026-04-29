@@ -47,13 +47,24 @@ export const Route = createRootRoute({
       { name: "author", content: "Elezzjoni" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Elezzjoni — Research candidates for the General Election" },
-      { name: "twitter:title", content: "Elezzjoni — Research candidates for the General Election" },
-      { name: "description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
-      { property: "og:description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
-      { name: "twitter:description", content: "Malta Vote Guide helps voters make informed decisions by providing candidate and party information for the 2026 elections." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/362ed21b-55ec-4ece-bfae-86df822fb10f/id-preview-ec25883a--06c5b59d-0722-415a-8621-0497828e68c8.lovable.app-1777460743753.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/362ed21b-55ec-4ece-bfae-86df822fb10f/id-preview-ec25883a--06c5b59d-0722-415a-8621-0497828e68c8.lovable.app-1777460743753.png" },
+      {
+        property: "og:title",
+        content: "Elezzjoni — Research candidates for the General Election",
+      },
+      {
+        property: "og:description",
+        content:
+          "Independent, bilingual tool to research candidates and parties in Malta's 2026 General Election.",
+      },
+      {
+        name: "twitter:title",
+        content: "Elezzjoni — Research candidates for the General Election",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Independent, bilingual tool to research candidates and parties in Malta's 2026 General Election.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
