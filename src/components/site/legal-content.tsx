@@ -273,8 +273,16 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>Use this page for corrections, takedown requests, accessibility feedback, or general questions.</p>
-          <p><strong>Email:</strong> <a href="mailto:hello@votmalta2026.example">hello@votmalta2026.example</a></p>
-          <p>We aim to respond within 5 working days.</p>
+          <p>
+            <strong>GitHub:</strong>{" "}
+            <a href="https://github.com/stefanbuttigieg/" target="_blank" rel="noopener noreferrer">
+              github.com/stefanbuttigieg
+            </a>
+          </p>
+          <p>
+            Open an issue on any of the public repositories, or reach out via the contact details listed on the GitHub
+            profile. We aim to respond within 5 working days.
+          </p>
         </>
       ),
     },
@@ -283,8 +291,16 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>Uża din il-paġna għal korrezzjonijiet, talbiet ta' tneħħija, feedback dwar l-aċċessibbiltà, jew mistoqsijiet ġenerali.</p>
-          <p><strong>Email:</strong> <a href="mailto:hello@votmalta2026.example">hello@votmalta2026.example</a></p>
-          <p>Naħdmu biex inwieġbu fi żmien 5 ijiem tax-xogħol.</p>
+          <p>
+            <strong>GitHub:</strong>{" "}
+            <a href="https://github.com/stefanbuttigieg/" target="_blank" rel="noopener noreferrer">
+              github.com/stefanbuttigieg
+            </a>
+          </p>
+          <p>
+            Iftaħ issue fuq xi waħda mir-repożitorji pubbliċi, jew ikkuntattjana permezz tad-dettalji elenkati fuq il-profil
+            tal-GitHub. Naħdmu biex inwieġbu fi żmien 5 ijiem tax-xogħol.
+          </p>
         </>
       ),
     },
