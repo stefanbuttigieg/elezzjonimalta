@@ -603,6 +603,10 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "districts.partyBreakdown": "Tqassim skont il-partit",
     "districts.partyBreakdown.none": "Għadhom ma ġewx irreġistrati affiljazzjonijiet ma' partiti",
     "districts.partyBreakdown.independent": "Indipendenti",
+    "districts.number": "Distrett {number}",
+    "districts.map.title": "Esplora d-distretti fuq il-mappa",
+    "districts.map.subtitle": "Ikklikkja kwalunkwe distrett biex tara l-kandidati u l-proposti.",
+    "districts.map.error": "Ma rnexxiniex intellgħu l-mappa. Jekk jogħġbok aġġorna l-paġna.",
 
     "common.loading": "Qed jitla'…",
     "common.error": "Xi ħaġa marret ħażin.",
