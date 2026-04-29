@@ -7,16 +7,16 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { Search, UserRound, Flag, FileText, BookOpen } from "lucide-react";
+import { Search, UserRound, Flag, FileText, BookOpen, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 
-type Kind = "candidate" | "party" | "manifesto" | "proposal";
+type Kind = "candidate" | "party" | "manifesto" | "proposal" | "district";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
-  type: fallback(z.enum(["all", "candidates", "parties", "manifestos", "proposals"]), "all").default("all"),
+  type: fallback(z.enum(["all", "candidates", "parties", "manifestos", "proposals", "districts"]), "all").default("all"),
 });
 
 type SearchResult = {
@@ -44,7 +44,7 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
   if (term.length < 2) return [];
   const like = `%${escapeLike(term)}%`;
 
-  const [candRes, partyRes, propRes] = await Promise.all([
+  const [candRes, partyRes, propRes, distRes] = await Promise.all([
     supabase
       .from("candidates")
       .select(
@@ -73,6 +73,14 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
         `title_en.ilike.${like},title_mt.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like},category.ilike.${like}`,
       )
       .limit(40),
+    supabase
+      .from("districts")
+      .select("id, number, name_en, name_mt, localities_en, localities_mt")
+      .eq("status", "published")
+      .or(
+        `name_en.ilike.${like},name_mt.ilike.${like},localities_en.ilike.${like},localities_mt.ilike.${like}`,
+      )
+      .limit(20),
   ]);
 
   const results: SearchResult[] = [];
@@ -138,6 +146,21 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
     });
   }
 
+  for (const d of distRes.data ?? []) {
+    const name = pick(d.name_en, d.name_mt, locale) || `District ${d.number}`;
+    const localities = pick(d.localities_en, d.localities_mt, locale);
+    results.push({
+      id: `dist-${d.id}`,
+      kind: "district",
+      title: `${d.number}. ${name}`,
+      subtitle: localities ? localities.slice(0, 120) : null,
+      snippet: localities && localities.length > 120 ? localities.slice(0, 240) : null,
+      href: "/$lang/my-district/$number",
+      hrefParams: { number: String(d.number) },
+      accent: null,
+    });
+  }
+
   // Rank: title matches first
   const lower = term.toLowerCase();
   results.sort((a, b) => {
@@ -192,6 +215,7 @@ const KIND_ICON: Record<Kind, typeof UserRound> = {
   party: Flag,
   manifesto: BookOpen,
   proposal: FileText,
+  district: MapPin,
 };
 
 function SearchPage() {
@@ -208,11 +232,13 @@ function SearchPage() {
     if (search.type === "parties") return r.kind === "party";
     if (search.type === "manifestos") return r.kind === "manifesto";
     if (search.type === "proposals") return r.kind === "proposal";
+    if (search.type === "districts") return r.kind === "district";
     return true;
   });
 
   const groups: Array<{ kind: Kind; labelKey: string; items: SearchResult[] }> = [
     { kind: "candidate", labelKey: "search.group.candidates", items: filtered.filter((r: SearchResult) => r.kind === "candidate") },
+    { kind: "district", labelKey: "search.group.districts", items: filtered.filter((r: SearchResult) => r.kind === "district") },
     { kind: "party", labelKey: "search.group.parties", items: filtered.filter((r: SearchResult) => r.kind === "party") },
     { kind: "manifesto", labelKey: "search.group.manifestos", items: filtered.filter((r: SearchResult) => r.kind === "manifesto") },
     { kind: "proposal", labelKey: "search.group.proposals", items: filtered.filter((r: SearchResult) => r.kind === "proposal") },
@@ -225,6 +251,7 @@ function SearchPage() {
   const filterTabs: Array<{ value: typeof search.type; labelKey: string }> = [
     { value: "all", labelKey: "search.filter.all" },
     { value: "candidates", labelKey: "search.filter.candidates" },
+    { value: "districts", labelKey: "search.filter.districts" },
     { value: "parties", labelKey: "search.filter.parties" },
     { value: "manifestos", labelKey: "search.filter.manifestos" },
     { value: "proposals", labelKey: "search.filter.proposals" },
