@@ -214,6 +214,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "sittingMps.promote.success": "Promoted to candidate",
     "sittingMps.demote.success": "Removed from candidates",
     "sittingMps.promote.error": "Could not update candidate status",
+    "sittingMps.notContesting": "Not contesting 2026",
+    "sittingMps.notContestingSource": "Read announcement",
+
     "common.notFound": "Not found",
     "common.backHome": "Back to home",
     "common.sittingMp": "Sitting MP",
