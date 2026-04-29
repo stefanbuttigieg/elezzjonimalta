@@ -408,7 +408,37 @@ function CandidateEditor({
             ))}
           </select>
         </Field>
-        <Field label="Photo URL">
+        <Field label="Contesting districts (2026)" full>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Select every district this candidate is contesting in 2026. The
+            primary district above is used as the main display affiliation.
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
+            {districts.map((d) => {
+              const checked = districtIds.includes(d.id);
+              return (
+                <label
+                  key={d.id}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    checked
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleDistrict(d.id)}
+                    className="h-3.5 w-3.5"
+                  />
+                  <span className="truncate">
+                    {d.number} · {d.name_en}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </Field>
           <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
         </Field>
         <Field label="Website">
