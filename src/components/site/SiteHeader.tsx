@@ -104,6 +104,15 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <HeaderSearch lang={lang} />
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("elezzjoni:open-command-palette"))}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-foreground hover:bg-accent xl:hidden"
+            aria-label={t("nav.search")}
+            title={t("nav.search")}
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </button>
           {preferred ? (
             <Link
               to="/$lang/my-district/$number"
@@ -143,6 +152,17 @@ export function SiteHeader() {
             className="container mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3"
             aria-label="Mobile"
           >
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("elezzjoni:open-command-palette"));
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+              {t("nav.search")}
+            </button>
             {navItems.map((item) => (
               <Link
                 key={item.to}
