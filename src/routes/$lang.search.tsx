@@ -146,6 +146,21 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
     });
   }
 
+  for (const d of distRes.data ?? []) {
+    const name = pick(d.name_en, d.name_mt, locale) || `District ${d.number}`;
+    const localities = pick(d.localities_en, d.localities_mt, locale);
+    results.push({
+      id: `dist-${d.id}`,
+      kind: "district",
+      title: `${d.number}. ${name}`,
+      subtitle: localities ? localities.slice(0, 120) : null,
+      snippet: localities && localities.length > 120 ? localities.slice(0, 240) : null,
+      href: "/$lang/my-district/$number",
+      hrefParams: { number: String(d.number) },
+      accent: null,
+    });
+  }
+
   // Rank: title matches first
   const lower = term.toLowerCase();
   results.sort((a, b) => {
@@ -200,6 +215,7 @@ const KIND_ICON: Record<Kind, typeof UserRound> = {
   party: Flag,
   manifesto: BookOpen,
   proposal: FileText,
+  district: MapPin,
 };
 
 function SearchPage() {
@@ -216,11 +232,13 @@ function SearchPage() {
     if (search.type === "parties") return r.kind === "party";
     if (search.type === "manifestos") return r.kind === "manifesto";
     if (search.type === "proposals") return r.kind === "proposal";
+    if (search.type === "districts") return r.kind === "district";
     return true;
   });
 
   const groups: Array<{ kind: Kind; labelKey: string; items: SearchResult[] }> = [
     { kind: "candidate", labelKey: "search.group.candidates", items: filtered.filter((r: SearchResult) => r.kind === "candidate") },
+    { kind: "district", labelKey: "search.group.districts", items: filtered.filter((r: SearchResult) => r.kind === "district") },
     { kind: "party", labelKey: "search.group.parties", items: filtered.filter((r: SearchResult) => r.kind === "party") },
     { kind: "manifesto", labelKey: "search.group.manifestos", items: filtered.filter((r: SearchResult) => r.kind === "manifesto") },
     { kind: "proposal", labelKey: "search.group.proposals", items: filtered.filter((r: SearchResult) => r.kind === "proposal") },
@@ -233,6 +251,7 @@ function SearchPage() {
   const filterTabs: Array<{ value: typeof search.type; labelKey: string }> = [
     { value: "all", labelKey: "search.filter.all" },
     { value: "candidates", labelKey: "search.filter.candidates" },
+    { value: "districts", labelKey: "search.filter.districts" },
     { value: "parties", labelKey: "search.filter.parties" },
     { value: "manifestos", labelKey: "search.filter.manifestos" },
     { value: "proposals", labelKey: "search.filter.proposals" },
