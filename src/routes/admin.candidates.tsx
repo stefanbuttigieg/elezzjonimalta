@@ -285,7 +285,21 @@ function CandidateEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.id]);
 
+  // Ensure the primary district is always part of the contesting-districts
+  // set, so the candidate shows up on that district's public page.
+  const effectiveDistrictIds = useMemo(() => {
+    if (v.primary_district_id && !districtIds.includes(v.primary_district_id)) {
+      return [...districtIds, v.primary_district_id];
+    }
+    return districtIds;
+  }, [districtIds, v.primary_district_id]);
+
   const toggleDistrict = (id: string) => {
+    // Don't allow unchecking the primary district — change the primary first.
+    if (id === v.primary_district_id) {
+      toast.info("Change the Primary district first to remove this one.");
+      return;
+    }
     setDistrictIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
