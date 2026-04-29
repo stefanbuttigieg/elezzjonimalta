@@ -98,11 +98,16 @@ function NewsMonitor() {
   const [runs, setRuns] = useState<Run[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [parties, setParties] = useState<PartyOpt[]>([]);
+  const [districts, setDistricts] = useState<DistrictOpt[]>([]);
+  const [candidates, setCandidates] = useState<CandidateOpt[]>([]);
+  const [convertFor, setConvertFor] = useState<Finding | null>(null);
 
   const triggerFn = useServerFn(triggerNewsScan);
   const updateFn = useServerFn(updateFindingStatus);
   const ackFn = useServerFn(ackFindingAlerts);
   const reprocessFn = useServerFn(reprocessFinding);
+  const convertFn = useServerFn(convertFinding);
 
   const load = useCallback(async () => {
     setLoading(true);
