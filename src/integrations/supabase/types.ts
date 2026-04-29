@@ -710,6 +710,39 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_categories: {
+        Row: {
+          created_at: string
+          description_en: string | null
+          id: string
+          name_en: string
+          name_mt: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description_en?: string | null
+          id?: string
+          name_en: string
+          name_mt?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description_en?: string | null
+          id?: string
+          name_en?: string
+          name_mt?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       proposals: {
         Row: {
           candidate_id: string | null
