@@ -170,22 +170,6 @@ function AdminLayout() {
   const visibleItems = items.filter((i) => !i.adminOnly || isAdmin);
   const active = findActiveItem(pathname, visibleItems);
 
-  const [unreadFindings, setUnreadFindings] = useState(0);
-  useEffect(() => {
-    if (!isStaff) return;
-    let cancelled = false;
-    const load = async () => {
-      const { count } = await (await import("@/integrations/supabase/client")).supabase
-        .from("news_findings")
-        .select("*", { count: "exact", head: true })
-        .is("alert_seen_at", null)
-        .eq("status", "pending");
-      if (!cancelled) setUnreadFindings(count ?? 0);
-    };
-    void load();
-    const id = setInterval(load, 60_000);
-    return () => { cancelled = true; clearInterval(id); };
-  }, [isStaff, pathname]);
 
   const renderNav = (onNavigate?: () => void) => (
     <nav className="px-3 pb-6">
