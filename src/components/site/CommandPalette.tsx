@@ -95,7 +95,7 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
     const handle = setTimeout(async () => {
       const like = `%${escapeLike(term)}%`;
       try {
-        const [c, p, r] = await Promise.all([
+        const [c, p, r, d] = await Promise.all([
           supabase
             .from("candidates")
             .select("id, slug, full_name, party:parties(name_en, name_mt, color)")
@@ -120,6 +120,14 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
               `title_en.ilike.${like},title_mt.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like},category.ilike.${like}`,
             )
             .limit(8),
+          supabase
+            .from("districts")
+            .select("id, number, name_en, name_mt, localities_en, localities_mt")
+            .eq("status", "published")
+            .or(
+              `name_en.ilike.${like},name_mt.ilike.${like},localities_en.ilike.${like},localities_mt.ilike.${like}`,
+            )
+            .limit(6),
         ]);
 
         if (ctrl.signal.aborted) return;
@@ -163,6 +171,20 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
             to: "/$lang/proposals",
             params: { lang },
             accent: party?.color ?? null,
+          });
+        }
+
+        for (const row of d.data ?? []) {
+          const name = pick(row.name_en, row.name_mt, lang) || `District ${row.number}`;
+          const localities = pick(row.localities_en, row.localities_mt, lang);
+          out.push({
+            id: `d-${row.id}`,
+            kind: "district",
+            title: `${row.number}. ${name}`,
+            subtitle: localities ? localities.slice(0, 80) : null,
+            to: "/$lang/my-district/$number",
+            params: { lang, number: String(row.number) },
+            accent: null,
           });
         }
 
