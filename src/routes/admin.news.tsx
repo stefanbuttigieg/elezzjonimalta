@@ -7,6 +7,7 @@ import {
   updateFindingStatus,
   ackFindingAlerts,
   reprocessFinding,
+  convertFinding,
 } from "@/server/newsScan.functions";
 import { toast } from "sonner";
 import {
@@ -18,6 +19,8 @@ import {
   ExternalLink,
   AlertCircle,
   RefreshCw,
+  Wand2,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
