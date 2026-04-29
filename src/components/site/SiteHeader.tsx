@@ -104,6 +104,15 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           <HeaderSearch lang={lang} />
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("elezzjoni:open-command-palette"))}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-foreground hover:bg-accent xl:hidden"
+            aria-label={t("nav.search")}
+            title={t("nav.search")}
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+          </button>
           {preferred ? (
             <Link
               to="/$lang/my-district/$number"
