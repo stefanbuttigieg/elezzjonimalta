@@ -40,6 +40,7 @@ import { Route as LangAboutRouteImport } from './routes/$lang.about'
 import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
 import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidates.index'
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
+import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
 
 const AdminRoute = AdminRouteImport.update({
@@ -197,6 +198,11 @@ const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
   path: '/parties/$slug',
   getParentRoute: () => LangRoute,
 } as any)
+const LangMyDistrictNumberRoute = LangMyDistrictNumberRouteImport.update({
+  id: '/my-district/$number',
+  path: '/my-district/$number',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
   id: '/candidates/$slug',
   path: '/candidates/$slug',
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
+  '/$lang/my-district/$number': typeof LangMyDistrictNumberRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
+  '/$lang/my-district/$number': typeof LangMyDistrictNumberRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
+  '/$lang/my-district/$number': typeof LangMyDistrictNumberRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
@@ -336,6 +345,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/candidates/$slug'
+    | '/$lang/my-district/$number'
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/$lang'
     | '/admin'
     | '/$lang/candidates/$slug'
+    | '/$lang/my-district/$number'
     | '/$lang/parties/$slug'
     | '/$lang/candidates'
     | '/$lang/parties'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/candidates/$slug'
+    | '/$lang/my-district/$number'
     | '/$lang/parties/$slug'
     | '/$lang/candidates/'
     | '/$lang/parties/'
@@ -633,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangPartiesSlugRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/my-district/$number': {
+      id: '/$lang/my-district/$number'
+      path: '/my-district/$number'
+      fullPath: '/$lang/my-district/$number'
+      preLoaderRoute: typeof LangMyDistrictNumberRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/candidates/$slug': {
       id: '/$lang/candidates/$slug'
       path: '/candidates/$slug'
@@ -661,6 +680,7 @@ interface LangRouteChildren {
   LangTermsRoute: typeof LangTermsRoute
   LangIndexRoute: typeof LangIndexRoute
   LangCandidatesSlugRoute: typeof LangCandidatesSlugRoute
+  LangMyDistrictNumberRoute: typeof LangMyDistrictNumberRoute
   LangPartiesSlugRoute: typeof LangPartiesSlugRoute
   LangCandidatesIndexRoute: typeof LangCandidatesIndexRoute
   LangPartiesIndexRoute: typeof LangPartiesIndexRoute
@@ -684,6 +704,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangTermsRoute: LangTermsRoute,
   LangIndexRoute: LangIndexRoute,
   LangCandidatesSlugRoute: LangCandidatesSlugRoute,
+  LangMyDistrictNumberRoute: LangMyDistrictNumberRoute,
   LangPartiesSlugRoute: LangPartiesSlugRoute,
   LangCandidatesIndexRoute: LangCandidatesIndexRoute,
   LangPartiesIndexRoute: LangPartiesIndexRoute,

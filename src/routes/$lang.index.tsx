@@ -13,10 +13,18 @@ import {
   Languages,
   Database,
   FileText,
+  MapPin,
+  X,
 } from "lucide-react";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
+import { LocalityPicker } from "@/components/site/LocalityPicker";
+import {
+  clearPreferredDistrict,
+  getPreferredDistrict,
+  type PreferredDistrict,
+} from "@/lib/preferredDistrict";
 
 const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
 
