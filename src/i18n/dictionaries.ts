@@ -818,7 +818,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "L-endpoints kollha jirritornaw envelope JSON b'array data u oġġett meta li jiddeskrivi r-riżultat.",
     "developers.attribution.title": "Attribuzzjoni",
     "developers.attribution.body":
-      "Id-data hija miftuħa u liberament użabbli. Jekk jogħġbok ikkredita lil \"Vot Malta 2026\" b'link lura għas-sit, u ċċekkja l-paġna About għad-dettalji tas-sorsi.",
+      "Id-data hija miftuħa u liberament użabbli. Jekk jogħġbok ikkredita lil \"Elezzjoni\" b'link lura għas-sit, u ċċekkja l-paġna About għad-dettalji tas-sorsi.",
   },
 };
 
