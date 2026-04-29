@@ -6,14 +6,14 @@ import { runNewsScan } from "./newsScan.server";
 import { writeAudit } from "./auditLog.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-async function assertStaff(supabase: ReturnType<typeof requireSupabaseAuth> extends never ? never : any, userId: string) {
+async function assertStaff(supabase: { rpc: (fn: string) => Promise<{ data: unknown; error: unknown }> }) {
   const { data, error } = await supabase.rpc("get_my_roles");
   if (error) throw new Error("could not verify role");
-  const roles = (data ?? []) as string[];
+  const roles = (Array.isArray(data) ? data : []) as string[];
   if (!roles.includes("admin") && !roles.includes("editor")) {
     throw new Error("forbidden: staff role required");
   }
-  return { roles, userId };
+  return roles;
 }
 
 const ScanInput = z.object({
