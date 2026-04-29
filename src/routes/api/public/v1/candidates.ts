@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/public/v1/candidates")({
           ...rateLimitHeaders(rl),
         };
         if (!rl.allowed) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 429, startedAt });
           return new Response(
             JSON.stringify({ error: "rate_limited", message: "Too many requests" }),
             { status: 429, headers: baseHeaders }
@@ -86,12 +87,14 @@ export const Route = createFileRoute("/api/public/v1/candidates")({
 
         const { data, error } = await query;
         if (error) {
+          logApiRequest({ request, endpoint: ENDPOINT, statusCode: 500, startedAt });
           return new Response(
             JSON.stringify({ error: "internal_error", message: "Failed to load candidates" }),
             { status: 500, headers: baseHeaders }
           );
         }
 
+        logApiRequest({ request, endpoint: ENDPOINT, statusCode: 200, startedAt });
         return new Response(
           JSON.stringify({
             data,
