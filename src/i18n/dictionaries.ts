@@ -727,7 +727,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.noBio": "Għadha m'hemmx bijografija disponibbli.",
     "compare.noProposals": "Għadhom m'hemmx proposti ppubblikati.",
     "compare.viewProfile": "Ara l-profil sħiħ",
-    "compare.meta.title": "Qabbel kandidati — Vot Malta 2026",
+    "compare.meta.title": "Qabbel kandidati — Elezzjoni",
     "compare.meta.description":
       "Qiegħed kandidati tal-Elezzjoni Ġenerali Maltija 2026 ħdejn xulxin — partit, distrett, rekord, bijografija u proposti.",
 
@@ -736,7 +736,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Għodod esterni u sorsi uffiċjali għall-Elezzjoni Ġenerali Maltija 2026. M'aħniex affiljati ma' ebda waħda — qed nissuġġerixxuhom għax verament jiswew.",
     "resources.visit": "Żur is-sit",
     "resources.disclaimer":
-      "Il-links jinfetħu f'tab ġdida. Vot Malta 2026 mhix responsabbli mill-kontenut jew id-disponibbiltà ta' siti esterni.",
+      "Il-links jinfetħu f'tab ġdida. Elezzjoni mhix responsabbli mill-kontenut jew id-disponibbiltà ta' siti esterni.",
     "resources.tag.official": "Uffiċjali",
     "resources.tag.civic": "Għodda ċivika",
     "resources.tag.data": "Data u storja",
@@ -749,9 +749,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.maltaelections.title": "Malta Elections — riżultati storiċi",
     "resources.maltaelections.desc":
       "Dataset miftuħ u explorer tar-riżultati elettorali Maltin li jmorru lura għexieren ta' snin — distrett b'distrett, partit b'partit, għadd b'għadd. Indispensabbli biex tifhem kif ivvutaw id-distretti tul iż-żmien.",
-    "resources.meta.title": "Riżorsi utli għall-elezzjoni — Vot Malta 2026",
+    "resources.meta.title": "Riżorsi utli għall-elezzjoni — Elezzjoni",
     "resources.meta.description":
-      "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali Maltija 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
+      "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
 
     "nav.myDistrict": "Distrett {number}",
 
@@ -795,7 +795,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "developers.eyebrow": "Għall-iżviluppaturi",
     "developers.title": "API pubbliku",
     "developers.intro":
-      "API żgħir, JSON u read-only li jesponi d-data ppubblikata ta' Vot Malta 2026 — partiti, distretti elettorali u kandidati. Ma jeħtieġx API key.",
+      "API żgħir, JSON u read-only li jesponi d-data ppubblikata ta' Elezzjoni — partiti, distretti elettorali u kandidati. Ma jeħtieġx API key.",
     "developers.facts.format": "Format",
     "developers.facts.auth": "Awtentikazzjoni",
     "developers.facts.authValue": "L-ebda",
