@@ -8,6 +8,11 @@ import {
 } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
+import { installServerFnAuthInterceptor } from "@/lib/serverFnFetchInterceptor";
+
+if (typeof window !== "undefined") {
+  installServerFnAuthInterceptor();
+}
 
 import appCss from "../styles.css?url";
 
