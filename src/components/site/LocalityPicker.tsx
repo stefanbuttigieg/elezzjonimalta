@@ -23,7 +23,6 @@ export function LocalityPicker({ lang }: { lang: Locale }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [showAllChips, setShowAllChips] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -213,7 +212,7 @@ export function LocalityPicker({ lang }: { lang: Locale }) {
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t("home.locality.quickPick")}
         </span>
-        {(showAllChips ? districtNumbers : districtNumbers.slice(0, 8)).map((n) => (
+        {districtNumbers.map((n) => (
           <button
             key={n}
             type="button"
@@ -223,15 +222,6 @@ export function LocalityPicker({ lang }: { lang: Locale }) {
             {n}
           </button>
         ))}
-        {!showAllChips && districtNumbers.length > 8 ? (
-          <button
-            type="button"
-            onClick={() => setShowAllChips(true)}
-            className="text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-          >
-            {t("home.locality.showAll")}
-          </button>
-        ) : null}
       </div>
     </div>
   );
