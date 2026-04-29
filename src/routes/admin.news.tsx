@@ -133,7 +133,11 @@ function NewsMonitor() {
     try {
       const ids = selectedSources.size > 0 ? Array.from(selectedSources) : undefined;
       const result = await triggerFn({ data: { sourceIds: ids } });
-      toast.success(`Scan finished — ${result.findingsCreated} new findings from ${result.articlesScanned} articles`);
+      if (result.ok) {
+        toast.success(`Scan finished — ${result.findingsCreated} new findings from ${result.articlesScanned} articles`);
+      } else {
+        toast.error(`Scan failed: ${result.error}`);
+      }
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Scan failed");
