@@ -433,7 +433,8 @@ function CandidateEditor({
           </p>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
             {districts.map((d) => {
-              const checked = districtIds.includes(d.id);
+              const checked = effectiveDistrictIds.includes(d.id);
+              const isPrimary = d.id === v.primary_district_id;
               return (
                 <label
                   key={d.id}
