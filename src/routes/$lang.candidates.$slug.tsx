@@ -158,11 +158,15 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
 function CandidatePage() {
   const t = useT();
   const { lang } = Route.useParams();
-  const { candidate, proposals } = Route.useLoaderData();
+  const { candidate, proposals, sources } = Route.useLoaderData();
   const locale: Locale = isLocale(lang) ? lang : "en";
 
   const bio =
     locale === "mt" ? candidate.bio_mt || candidate.bio_en : candidate.bio_en || candidate.bio_mt;
+
+  // Merge structured sources + legacy single-link fallbacks into a unified audit list.
+  const auditSources = buildAuditSources(candidate, sources);
+  const lastUpdated = computeLastUpdated(candidate, sources);
 
   return (
     <article className="border-b border-border bg-background">
