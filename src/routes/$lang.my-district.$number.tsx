@@ -60,7 +60,11 @@ type ProposalRow = {
   party_id: string | null;
 };
 
-async function loadMyDistrict(rawNumber: string) {
+async function loadMyDistrict(rawNumber: string): Promise<{
+  district: DistrictRow;
+  candidates: CandidateRow[];
+  proposals: ProposalRow[];
+}> {
   const number = Number(rawNumber);
   if (!Number.isInteger(number) || number < 1 || number > 13) {
     throw notFound();
