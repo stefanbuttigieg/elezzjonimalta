@@ -215,14 +215,16 @@ export const convertFinding = createServerFn({ method: "POST" })
       }
 
       // Mark finding reviewed and link if applicable
-      const linkUpdate: Record<string, string> = {
-        status: "reviewed",
-        reviewed_by: userId,
-        reviewed_at: new Date().toISOString(),
-      };
-      if (createdEntity?.type === "candidate") linkUpdate.candidate_id = createdEntity.id;
-      if (createdEntity?.type === "proposal") linkUpdate.proposal_id = createdEntity.id;
-      await supabaseAdmin.from("news_findings").update(linkUpdate).eq("id", data.findingId);
+      await supabaseAdmin
+        .from("news_findings")
+        .update({
+          status: "reviewed",
+          reviewed_by: userId,
+          reviewed_at: new Date().toISOString(),
+          candidate_id: createdEntity?.type === "candidate" ? createdEntity.id : undefined,
+          proposal_id: createdEntity?.type === "proposal" ? createdEntity.id : undefined,
+        })
+        .eq("id", data.findingId);
 
       await writeAudit(supabaseAdmin, {
         entityType: createdEntity?.type ?? "news_finding",
