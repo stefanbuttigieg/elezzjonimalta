@@ -103,7 +103,6 @@ function proposalDesc(p: Proposal, locale: Locale): string {
 
 function ComparePage() {
   const t = useT();
-  const router = useRouter();
   const navigate = useNavigate({ from: "/$lang/compare" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
