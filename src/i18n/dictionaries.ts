@@ -312,6 +312,28 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.meta.title": "Compare candidates — Vot Malta 2026",
     "compare.meta.description":
       "Place Maltese 2026 General Election candidates side by side — party, district, record, biography and proposals.",
+
+    "resources.title": "Useful resources",
+    "resources.subtitle":
+      "External tools and official sources for Malta's 2026 General Election. We're not affiliated with any of these — we link to them because they're genuinely useful.",
+    "resources.visit": "Visit site",
+    "resources.disclaimer":
+      "Links open in a new tab. Vot Malta 2026 is not responsible for the content or availability of external sites.",
+    "resources.tag.official": "Official",
+    "resources.tag.civic": "Civic tool",
+    "resources.tag.data": "Data & history",
+    "resources.votmt.title": "vot.mt — Voter Advice Application",
+    "resources.votmt.desc":
+      "An independent voter advice tool that matches you with parties and candidates based on where you stand on key Maltese policy questions. Useful for exploring how your views align with each contestant before election day.",
+    "resources.electoral.title": "Electoral Commission of Malta",
+    "resources.electoral.desc":
+      "The official body responsible for running Maltese elections. Check your voter registration, find your polling place, download official candidate nomination lists, and read the rules and results published by the State.",
+    "resources.maltaelections.title": "Malta Elections — historical results",
+    "resources.maltaelections.desc":
+      "An open dataset and explorer of Maltese election results going back decades — district by district, party by party, count by count. Indispensable for understanding how districts have voted historically.",
+    "resources.meta.title": "Useful election resources — Vot Malta 2026",
+    "resources.meta.description":
+      "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
   },
   mt: {
     "site.name": "Vot Malta 2026",
