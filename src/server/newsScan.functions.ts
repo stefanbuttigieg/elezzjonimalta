@@ -163,15 +163,15 @@ export const convertFinding = createServerFn({ method: "POST" })
         createdEntity = { type: "candidate", id: row.id };
       } else if (data.target === "update_candidate") {
         if (!p.candidate_id) throw new Error("candidate_id required");
-        const updates: Record<string, string> = {};
-        if (p.bio_en) updates.bio_en = p.bio_en;
-        if (p.party_id) updates.party_id = p.party_id;
-        if (p.primary_district_id) updates.primary_district_id = p.primary_district_id;
-        if (p.notes) updates.notes = p.notes;
-        if (sourceUrl) updates.source_url = sourceUrl;
         const { error } = await supabaseAdmin
           .from("candidates")
-          .update(updates)
+          .update({
+            bio_en: p.bio_en || undefined,
+            party_id: p.party_id || undefined,
+            primary_district_id: p.primary_district_id || undefined,
+            notes: p.notes || undefined,
+            source_url: sourceUrl || undefined,
+          })
           .eq("id", p.candidate_id);
         if (error) throw new Error(error.message);
         createdEntity = { type: "candidate", id: p.candidate_id };
