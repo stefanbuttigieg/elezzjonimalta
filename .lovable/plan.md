@@ -1,92 +1,107 @@
-# News Ingestion & Detection Pipeline
+# Expanded Candidate Profiles
 
-A scheduled + on-demand process that scans 5 Maltese news sites, uses AI to detect election-relevant content (proposals, new candidates, electoral developments), and queues findings for staff review in the admin portal.
+Build comprehensive, sourced candidate profiles. Adds contact info, biography facts, media (videos/podcasts), parliamentary positions/contributions, endorsements, and a parlament.mt sync helper. All staff-managed in admin, public on profile pages.
 
-## Sources monitored
-- timesofmalta.com
-- independent.com.mt
-- maltatoday.com.mt
-- lovinmalta.com
-- newsbook.com.mt
+## 1. Database migration
 
-## How it works (user view)
+Single migration file `supabase/migrations/<ts>_candidate_profile_expansion.sql`:
 
-1. **Automatic runs**: 4×/day (06:00, 11:00, 16:00, 21:00 Malta time) via `pg_cron`.
-2. **Manual run**: a new admin page **"News monitor"** with a **"Run scan now"** button (admin-only, with optional per-source toggle).
-3. Each run:
-   - Discovers recent article URLs per source (sitemap / listing pages).
-   - Skips URLs already seen (dedup table).
-   - Fetches the article, extracts clean text (Firecrawl `scrape` → markdown).
-   - Asks Lovable AI (`google/gemini-2.5-flash`) to classify and extract:
-     - `kind`: `proposal` | `new_candidate` | `election_development` | `not_relevant`
-     - structured fields (title, summary EN/MT, candidate name, party hint, district hint, proposal category, etc.)
-     - `confidence` 0–1
-   - Saves the finding to a `news_findings` table with status `pending`.
-4. Admin reviews findings in **News monitor**:
-   - Filter by source / kind / status / confidence.
-   - For each finding: **Create proposal**, **Create candidate**, **Link to existing**, **Dismiss**, or **Mark reviewed**.
-   - "Create…" pre-fills the existing proposal/candidate dialog with the AI-extracted fields and source URL.
+**Extend `candidates`** (all nullable):
+- Contact: `email text`, `phone text`, `office_address text`
+- Bio facts: `date_of_birth date`, `birthplace text`, `profession text`, `education text`, `languages text[]`
+- Socials: `instagram text`, `tiktok text`, `linkedin text`, `youtube text`
+- Parliament link: `parliament_member_id text` (parlament.mt MP id), `parliament_synced_at timestamptz`
 
-## Database changes
+**New enum** `candidate_media_kind`: `video`, `podcast`, `interview`, `speech`, `article`.
 
-New tables (RLS: staff read/write; no public access):
+**New table `candidate_media`** — videos, podcast episodes, interviews, speeches:
+- `id`, `candidate_id` (fk → candidates), `kind candidate_media_kind`
+- `title text`, `description text`, `url text not null`, `provider text` (auto: youtube/spotify/apple/rss/other), `embed_id text`, `thumbnail_url text`, `published_at date`
+- `language text` (en/mt), `status review_status default 'pending_review'`, `source_url text`
+- `created_at`, `updated_at`
 
-- `news_sources` — seeded with the 5 outlets (`id, slug, name, base_url, sitemap_url, enabled, last_scanned_at`).
-- `news_articles` — dedup of fetched URLs (`id, source_id, url UNIQUE, title, published_at, fetched_at, content_hash, scan_status`).
-- `news_findings` — AI output (`id, article_id, kind, confidence, title, summary_en, summary_mt, extracted jsonb, candidate_id nullable, proposal_id nullable, status: pending|accepted|dismissed|reviewed, created_at, reviewed_by, reviewed_at`).
-- `news_scan_runs` — audit log (`id, started_at, finished_at, trigger: cron|manual, source_id nullable, articles_scanned, findings_created, error`).
+**New table `candidate_positions`** — parliamentary roles, committee memberships, cabinet posts:
+- `id`, `candidate_id`, `legislature_number int`, `title text not null`, `body text` (e.g. "Public Accounts Committee"), `start_date date`, `end_date date`, `is_current bool default false`, `source_url text`
+- Trigger: `end_date >= start_date` when both present.
 
-## Server endpoints
+**New table `candidate_contributions`** — aggregate parliamentary stats per legislature:
+- `id`, `candidate_id`, `legislature_number int not null`
+- `attendance_pct numeric`, `speeches_count int`, `pmqs_count int`, `bills_sponsored int`, `bills_cosponsored int`
+- `summary_en text`, `summary_mt text`, `source_url text`, `synced_at timestamptz`
+- Unique `(candidate_id, legislature_number)`.
 
-- `src/routes/api/public/hooks/scan-news.ts` (POST) — triggered by `pg_cron`. Validates an internal `X-Cron-Secret` header (new `NEWS_CRON_SECRET`). Iterates enabled sources, calls Firecrawl, calls Lovable AI, writes rows. Caps per-run cost (e.g., 15 new articles per source per run).
-- `src/server/newsScan.functions.ts` — `runNewsScan({ sourceIds? })` server function for the manual button (admin-only via `requireSupabaseAuth` + role check).
-- Shared logic in `src/server/newsScan.server.ts` (Firecrawl client, AI prompt, Supabase admin writes).
+**New table `candidate_endorsements`** — quotes/endorsements:
+- `id`, `candidate_id`, `quote_en text`, `quote_mt text`, `attributed_to text not null`, `attributed_role text`, `source_url text`, `published_at date`, `status review_status default 'pending_review'`
 
-## Admin UI
+**RLS** for every new table — same template as existing candidate sub-tables:
+- Public read: only when parent candidate is `published` or `is_incumbent` (for positions/contributions).
+- Staff read all / insert / update via `app_private.is_staff(auth.uid())`.
+- Admin delete via `app_private.has_role(auth.uid(),'admin')`.
+- `updated_at` trigger using existing `update_updated_at_column()`.
 
-- New route `src/routes/admin.news.tsx` ("News monitor") + sidebar item in `src/routes/admin.tsx`.
-  - Header: last run time, next scheduled run, **Run scan now** button (with per-source checkboxes).
-  - Tabs: **Pending** / **Reviewed** / **Dismissed** / **All runs**.
-  - Findings table: source · kind · confidence · title · published date · actions.
-  - Row actions open existing Proposal/Candidate drawers prefilled from `extracted` jsonb.
-- Dashboard card on `admin.index.tsx`: "Pending findings: N".
+## 2. Admin UI
 
-## AI & scraping
+Refactor `src/routes/admin.candidates.tsx` editor into a tabbed Drawer (reuse existing `Drawer`, `Field`, `Input`, `Textarea`, `StatusSelect`):
 
-- **Firecrawl** (already connected — `FIRECRAWL_API_KEY` present): `scrape` with `formats: ['markdown']`, `onlyMainContent: true`. Sitemap discovery via `map` filtered to recent paths.
-- **Lovable AI** via `LOVABLE_API_KEY`: `google/gemini-2.5-flash` (cheap, sufficient). Structured JSON output with a strict schema; reject non-JSON.
-- Neutrality preserved: AI extracts facts only, never opinions; everything is staff-reviewed before publishing.
+- **Overview** (existing fields)
+- **Contact & bio facts** (new candidate columns)
+- **Socials** (existing + new instagram/tiktok/linkedin/youtube)
+- **Media** — list + add/edit/delete rows in `candidate_media`. Provider auto-detected from URL (youtube.com/youtu.be → youtube + extract video id; open.spotify.com/episode → spotify; podcasts.apple.com → apple; otherwise `other`).
+- **Parliament** — `parliament_member_id` field + "Sync from parlament.mt" button (calls server fn, see §4); manage `candidate_positions` and `candidate_contributions` rows.
+- **Endorsements** — manage `candidate_endorsements`.
+- **Sources & status** (existing source_url, notes, status, flags).
 
-## Cron setup
+All writes go through `writeAudit` pattern (see existing admin pages).
 
-`pg_cron` + `pg_net` job calling `https://elezzjonimalta.lovable.app/api/public/hooks/scan-news` 4×/day with the `X-Cron-Secret` header.
+## 3. Public profile
 
-## Cost & safety controls
+Extend `src/routes/$lang.candidates.$slug.tsx` with new sections, each rendered only when data exists:
 
-- Per-run hard caps: max 15 new articles/source, max 75 total.
-- Skip URLs already in `news_articles`.
-- Truncate scraped content to ~6k chars before sending to AI.
-- All Firecrawl/AI errors logged to `news_scan_runs.error`, never throw mid-run.
-- Manual run rate-limited to once per 60s per admin.
+- **Quick facts** card: profession, languages, birthplace, DOB (age), education.
+- **Contact** card: email (mailto), phone (tel), office address, social links (icons row).
+- **Parliamentary record**: positions timeline + contributions stats per legislature.
+- **Media**: tabs/grouped by kind (video, podcast, interview, speech). Click-to-load YouTube/Spotify embeds (privacy-first, deferred iframe — aligns with existing cookie banner). Fallback link card for `other`.
+- **Endorsements**: quote cards.
+- **Sources**: existing `candidate_sources` list, unchanged.
 
-## Files to add / edit
+i18n: add new keys to `src/i18n/dictionaries.ts` (en + mt) for section titles and labels.
 
-Add:
-- `supabase` migration: 4 new tables + RLS + seed `news_sources`.
-- `src/server/newsScan.server.ts`
-- `src/server/newsScan.functions.ts`
-- `src/routes/api/public/hooks/scan-news.ts`
-- `src/routes/admin.news.tsx`
+## 4. parlament.mt sync (server function)
 
-Edit:
-- `src/routes/admin.tsx` — add "News monitor" sidebar entry.
-- `src/routes/admin.index.tsx` — add pending findings card.
-- `CHANGELOG.md`, `README.md`.
+`src/server/parliamentSync.functions.ts` exporting `syncCandidateFromParliament`:
 
-Secret to add: `NEWS_CRON_SECRET` (random string, used by pg_cron call).
+- Input: `{ candidateId: string }`.
+- Reads `candidates.parliament_member_id`; if missing, returns error.
+- Uses Firecrawl (`FIRECRAWL_API_KEY` already configured) to scrape the MP's parlament.mt page.
+- Extracts: current legislature, committee memberships, role/cabinet position, attendance/speech counts where available.
+- Upserts into `candidate_positions` (by `candidate_id + title + start_date`) and `candidate_contributions` (by unique key).
+- Sets `candidates.parliament_synced_at = now()`.
+- Writes admin audit log entry (`writeAudit`).
 
-## Out of scope (can follow later)
+Triggered manually from admin Parliament tab. No automatic cron in v1.
 
-- Auto-publishing without review.
-- Sentiment analysis or partisan tone scoring (intentionally avoided — neutrality).
-- Social media monitoring (Facebook/Twitter) — requires separate APIs.
+## 5. Public API & types
+
+- Auto: `src/integrations/supabase/types.ts` regenerates after migration.
+- Extend `src/routes/api/public/v1/candidates.ts` to include new scalar fields and embed `media`, `positions`, `contributions`, `endorsements` arrays for published candidates only.
+
+## 6. Docs
+
+- `CHANGELOG.md`: new "Expanded candidate profiles" entry.
+- `README.md`: brief section listing the new profile data model and parlament.mt sync.
+
+## Technical notes
+
+- All new tables follow existing `app_private.is_staff` / admin-delete RLS pattern.
+- Embeds are click-to-load `<iframe>` (no third-party cookies until user opts in).
+- No CHECK constraints on time-based fields — use BEFORE INSERT/UPDATE triggers.
+- Media provider detection is a small pure helper in `src/lib/media.ts` used by both admin (on URL change) and public (to render embeds).
+- No new external secrets required.
+
+## Out of scope (v1)
+
+- AI transcripts/highlights for podcasts.
+- Automated photo extraction.
+- Automated cron sync from parlament.mt.
+
+These can ship as follow-ups once the data model is in place.
