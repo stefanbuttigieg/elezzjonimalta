@@ -13,14 +13,19 @@ import {
   FileText,
   Globe,
   Landmark,
+  Mail,
   MessageCircle,
   Newspaper,
+  Phone,
+  Play,
+  Quote,
   Sparkles,
   Twitter,
   UserRound,
   Users,
   History,
 } from "lucide-react";
+import { detectMedia } from "@/lib/media";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
