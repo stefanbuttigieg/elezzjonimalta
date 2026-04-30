@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, slugify, deleteRow, type ReviewStatus } from "@/lib/admin";
-import { Plus, Pencil, Trash2, Search, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { syncCandidateFromParliament } from "@/server/parliamentSync.functions";
+import { detectMedia } from "@/lib/media";
 import {
   Drawer,
   DrawerActions,
@@ -31,7 +34,21 @@ interface Candidate {
   website: string | null;
   facebook: string | null;
   twitter: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  linkedin: string | null;
+  youtube: string | null;
   parlament_mt_url: string | null;
+  parliament_member_id: string | null;
+  parliament_synced_at: string | null;
+  email: string | null;
+  phone: string | null;
+  office_address: string | null;
+  date_of_birth: string | null;
+  birthplace: string | null;
+  profession: string | null;
+  education: string | null;
+  languages: string[] | null;
   status: ReviewStatus;
   source_url: string | null;
   imported_from: string | null;
@@ -59,7 +76,21 @@ const empty: Candidate = {
   website: "",
   facebook: "",
   twitter: "",
+  instagram: "",
+  tiktok: "",
+  linkedin: "",
+  youtube: "",
   parlament_mt_url: "",
+  parliament_member_id: "",
+  parliament_synced_at: null,
+  email: "",
+  phone: "",
+  office_address: "",
+  date_of_birth: null,
+  birthplace: "",
+  profession: "",
+  education: "",
+  languages: [],
   status: "pending_review",
   source_url: "",
   imported_from: "",
@@ -251,6 +282,8 @@ function CandidatesAdmin() {
   );
 }
 
+type Tab = "overview" | "contact" | "socials" | "media" | "parliament" | "endorsements" | "sources";
+
 function CandidateEditor({
   value,
   parties,
@@ -266,6 +299,7 @@ function CandidateEditor({
 }) {
   const [v, setV] = useState<Candidate>(value);
   const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState<Tab>("overview");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
   const isNew = !v.id;
@@ -293,8 +327,6 @@ function CandidateEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.id]);
 
-  // Ensure the primary district is always part of the contesting-districts
-  // set, so the candidate shows up on that district's public page.
   const effectiveDistrictIds = useMemo(() => {
     if (v.primary_district_id && !districtIds.includes(v.primary_district_id)) {
       return [...districtIds, v.primary_district_id];
@@ -303,7 +335,6 @@ function CandidateEditor({
   }, [districtIds, v.primary_district_id]);
 
   const toggleDistrict = (id: string) => {
-    // Don't allow unchecking the primary district — change the primary first.
     if (id === v.primary_district_id) {
       toast.info("Change the Primary district first to remove this one.");
       return;
@@ -333,7 +364,20 @@ function CandidateEditor({
         website: v.website || null,
         facebook: v.facebook || null,
         twitter: v.twitter || null,
+        instagram: v.instagram || null,
+        tiktok: v.tiktok || null,
+        linkedin: v.linkedin || null,
+        youtube: v.youtube || null,
         parlament_mt_url: v.parlament_mt_url || null,
+        parliament_member_id: v.parliament_member_id || null,
+        email: v.email || null,
+        phone: v.phone || null,
+        office_address: v.office_address || null,
+        date_of_birth: v.date_of_birth || null,
+        birthplace: v.birthplace || null,
+        profession: v.profession || null,
+        education: v.education || null,
+        languages: v.languages && v.languages.length > 0 ? v.languages : null,
         status: v.status,
         source_url: v.source_url || null,
         notes: v.notes || null,
@@ -351,6 +395,7 @@ function CandidateEditor({
           .single();
         if (error) throw error;
         candidateId = (data as { id: string }).id;
+        setV({ ...v, id: candidateId });
       } else {
         const { error } = await supabase
           .from("candidates")
@@ -359,15 +404,11 @@ function CandidateEditor({
         if (error) throw error;
       }
 
-      // Sync candidate_districts for the 2026 election. Always include the
-      // primary district so the public site can show the candidate there.
       const finalIds = primaryDistrict && !effectiveDistrictIds.includes(primaryDistrict)
         ? [...effectiveDistrictIds, primaryDistrict]
         : effectiveDistrictIds;
       const toAdd = finalIds.filter((id) => !initialDistrictIds.includes(id));
-      const toRemove = initialDistrictIds.filter(
-        (id) => !finalIds.includes(id)
-      );
+      const toRemove = initialDistrictIds.filter((id) => !finalIds.includes(id));
       if (toAdd.length > 0) {
         const { error } = await supabase.from("candidate_districts").insert(
           toAdd.map((district_id) => ({
@@ -397,170 +438,991 @@ function CandidateEditor({
     }
   };
 
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "overview", label: "Overview" },
+    { id: "contact", label: "Contact & bio" },
+    { id: "socials", label: "Socials" },
+    { id: "media", label: "Media" },
+    { id: "parliament", label: "Parliament" },
+    { id: "endorsements", label: "Endorsements" },
+    { id: "sources", label: "Sources & status" },
+  ];
+
   return (
     <Drawer title={isNew ? "New candidate" : `Edit: ${v.full_name}`} onClose={onClose}>
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Full name *">
-          <Input value={v.full_name} onChange={(x) => setV({ ...v, full_name: x })} />
-        </Field>
-        <Field label="Slug">
-          <Input
-            value={v.slug}
-            onChange={(x) => setV({ ...v, slug: x })}
-            placeholder={slugify(v.full_name) || "auto-generated"}
-          />
-        </Field>
-        <Field label="Party">
-          <select
-            value={v.party_id ?? ""}
-            onChange={(e) => setV({ ...v, party_id: e.target.value || null })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+      <div className="-mx-6 mb-5 flex gap-1 overflow-x-auto border-b border-border px-6">
+        {tabs.map((tdef) => (
+          <button
+            key={tdef.id}
+            onClick={() => setTab(tdef.id)}
+            disabled={tdef.id !== "overview" && tdef.id !== "contact" && tdef.id !== "socials" && tdef.id !== "sources" && isNew}
+            className={
+              "shrink-0 border-b-2 px-3 py-2 text-xs font-semibold transition-colors " +
+              (tab === tdef.id
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground") +
+              (isNew && tdef.id !== "overview" && tdef.id !== "contact" && tdef.id !== "socials" && tdef.id !== "sources"
+                ? " opacity-40 cursor-not-allowed"
+                : "")
+            }
           >
-            <option value="">— None —</option>
-            {parties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name_en}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Primary district">
-          <select
-            value={v.primary_district_id ?? ""}
-            onChange={(e) => setV({ ...v, primary_district_id: e.target.value || null })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            <option value="">— None —</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.number} · {d.name_en}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Contesting districts (2026)" full>
-          <p className="mb-2 text-xs text-muted-foreground">
-            Select every district this candidate is contesting in 2026. The
-            primary district above is used as the main display affiliation.
-          </p>
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
-            {districts.map((d) => {
-              const checked = effectiveDistrictIds.includes(d.id);
-              const isPrimary = d.id === v.primary_district_id;
-              return (
-                <label
-                  key={d.id}
-                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
-                    checked
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-accent"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleDistrict(d.id)}
-                    className="h-3.5 w-3.5"
-                  />
-                  <span className="truncate">
-                    {d.number} · {d.name_en}
-                    {isPrimary ? (
-                      <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                        primary
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </Field>
-        <Field label="Photo URL">
-          <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
-        </Field>
-        <Field label="Website">
-          <Input value={v.website ?? ""} onChange={(x) => setV({ ...v, website: x })} />
-        </Field>
-        <Field label="Facebook">
-          <Input value={v.facebook ?? ""} onChange={(x) => setV({ ...v, facebook: x })} />
-        </Field>
-        <Field label="X / Twitter">
-          <Input value={v.twitter ?? ""} onChange={(x) => setV({ ...v, twitter: x })} />
-        </Field>
-        <Field label="parlament.mt URL" full>
-          <Input
-            value={v.parlament_mt_url ?? ""}
-            onChange={(x) => setV({ ...v, parlament_mt_url: x })}
-          />
-        </Field>
-        <Field label="Bio (EN)" full>
-          <Textarea value={v.bio_en ?? ""} onChange={(x) => setV({ ...v, bio_en: x })} />
-        </Field>
-        <Field label="Bio (MT)" full>
-          <Textarea value={v.bio_mt ?? ""} onChange={(x) => setV({ ...v, bio_mt: x })} />
-        </Field>
-        <Field label="Source URL" full>
-          <Input value={v.source_url ?? ""} onChange={(x) => setV({ ...v, source_url: x })} />
-        </Field>
-        <Field label="Internal notes" full>
-          <Textarea value={v.notes ?? ""} onChange={(x) => setV({ ...v, notes: x })} />
-        </Field>
-        <Field label="Status">
-          <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
-        </Field>
-        <Field label="Flags">
-          <div className="flex flex-col gap-2 pt-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={v.is_incumbent}
-                onChange={(e) => setV({ ...v, is_incumbent: e.target.checked })}
-              />
-              Sitting MP (incumbent)
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={v.electoral_confirmed}
-                onChange={(e) => setV({ ...v, electoral_confirmed: e.target.checked })}
-              />
-              Confirmed on electoral.gov.mt
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={v.not_contesting_2026}
-                onChange={(e) => setV({ ...v, not_contesting_2026: e.target.checked })}
-              />
-              Not contesting 2026 election
-            </label>
-          </div>
-        </Field>
-        {v.not_contesting_2026 ? (
-          <>
-            <Field label="Not contesting — source URL" full>
-              <Input
-                value={v.not_contesting_source_url ?? ""}
-                onChange={(x) => setV({ ...v, not_contesting_source_url: x })}
-                placeholder="https://… article where they announced"
-              />
-            </Field>
-            <Field label="Not contesting — note (EN)" full>
-              <Textarea
-                value={v.not_contesting_note_en ?? ""}
-                onChange={(x) => setV({ ...v, not_contesting_note_en: x })}
-              />
-            </Field>
-            <Field label="Not contesting — note (MT)" full>
-              <Textarea
-                value={v.not_contesting_note_mt ?? ""}
-                onChange={(x) => setV({ ...v, not_contesting_note_mt: x })}
-              />
-            </Field>
-          </>
-        ) : null}
+            {tdef.label}
+          </button>
+        ))}
       </div>
+
+      {tab === "overview" && (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Full name *">
+            <Input value={v.full_name} onChange={(x) => setV({ ...v, full_name: x })} />
+          </Field>
+          <Field label="Slug">
+            <Input
+              value={v.slug}
+              onChange={(x) => setV({ ...v, slug: x })}
+              placeholder={slugify(v.full_name) || "auto-generated"}
+            />
+          </Field>
+          <Field label="Party">
+            <select
+              value={v.party_id ?? ""}
+              onChange={(e) => setV({ ...v, party_id: e.target.value || null })}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="">— None —</option>
+              {parties.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name_en}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Primary district">
+            <select
+              value={v.primary_district_id ?? ""}
+              onChange={(e) => setV({ ...v, primary_district_id: e.target.value || null })}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="">— None —</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.number} · {d.name_en}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Contesting districts (2026)" full>
+            <p className="mb-2 text-xs text-muted-foreground">
+              Select every district this candidate is contesting in 2026.
+            </p>
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
+              {districts.map((d) => {
+                const checked = effectiveDistrictIds.includes(d.id);
+                const isPrimary = d.id === v.primary_district_id;
+                return (
+                  <label
+                    key={d.id}
+                    className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                      checked
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-background text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleDistrict(d.id)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <span className="truncate">
+                      {d.number} · {d.name_en}
+                      {isPrimary ? (
+                        <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          primary
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </Field>
+          <Field label="Photo URL" full>
+            <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
+          </Field>
+          <Field label="Bio (EN)" full>
+            <Textarea value={v.bio_en ?? ""} onChange={(x) => setV({ ...v, bio_en: x })} />
+          </Field>
+          <Field label="Bio (MT)" full>
+            <Textarea value={v.bio_mt ?? ""} onChange={(x) => setV({ ...v, bio_mt: x })} />
+          </Field>
+          <Field label="Flags" full>
+            <div className="flex flex-col gap-2 pt-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={v.is_incumbent}
+                  onChange={(e) => setV({ ...v, is_incumbent: e.target.checked })}
+                />
+                Sitting MP (incumbent)
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={v.electoral_confirmed}
+                  onChange={(e) => setV({ ...v, electoral_confirmed: e.target.checked })}
+                />
+                Confirmed on electoral.gov.mt
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={v.not_contesting_2026}
+                  onChange={(e) => setV({ ...v, not_contesting_2026: e.target.checked })}
+                />
+                Not contesting 2026 election
+              </label>
+            </div>
+          </Field>
+        </div>
+      )}
+
+      {tab === "contact" && (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Email">
+            <Input value={v.email ?? ""} onChange={(x) => setV({ ...v, email: x })} placeholder="name@example.com" />
+          </Field>
+          <Field label="Phone">
+            <Input value={v.phone ?? ""} onChange={(x) => setV({ ...v, phone: x })} placeholder="+356 …" />
+          </Field>
+          <Field label="Office address" full>
+            <Textarea value={v.office_address ?? ""} onChange={(x) => setV({ ...v, office_address: x })} />
+          </Field>
+          <Field label="Date of birth">
+            <Input
+              type="date"
+              value={v.date_of_birth ?? ""}
+              onChange={(x) => setV({ ...v, date_of_birth: x || null })}
+            />
+          </Field>
+          <Field label="Birthplace">
+            <Input value={v.birthplace ?? ""} onChange={(x) => setV({ ...v, birthplace: x })} />
+          </Field>
+          <Field label="Profession">
+            <Input value={v.profession ?? ""} onChange={(x) => setV({ ...v, profession: x })} />
+          </Field>
+          <Field label="Languages (comma-separated)">
+            <Input
+              value={(v.languages ?? []).join(", ")}
+              onChange={(x) =>
+                setV({
+                  ...v,
+                  languages: x
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                })
+              }
+              placeholder="Maltese, English, Italian"
+            />
+          </Field>
+          <Field label="Education" full>
+            <Textarea value={v.education ?? ""} onChange={(x) => setV({ ...v, education: x })} />
+          </Field>
+        </div>
+      )}
+
+      {tab === "socials" && (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Website">
+            <Input value={v.website ?? ""} onChange={(x) => setV({ ...v, website: x })} />
+          </Field>
+          <Field label="Facebook">
+            <Input value={v.facebook ?? ""} onChange={(x) => setV({ ...v, facebook: x })} />
+          </Field>
+          <Field label="X / Twitter">
+            <Input value={v.twitter ?? ""} onChange={(x) => setV({ ...v, twitter: x })} />
+          </Field>
+          <Field label="Instagram">
+            <Input value={v.instagram ?? ""} onChange={(x) => setV({ ...v, instagram: x })} />
+          </Field>
+          <Field label="TikTok">
+            <Input value={v.tiktok ?? ""} onChange={(x) => setV({ ...v, tiktok: x })} />
+          </Field>
+          <Field label="LinkedIn">
+            <Input value={v.linkedin ?? ""} onChange={(x) => setV({ ...v, linkedin: x })} />
+          </Field>
+          <Field label="YouTube channel" full>
+            <Input value={v.youtube ?? ""} onChange={(x) => setV({ ...v, youtube: x })} />
+          </Field>
+        </div>
+      )}
+
+      {tab === "media" && !isNew && <MediaTab candidateId={v.id} />}
+      {tab === "parliament" && !isNew && (
+        <ParliamentTab
+          candidateId={v.id}
+          memberId={v.parliament_member_id ?? ""}
+          parlamentUrl={v.parlament_mt_url ?? ""}
+          syncedAt={v.parliament_synced_at}
+          onChange={(memberId, url) =>
+            setV({ ...v, parliament_member_id: memberId, parlament_mt_url: url })
+          }
+        />
+      )}
+      {tab === "endorsements" && !isNew && <EndorsementsTab candidateId={v.id} />}
+
+      {tab === "sources" && (
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Source URL" full>
+            <Input value={v.source_url ?? ""} onChange={(x) => setV({ ...v, source_url: x })} />
+          </Field>
+          <Field label="Internal notes" full>
+            <Textarea value={v.notes ?? ""} onChange={(x) => setV({ ...v, notes: x })} />
+          </Field>
+          <Field label="Status">
+            <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
+          </Field>
+          {v.not_contesting_2026 ? (
+            <>
+              <Field label="Not contesting — source URL" full>
+                <Input
+                  value={v.not_contesting_source_url ?? ""}
+                  onChange={(x) => setV({ ...v, not_contesting_source_url: x })}
+                />
+              </Field>
+              <Field label="Not contesting — note (EN)" full>
+                <Textarea
+                  value={v.not_contesting_note_en ?? ""}
+                  onChange={(x) => setV({ ...v, not_contesting_note_en: x })}
+                />
+              </Field>
+              <Field label="Not contesting — note (MT)" full>
+                <Textarea
+                  value={v.not_contesting_note_mt ?? ""}
+                  onChange={(x) => setV({ ...v, not_contesting_note_mt: x })}
+                />
+              </Field>
+            </>
+          ) : null}
+        </div>
+      )}
+
+      {(tab === "media" || tab === "parliament" || tab === "endorsements") && isNew ? (
+        <div className="rounded-md border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+          Save the candidate first to manage {tab}.
+        </div>
+      ) : null}
+
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
+  );
+}
+
+// ---------- Media tab ----------
+
+interface MediaRow {
+  id: string;
+  candidate_id: string;
+  kind: "video" | "podcast" | "interview" | "speech" | "article";
+  title: string | null;
+  description: string | null;
+  url: string;
+  provider: string | null;
+  embed_id: string | null;
+  thumbnail_url: string | null;
+  published_at: string | null;
+  language: string | null;
+  status: ReviewStatus;
+  source_url: string | null;
+  sort_order: number;
+}
+
+const emptyMedia = (candidateId: string): MediaRow => ({
+  id: "",
+  candidate_id: candidateId,
+  kind: "video",
+  title: "",
+  description: "",
+  url: "",
+  provider: null,
+  embed_id: null,
+  thumbnail_url: "",
+  published_at: null,
+  language: "en",
+  status: "pending_review",
+  source_url: "",
+  sort_order: 0,
+});
+
+function MediaTab({ candidateId }: { candidateId: string }) {
+  const [rows, setRows] = useState<MediaRow[]>([]);
+  const [editing, setEditing] = useState<MediaRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("candidate_media")
+      .select("*")
+      .eq("candidate_id", candidateId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+    if (error) toast.error(error.message);
+    setRows((data ?? []) as MediaRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateId]);
+
+  const save = async (row: MediaRow) => {
+    if (!row.url) return toast.error("URL is required");
+    const det = detectMedia(row.url);
+    const payload = {
+      candidate_id: candidateId,
+      kind: row.kind,
+      title: row.title || null,
+      description: row.description || null,
+      url: row.url,
+      provider: det.provider,
+      embed_id: det.embedId,
+      thumbnail_url: row.thumbnail_url || null,
+      published_at: row.published_at || null,
+      language: row.language || null,
+      status: row.status,
+      source_url: row.source_url || null,
+      sort_order: row.sort_order,
+    };
+    const { error } = row.id
+      ? await supabase.from("candidate_media").update(payload).eq("id", row.id)
+      : await supabase.from("candidate_media").insert(payload);
+    if (error) return toast.error(error.message);
+    toast.success("Saved");
+    setEditing(null);
+    void load();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete this item?")) return;
+    const { error } = await supabase.from("candidate_media").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          Videos, podcasts, interviews and speeches. Provider auto-detected from URL.
+        </p>
+        <button
+          onClick={() => setEditing(emptyMedia(candidateId))}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          <Plus className="h-3 w-3" /> Add
+        </button>
+      </div>
+      {loading ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">No media yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((r) => (
+            <li key={r.id} className="rounded-md border border-border bg-surface p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase">
+                      {r.kind}
+                    </span>
+                    {r.provider ? (
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {r.provider}
+                      </span>
+                    ) : null}
+                    <StatusBadge status={r.status} />
+                  </div>
+                  <div className="mt-1 truncate text-sm font-medium text-foreground">
+                    {r.title || r.url}
+                  </div>
+                  <a href={r.url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:underline">
+                    {r.url}
+                  </a>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    onClick={() => setEditing(r)}
+                    className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => void remove(r.id)}
+                    className="rounded-md border border-border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {editing ? (
+        <div className="mt-4 rounded-lg border border-primary/40 bg-background p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Kind">
+              <select
+                value={editing.kind}
+                onChange={(e) => setEditing({ ...editing, kind: e.target.value as MediaRow["kind"] })}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="video">Video</option>
+                <option value="podcast">Podcast</option>
+                <option value="interview">Interview</option>
+                <option value="speech">Speech</option>
+                <option value="article">Article</option>
+              </select>
+            </Field>
+            <Field label="Language">
+              <select
+                value={editing.language ?? "en"}
+                onChange={(e) => setEditing({ ...editing, language: e.target.value })}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="en">English</option>
+                <option value="mt">Maltese</option>
+              </select>
+            </Field>
+            <Field label="URL *" full>
+              <Input value={editing.url} onChange={(x) => setEditing({ ...editing, url: x })} />
+              {editing.url ? (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Detected: <strong>{detectMedia(editing.url).provider}</strong>
+                </p>
+              ) : null}
+            </Field>
+            <Field label="Title" full>
+              <Input value={editing.title ?? ""} onChange={(x) => setEditing({ ...editing, title: x })} />
+            </Field>
+            <Field label="Description" full>
+              <Textarea
+                value={editing.description ?? ""}
+                onChange={(x) => setEditing({ ...editing, description: x })}
+              />
+            </Field>
+            <Field label="Published date">
+              <Input
+                type="date"
+                value={editing.published_at ?? ""}
+                onChange={(x) => setEditing({ ...editing, published_at: x || null })}
+              />
+            </Field>
+            <Field label="Status">
+              <StatusSelect value={editing.status} onChange={(x) => setEditing({ ...editing, status: x })} />
+            </Field>
+            <Field label="Source URL" full>
+              <Input value={editing.source_url ?? ""} onChange={(x) => setEditing({ ...editing, source_url: x })} />
+            </Field>
+            <Field label="Sort order">
+              <Input
+                type="number"
+                value={String(editing.sort_order)}
+                onChange={(x) => setEditing({ ...editing, sort_order: Number(x) || 0 })}
+              />
+            </Field>
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              onClick={() => setEditing(null)}
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => void save(editing)}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Save item
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ---------- Parliament tab ----------
+
+interface PositionRow {
+  id: string;
+  candidate_id: string;
+  legislature_number: number | null;
+  title: string;
+  body: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_current: boolean;
+  source_url: string | null;
+}
+
+interface ContributionRow {
+  id: string;
+  candidate_id: string;
+  legislature_number: number;
+  attendance_pct: number | null;
+  speeches_count: number | null;
+  pmqs_count: number | null;
+  bills_sponsored: number | null;
+  bills_cosponsored: number | null;
+  summary_en: string | null;
+  summary_mt: string | null;
+  source_url: string | null;
+}
+
+function ParliamentTab({
+  candidateId,
+  memberId,
+  parlamentUrl,
+  syncedAt,
+  onChange,
+}: {
+  candidateId: string;
+  memberId: string;
+  parlamentUrl: string;
+  syncedAt: string | null;
+  onChange: (memberId: string, parlamentUrl: string) => void;
+}) {
+  const [positions, setPositions] = useState<PositionRow[]>([]);
+  const [contribs, setContribs] = useState<ContributionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const sync = useServerFn(syncCandidateFromParliament);
+
+  const load = async () => {
+    setLoading(true);
+    const [p, c] = await Promise.all([
+      supabase
+        .from("candidate_positions")
+        .select("*")
+        .eq("candidate_id", candidateId)
+        .order("start_date", { ascending: false, nullsFirst: false }),
+      supabase
+        .from("candidate_contributions")
+        .select("*")
+        .eq("candidate_id", candidateId)
+        .order("legislature_number", { ascending: false }),
+    ]);
+    if (p.error) toast.error(p.error.message);
+    if (c.error) toast.error(c.error.message);
+    setPositions((p.data ?? []) as PositionRow[]);
+    setContribs((c.data ?? []) as ContributionRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateId]);
+
+  const runSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await sync({ data: { candidateId } });
+      if (result.ok) {
+        toast.success(`Synced — added ${result.positionsAdded} position(s)`);
+        void load();
+      } else {
+        toast.error(result.error);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const addPosition = async () => {
+    const title = prompt("Position title (e.g. 'Member, Public Accounts Committee')");
+    if (!title) return;
+    const { error } = await supabase.from("candidate_positions").insert({
+      candidate_id: candidateId,
+      title,
+      is_current: true,
+    });
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const removePosition = async (id: string) => {
+    if (!confirm("Delete position?")) return;
+    const { error } = await supabase.from("candidate_positions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const addContribution = async () => {
+    const legStr = prompt("Legislature number (e.g. 13)");
+    const leg = Number(legStr);
+    if (!Number.isInteger(leg) || leg < 1) return;
+    const { error } = await supabase.from("candidate_contributions").insert({
+      candidate_id: candidateId,
+      legislature_number: leg,
+    });
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const updateContribution = async (id: string, patch: Partial<ContributionRow>) => {
+    const { error } = await supabase.from("candidate_contributions").update(patch).eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  const removeContribution = async (id: string) => {
+    if (!confirm("Delete contribution row?")) return;
+    const { error } = await supabase.from("candidate_contributions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="parlament.mt member id">
+          <Input value={memberId} onChange={(x) => onChange(x, parlamentUrl)} placeholder="e.g. 1234" />
+        </Field>
+        <Field label="parlament.mt URL">
+          <Input value={parlamentUrl} onChange={(x) => onChange(memberId, x)} />
+        </Field>
+        <Field label="Last synced" full>
+          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm">
+            <span className="text-muted-foreground">
+              {syncedAt ? new Date(syncedAt).toLocaleString() : "Never"}
+            </span>
+            <button
+              onClick={() => void runSync()}
+              disabled={syncing || (!memberId && !parlamentUrl)}
+              className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              <RefreshCw className={"h-3 w-3 " + (syncing ? "animate-spin" : "")} />
+              {syncing ? "Syncing…" : "Sync from parlament.mt"}
+            </button>
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Save the candidate first if you just changed the member id.
+          </p>
+        </Field>
+      </div>
+
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">Positions</h3>
+          <button
+            onClick={() => void addPosition()}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+          >
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : positions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No positions recorded.</p>
+        ) : (
+          <ul className="space-y-2">
+            {positions.map((p) => (
+              <li key={p.id} className="flex items-start justify-between gap-3 rounded-md border border-border bg-surface p-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">{p.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {p.body ? `${p.body} · ` : ""}
+                    {p.legislature_number ? `Leg ${p.legislature_number}` : "—"}
+                    {p.is_current ? " · current" : ""}
+                  </div>
+                </div>
+                <button
+                  onClick={() => void removePosition(p.id)}
+                  className="rounded-md border border-border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">Contributions per legislature</h3>
+          <button
+            onClick={() => void addContribution()}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+          >
+            <Plus className="h-3 w-3" /> Add
+          </button>
+        </div>
+        {contribs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No data yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {contribs.map((c) => (
+              <li key={c.id} className="rounded-md border border-border bg-surface p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-sm font-semibold">Legislature {c.legislature_number}</div>
+                  <button
+                    onClick={() => void removeContribution(c.id)}
+                    className="rounded-md border border-border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <NumStat
+                    label="Attendance %"
+                    value={c.attendance_pct}
+                    onCommit={(n) => void updateContribution(c.id, { attendance_pct: n })}
+                  />
+                  <NumStat
+                    label="Speeches"
+                    value={c.speeches_count}
+                    onCommit={(n) => void updateContribution(c.id, { speeches_count: n })}
+                  />
+                  <NumStat
+                    label="PMQs"
+                    value={c.pmqs_count}
+                    onCommit={(n) => void updateContribution(c.id, { pmqs_count: n })}
+                  />
+                  <NumStat
+                    label="Bills sponsored"
+                    value={c.bills_sponsored}
+                    onCommit={(n) => void updateContribution(c.id, { bills_sponsored: n })}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NumStat({
+  label,
+  value,
+  onCommit,
+}: {
+  label: string;
+  value: number | null;
+  onCommit: (n: number | null) => void;
+}) {
+  const [v, setV] = useState<string>(value === null ? "" : String(value));
+  useEffect(() => {
+    setV(value === null ? "" : String(value));
+  }, [value]);
+  return (
+    <label className="block">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <input
+        type="number"
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onBlur={() => onCommit(v === "" ? null : Number(v))}
+        className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-sm"
+      />
+    </label>
+  );
+}
+
+// ---------- Endorsements ----------
+
+interface EndorsementRow {
+  id: string;
+  candidate_id: string;
+  quote_en: string | null;
+  quote_mt: string | null;
+  attributed_to: string;
+  attributed_role: string | null;
+  source_url: string | null;
+  published_at: string | null;
+  status: ReviewStatus;
+  sort_order: number;
+}
+
+const emptyEnd = (cid: string): EndorsementRow => ({
+  id: "",
+  candidate_id: cid,
+  quote_en: "",
+  quote_mt: "",
+  attributed_to: "",
+  attributed_role: "",
+  source_url: "",
+  published_at: null,
+  status: "pending_review",
+  sort_order: 0,
+});
+
+function EndorsementsTab({ candidateId }: { candidateId: string }) {
+  const [rows, setRows] = useState<EndorsementRow[]>([]);
+  const [editing, setEditing] = useState<EndorsementRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("candidate_endorsements")
+      .select("*")
+      .eq("candidate_id", candidateId)
+      .order("sort_order");
+    if (error) toast.error(error.message);
+    setRows((data ?? []) as EndorsementRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidateId]);
+
+  const save = async (r: EndorsementRow) => {
+    if (!r.attributed_to) return toast.error("Attribution is required");
+    const payload = {
+      candidate_id: candidateId,
+      quote_en: r.quote_en || null,
+      quote_mt: r.quote_mt || null,
+      attributed_to: r.attributed_to,
+      attributed_role: r.attributed_role || null,
+      source_url: r.source_url || null,
+      published_at: r.published_at || null,
+      status: r.status,
+      sort_order: r.sort_order,
+    };
+    const { error } = r.id
+      ? await supabase.from("candidate_endorsements").update(payload).eq("id", r.id)
+      : await supabase.from("candidate_endorsements").insert(payload);
+    if (error) return toast.error(error.message);
+    setEditing(null);
+    void load();
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm("Delete?")) return;
+    const { error } = await supabase.from("candidate_endorsements").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    void load();
+  };
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">Quotes endorsing this candidate.</p>
+        <button
+          onClick={() => setEditing(emptyEnd(candidateId))}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          <Plus className="h-3 w-3" /> Add
+        </button>
+      </div>
+      {loading ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">No endorsements.</p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((r) => (
+            <li key={r.id} className="rounded-md border border-border bg-surface p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{r.attributed_to}</div>
+                  {r.attributed_role ? (
+                    <div className="text-xs text-muted-foreground">{r.attributed_role}</div>
+                  ) : null}
+                  {r.quote_en ? (
+                    <p className="mt-1 line-clamp-2 text-sm italic text-muted-foreground">"{r.quote_en}"</p>
+                  ) : null}
+                  <StatusBadge status={r.status} />
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <button onClick={() => setEditing(r)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => void remove(r.id)}
+                    className="rounded-md border border-border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {editing ? (
+        <div className="mt-4 rounded-lg border border-primary/40 bg-background p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Attributed to *">
+              <Input
+                value={editing.attributed_to}
+                onChange={(x) => setEditing({ ...editing, attributed_to: x })}
+              />
+            </Field>
+            <Field label="Role / title">
+              <Input
+                value={editing.attributed_role ?? ""}
+                onChange={(x) => setEditing({ ...editing, attributed_role: x })}
+              />
+            </Field>
+            <Field label="Quote (EN)" full>
+              <Textarea
+                value={editing.quote_en ?? ""}
+                onChange={(x) => setEditing({ ...editing, quote_en: x })}
+              />
+            </Field>
+            <Field label="Quote (MT)" full>
+              <Textarea
+                value={editing.quote_mt ?? ""}
+                onChange={(x) => setEditing({ ...editing, quote_mt: x })}
+              />
+            </Field>
+            <Field label="Source URL">
+              <Input
+                value={editing.source_url ?? ""}
+                onChange={(x) => setEditing({ ...editing, source_url: x })}
+              />
+            </Field>
+            <Field label="Published date">
+              <Input
+                type="date"
+                value={editing.published_at ?? ""}
+                onChange={(x) => setEditing({ ...editing, published_at: x || null })}
+              />
+            </Field>
+            <Field label="Status">
+              <StatusSelect value={editing.status} onChange={(x) => setEditing({ ...editing, status: x })} />
+            </Field>
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <button onClick={() => setEditing(null)} className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent">
+              Cancel
+            </button>
+            <button
+              onClick={() => void save(editing)}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
