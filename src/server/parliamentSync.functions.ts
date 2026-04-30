@@ -22,8 +22,9 @@ export const syncCandidateFromParliament = createServerFn({ method: "POST" })
       return { ok: false as const, error: candErr?.message ?? "Candidate not found" };
     }
 
-    const memberUrl = candidate.parlament_member_id
-      ? `https://www.parlament.mt/en/13th-leg/political-groups/?mid=${encodeURIComponent(candidate.parliament_member_id)}`
+    const memberId = candidate.parliament_member_id;
+    const memberUrl = memberId
+      ? `https://www.parlament.mt/en/13th-leg/political-groups/?mid=${encodeURIComponent(memberId)}`
       : candidate.parlament_mt_url;
     if (!memberUrl) {
       return { ok: false as const, error: "No parliament_member_id or parlament_mt_url set" };
