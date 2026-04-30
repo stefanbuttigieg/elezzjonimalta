@@ -66,6 +66,10 @@ type CandidateDetail = {
   website: string | null;
   facebook: string | null;
   twitter: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  linkedin: string | null;
+  youtube: string | null;
   parlament_mt_url: string | null;
   source_url: string | null;
   is_incumbent: boolean;
@@ -74,9 +78,64 @@ type CandidateDetail = {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  email: string | null;
+  phone: string | null;
+  office_address: string | null;
+  date_of_birth: string | null;
+  birthplace: string | null;
+  profession: string | null;
+  education: string | null;
+  languages: string[] | null;
   updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
+};
+
+type MediaItem = {
+  id: string;
+  kind: "video" | "podcast" | "interview" | "speech" | "article";
+  title: string | null;
+  description: string | null;
+  url: string;
+  provider: string | null;
+  embed_id: string | null;
+  thumbnail_url: string | null;
+  published_at: string | null;
+  language: string | null;
+};
+
+type PositionItem = {
+  id: string;
+  legislature_number: number | null;
+  title: string;
+  body: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_current: boolean;
+  source_url: string | null;
+};
+
+type ContributionItem = {
+  id: string;
+  legislature_number: number;
+  attendance_pct: number | null;
+  speeches_count: number | null;
+  pmqs_count: number | null;
+  bills_sponsored: number | null;
+  bills_cosponsored: number | null;
+  summary_en: string | null;
+  summary_mt: string | null;
+  source_url: string | null;
+};
+
+type EndorsementItem = {
+  id: string;
+  quote_en: string | null;
+  quote_mt: string | null;
+  attributed_to: string;
+  attributed_role: string | null;
+  source_url: string | null;
+  published_at: string | null;
 };
 
 type SourceKind = "official" | "manifesto" | "news" | "social" | "other";
