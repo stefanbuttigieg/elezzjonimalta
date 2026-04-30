@@ -92,65 +92,6 @@ export type Database = {
         }
         Relationships: []
       }
-      candidate_contributions: {
-        Row: {
-          attendance_pct: number | null
-          bills_cosponsored: number | null
-          bills_sponsored: number | null
-          candidate_id: string
-          created_at: string
-          id: string
-          legislature_number: number
-          pmqs_count: number | null
-          source_url: string | null
-          speeches_count: number | null
-          summary_en: string | null
-          summary_mt: string | null
-          synced_at: string | null
-          updated_at: string
-        }
-        Insert: {
-          attendance_pct?: number | null
-          bills_cosponsored?: number | null
-          bills_sponsored?: number | null
-          candidate_id: string
-          created_at?: string
-          id?: string
-          legislature_number: number
-          pmqs_count?: number | null
-          source_url?: string | null
-          speeches_count?: number | null
-          summary_en?: string | null
-          summary_mt?: string | null
-          synced_at?: string | null
-          updated_at?: string
-        }
-        Update: {
-          attendance_pct?: number | null
-          bills_cosponsored?: number | null
-          bills_sponsored?: number | null
-          candidate_id?: string
-          created_at?: string
-          id?: string
-          legislature_number?: number
-          pmqs_count?: number | null
-          source_url?: string | null
-          speeches_count?: number | null
-          summary_en?: string | null
-          summary_mt?: string | null
-          synced_at?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "candidate_contributions_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       candidate_districts: {
         Row: {
           candidate_id: string
@@ -195,174 +136,6 @@ export type Database = {
             columns: ["district_id"]
             isOneToOne: false
             referencedRelation: "districts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      candidate_endorsements: {
-        Row: {
-          attributed_role: string | null
-          attributed_to: string
-          candidate_id: string
-          created_at: string
-          id: string
-          published_at: string | null
-          quote_en: string | null
-          quote_mt: string | null
-          sort_order: number
-          source_url: string | null
-          status: Database["public"]["Enums"]["review_status"]
-          updated_at: string
-        }
-        Insert: {
-          attributed_role?: string | null
-          attributed_to: string
-          candidate_id: string
-          created_at?: string
-          id?: string
-          published_at?: string | null
-          quote_en?: string | null
-          quote_mt?: string | null
-          sort_order?: number
-          source_url?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          updated_at?: string
-        }
-        Update: {
-          attributed_role?: string | null
-          attributed_to?: string
-          candidate_id?: string
-          created_at?: string
-          id?: string
-          published_at?: string | null
-          quote_en?: string | null
-          quote_mt?: string | null
-          sort_order?: number
-          source_url?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "candidate_endorsements_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      candidate_media: {
-        Row: {
-          candidate_id: string
-          created_at: string
-          description: string | null
-          embed_id: string | null
-          id: string
-          kind: Database["public"]["Enums"]["candidate_media_kind"]
-          language: string | null
-          provider: string | null
-          published_at: string | null
-          sort_order: number
-          source_url: string | null
-          status: Database["public"]["Enums"]["review_status"]
-          thumbnail_url: string | null
-          title: string | null
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string
-          description?: string | null
-          embed_id?: string | null
-          id?: string
-          kind?: Database["public"]["Enums"]["candidate_media_kind"]
-          language?: string | null
-          provider?: string | null
-          published_at?: string | null
-          sort_order?: number
-          source_url?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          thumbnail_url?: string | null
-          title?: string | null
-          updated_at?: string
-          url: string
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string
-          description?: string | null
-          embed_id?: string | null
-          id?: string
-          kind?: Database["public"]["Enums"]["candidate_media_kind"]
-          language?: string | null
-          provider?: string | null
-          published_at?: string | null
-          sort_order?: number
-          source_url?: string | null
-          status?: Database["public"]["Enums"]["review_status"]
-          thumbnail_url?: string | null
-          title?: string | null
-          updated_at?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "candidate_media_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      candidate_positions: {
-        Row: {
-          body: string | null
-          candidate_id: string
-          created_at: string
-          end_date: string | null
-          id: string
-          is_current: boolean
-          legislature_number: number | null
-          source_url: string | null
-          start_date: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          body?: string | null
-          candidate_id: string
-          created_at?: string
-          end_date?: string | null
-          id?: string
-          is_current?: boolean
-          legislature_number?: number | null
-          source_url?: string | null
-          start_date?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          body?: string | null
-          candidate_id?: string
-          created_at?: string
-          end_date?: string | null
-          id?: string
-          is_current?: boolean
-          legislature_number?: number | null
-          source_url?: string | null
-          start_date?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "candidate_positions_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -421,122 +194,80 @@ export type Database = {
         Row: {
           bio_en: string | null
           bio_mt: string | null
-          birthplace: string | null
           created_at: string
-          date_of_birth: string | null
-          education: string | null
           electoral_confirmed: boolean
-          email: string | null
           facebook: string | null
           full_name: string
           id: string
           imported_from: string | null
-          instagram: string | null
           is_incumbent: boolean
-          languages: string[] | null
-          linkedin: string | null
           not_contesting_2026: boolean
           not_contesting_note_en: string | null
           not_contesting_note_mt: string | null
           not_contesting_source_url: string | null
           notes: string | null
-          office_address: string | null
           parlament_mt_url: string | null
-          parliament_member_id: string | null
-          parliament_synced_at: string | null
           party_id: string | null
-          phone: string | null
           photo_url: string | null
           primary_district_id: string | null
-          profession: string | null
           slug: string
           source_url: string | null
           status: Database["public"]["Enums"]["review_status"]
-          tiktok: string | null
           twitter: string | null
           updated_at: string
           website: string | null
-          youtube: string | null
         }
         Insert: {
           bio_en?: string | null
           bio_mt?: string | null
-          birthplace?: string | null
           created_at?: string
-          date_of_birth?: string | null
-          education?: string | null
           electoral_confirmed?: boolean
-          email?: string | null
           facebook?: string | null
           full_name: string
           id?: string
           imported_from?: string | null
-          instagram?: string | null
           is_incumbent?: boolean
-          languages?: string[] | null
-          linkedin?: string | null
           not_contesting_2026?: boolean
           not_contesting_note_en?: string | null
           not_contesting_note_mt?: string | null
           not_contesting_source_url?: string | null
           notes?: string | null
-          office_address?: string | null
           parlament_mt_url?: string | null
-          parliament_member_id?: string | null
-          parliament_synced_at?: string | null
           party_id?: string | null
-          phone?: string | null
           photo_url?: string | null
           primary_district_id?: string | null
-          profession?: string | null
           slug: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
-          tiktok?: string | null
           twitter?: string | null
           updated_at?: string
           website?: string | null
-          youtube?: string | null
         }
         Update: {
           bio_en?: string | null
           bio_mt?: string | null
-          birthplace?: string | null
           created_at?: string
-          date_of_birth?: string | null
-          education?: string | null
           electoral_confirmed?: boolean
-          email?: string | null
           facebook?: string | null
           full_name?: string
           id?: string
           imported_from?: string | null
-          instagram?: string | null
           is_incumbent?: boolean
-          languages?: string[] | null
-          linkedin?: string | null
           not_contesting_2026?: boolean
           not_contesting_note_en?: string | null
           not_contesting_note_mt?: string | null
           not_contesting_source_url?: string | null
           notes?: string | null
-          office_address?: string | null
           parlament_mt_url?: string | null
-          parliament_member_id?: string | null
-          parliament_synced_at?: string | null
           party_id?: string | null
-          phone?: string | null
           photo_url?: string | null
           primary_district_id?: string | null
-          profession?: string | null
           slug?: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
-          tiktok?: string | null
           twitter?: string | null
           updated_at?: string
           website?: string | null
-          youtube?: string | null
         }
         Relationships: [
           {
@@ -1113,12 +844,6 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
-      candidate_media_kind:
-        | "video"
-        | "podcast"
-        | "interview"
-        | "speech"
-        | "article"
       news_finding_kind:
         | "proposal"
         | "new_candidate"
@@ -1256,13 +981,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor", "viewer"],
-      candidate_media_kind: [
-        "video",
-        "podcast",
-        "interview",
-        "speech",
-        "article",
-      ],
       news_finding_kind: [
         "proposal",
         "new_candidate",
