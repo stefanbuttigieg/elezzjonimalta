@@ -43,6 +43,7 @@ interface Proposal {
   candidate_id: string | null;
   status: ReviewStatus;
   source_url: string | null;
+  custom_fields: Record<string, unknown>;
   party?: PartyLite | null;
   candidate?: CandidateLite | null;
 }
