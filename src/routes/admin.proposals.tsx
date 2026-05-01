@@ -59,6 +59,7 @@ const empty: Proposal = {
   candidate_id: null,
   status: "pending_review",
   source_url: "",
+  custom_fields: {},
 };
 
 function ProposalsAdmin() {
