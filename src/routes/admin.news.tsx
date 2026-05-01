@@ -379,8 +379,13 @@ function NewsMonitor() {
                       Source <ExternalLink className="h-3 w-3" />
                     </a>
                   ) : null}
+                  {f.article?.published_at ? (
+                    <span className="text-[11px] text-muted-foreground">
+                      Published {new Date(f.article.published_at).toLocaleDateString()}
+                    </span>
+                  ) : null}
                   <span className="text-[11px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(f.created_at))} ago
+                    Detected {formatDistanceToNow(new Date(f.created_at))} ago
                   </span>
                 </div>
               </div>
