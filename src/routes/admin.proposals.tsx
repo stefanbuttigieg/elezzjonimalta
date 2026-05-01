@@ -22,6 +22,7 @@ import {
   translateProposalDraft,
   translateMissingProposals,
 } from "@/server/translateProposal.functions";
+import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
