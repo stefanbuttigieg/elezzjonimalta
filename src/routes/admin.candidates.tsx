@@ -581,6 +581,25 @@ function CandidateEditor({
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
         </Field>
+        <Field label="Leadership role">
+          <select
+            value={v.leadership_role ?? ""}
+            onChange={(e) =>
+              setV({
+                ...v,
+                leadership_role:
+                  e.target.value === "leader" || e.target.value === "deputy_leader"
+                    ? e.target.value
+                    : null,
+              })
+            }
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">— None —</option>
+            <option value="leader">Leader</option>
+            <option value="deputy_leader">Deputy Leader</option>
+          </select>
+        </Field>
         <Field label="Flags">
           <div className="flex flex-col gap-2 pt-2">
             <label className="flex items-center gap-2 text-sm">
