@@ -13,6 +13,7 @@ import {
   Landmark,
   Scale,
   BookOpen,
+  HelpCircle,
   MessagesSquare,
   type LucideIcon,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export function SiteHeader() {
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps"), icon: Landmark },
     { to: `/${lang}/compare`, label: t("nav.compare"), icon: Scale },
     { to: `/${lang}/resources`, label: t("nav.resources"), icon: BookOpen },
+    { to: `/${lang}/faq`, label: t("nav.faq"), icon: HelpCircle },
     { to: `/${lang}/ask`, label: t("nav.askAi"), icon: MessagesSquare },
   ];
 

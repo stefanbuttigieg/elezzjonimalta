@@ -35,6 +35,7 @@ import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangFaqRouteImport } from './routes/$lang.faq'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
@@ -184,6 +185,11 @@ const LangPrivacyRoute = LangPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => LangRoute,
 } as any)
+const LangFaqRoute = LangFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangDistrictsRoute = LangDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -332,6 +339,7 @@ export interface FileRoutesByTo {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -471,6 +481,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -746,6 +758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangPrivacyRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/faq': {
+      id: '/$lang/faq'
+      path: '/faq'
+      fullPath: '/$lang/faq'
+      preLoaderRoute: typeof LangFaqRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/districts': {
       id: '/$lang/districts'
       path: '/districts'
@@ -885,6 +904,7 @@ interface LangRouteChildren {
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
+  LangFaqRoute: typeof LangFaqRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
   LangResourcesRoute: typeof LangResourcesRoute
@@ -909,6 +929,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
+  LangFaqRoute: LangFaqRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
   LangResourcesRoute: LangResourcesRoute,
