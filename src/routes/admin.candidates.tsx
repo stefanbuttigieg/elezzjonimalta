@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
-import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3, ImagePlus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   Drawer,
@@ -13,6 +13,10 @@ import {
   Textarea,
 } from "./admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
+import {
+  findMissingCandidatePhotos,
+  findPhotoForCandidateById,
+} from "@/server/findCandidatePhoto.functions";
 
 type CandidatesSearch = { edit?: string };
 
@@ -251,12 +255,15 @@ function CandidatesAdmin() {
             Review imported candidates. Only "Published" appear on the public site.
           </p>
         </div>
-        <button
-          onClick={() => setEditing({ ...empty })}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> New candidate
-        </button>
+        <div className="flex items-center gap-2">
+          <BulkFindPhotosButton onDone={() => void load()} />
+          <button
+            onClick={() => setEditing({ ...empty })}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> New candidate
+          </button>
+        </div>
       </header>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -519,9 +526,16 @@ function CandidatesAdmin() {
                     </td>
                   ) : null}
                   <td className="px-4 py-3 text-right">
+                    {!r.photo_url ? (
+                      <FindPhotoRowButton
+                        candidateId={r.id}
+                        fullName={r.full_name}
+                        onSaved={() => void load()}
+                      />
+                    ) : null}
                     <button
                       onClick={() => setEditing(r)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+                      className="ml-2 inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
                     >
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
@@ -930,5 +944,82 @@ function CandidateEditor({
       />
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
+  );
+}
+
+function BulkFindPhotosButton({ onDone }: { onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    if (busy) return;
+    if (!confirm("Search the web for photos for up to 10 candidates without one? This may take a minute.")) return;
+    setBusy(true);
+    try {
+      const res = await findMissingCandidatePhotos({ data: { limit: 10 } });
+      if (!res.ok) {
+        toast.error(res.error || "Failed to fetch photos");
+        return;
+      }
+      const found = res.results.filter((r) => r.ok && r.photo_url).length;
+      const missing = res.results.filter((r) => r.ok && !r.photo_url).length;
+      const failed = res.results.filter((r) => !r.ok).length;
+      toast.success(`Processed ${res.processed} · found ${found} · none ${missing} · failed ${failed}`);
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      onClick={run}
+      disabled={busy}
+      className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
+    >
+      <Sparkles className="h-4 w-4" /> {busy ? "Searching photos…" : "Find missing photos"}
+    </button>
+  );
+}
+
+function FindPhotoRowButton({
+  candidateId,
+  fullName,
+  onSaved,
+}: {
+  candidateId: string;
+  fullName: string;
+  onSaved: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await findPhotoForCandidateById({ data: { candidate_id: candidateId } });
+      if (!res.ok) {
+        toast.error(res.error || "Failed");
+        return;
+      }
+      if (res.found) {
+        toast.success(`Photo found for ${fullName}`);
+        onSaved();
+      } else {
+        toast.info(`No photo found for ${fullName}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      onClick={run}
+      disabled={busy}
+      title="Search the web for a photo"
+      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+    >
+      <ImagePlus className="h-3 w-3" /> {busy ? "Searching…" : "Find photo"}
+    </button>
   );
 }
