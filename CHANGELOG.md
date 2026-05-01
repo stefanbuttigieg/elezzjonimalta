@@ -7,6 +7,19 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-05-01
 
 ### Added
+- **News Monitor → Convert to Action: AI auto-fill.** The Convert dialog in
+  `/admin/news` has a new "Auto-fill with AI" button that re-scrapes the
+  source article and uses Gemini (via the Lovable AI Gateway) to populate the
+  target form — Candidate, Party, or Proposal. Existing parties, districts,
+  and candidates are passed as lookup tables so the AI returns valid UUIDs
+  instead of hallucinating new entities, and the assistant can suggest
+  switching the target type when the article is a better fit elsewhere.
+  Fields the user has already typed are preserved.
+- **News Monitor → Convert to Action: multiple proposals per article.** The
+  "New proposal" target now accepts a batch — admins can add and remove
+  proposal rows in the same dialog, and the auto-fill flow returns a
+  `proposals` array when an article contains multiple distinct pledges.
+  Server-side insert is a single batch write with the shared source URL.
 - **AI Assistant admin (`/admin/assistant`).** New workspace to configure data
   sources (candidates, parties, proposals, voting FAQs, districts, news
   findings), reindex the knowledge base on demand (all enabled or per source),

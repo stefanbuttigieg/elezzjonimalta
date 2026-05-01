@@ -90,6 +90,10 @@ review with confidence scores and source links, and each can be **converted in
 one click** into a new candidate, an update to an existing candidate, a new
 proposal, or a new party — auto-linking the source URL and writing to the
 admin audit log. Staff can also paste any article URL to scan it on demand.
+The Convert dialog supports **AI auto-fill** — re-scraping the article and
+pre-populating the target form (with valid party/district/candidate IDs from
+existing records) — and lets staff create **multiple proposals from a single
+article** in one batch save when the source contains several pledges.
 
 ### Admin: API Request Logging
 The admin section includes an **API logs viewer** that records every call to
