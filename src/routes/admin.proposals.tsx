@@ -489,11 +489,46 @@ function ProposalEditor({
         <Field label="Source URL" full>
           <Input value={v.source_url ?? ""} onChange={(x) => setV({ ...v, source_url: x })} />
         </Field>
+        <Field label="Internal notes" full>
+          <Textarea value={v.notes ?? ""} onChange={(x) => setV({ ...v, notes: x })} />
+        </Field>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         At least one of <span className="font-semibold">linked party</span> or{" "}
         <span className="font-semibold">linked candidate</span> is required.
       </p>
+
+      {!isNew && suggestions.length > 0 ? (
+        <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/30">
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-100">
+            <GitMerge className="h-4 w-4" /> Possible duplicates ({suggestions.length})
+          </h3>
+          <ul className="space-y-2">
+            {suggestions.map(({ proposal, score }) => (
+              <li
+                key={proposal.id}
+                className="flex items-start justify-between gap-3 rounded-md border border-border bg-background p-2 text-sm"
+              >
+                <div className="flex-1">
+                  <div className="font-medium">{proposal.title_en}</div>
+                  <div className="text-xs text-muted-foreground">
+                    similarity {(score * 100).toFixed(0)}% · status {proposal.status}
+                  </div>
+                </div>
+                <button
+                  disabled={merging === proposal.id}
+                  onClick={() => mergeOne(proposal.id)}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <GitMerge className="h-3 w-3" />
+                  {merging === proposal.id ? "Merging…" : "Merge into this"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <CustomFieldsSection
         entityType="proposal"
         values={(v.custom_fields ?? {}) as Record<string, unknown>}
