@@ -835,6 +835,17 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.eligibility.cta": "Iċċekkja l-eliġibbiltà",
     "home.eligibility.note": "Tiġi indirizzat lejn electoral.gov.mt — is-sors uffiċjali.",
 
+    "home.stats.eyebrow": "Bin-numri",
+    "home.stats.title": "X'qed insegwu s'issa",
+    "home.stats.subtitle": "Għadd dirett mid-database — aġġornat hekk kif nippubblikaw data ġdida.",
+    "home.stats.candidates": "Kandidati kkonfermati",
+    "home.stats.parties": "Partiti",
+    "home.stats.proposals": "Proposti ppubblikati",
+    "home.stats.districts": "Distretti elettorali",
+    "home.stats.sittingMps": "MPs attwali segwiti",
+    "home.stats.faqs": "FAQs dwar il-vot",
+    "home.stats.daysToGo": "Jiem għall-elezzjoni",
+
     "myDistrict.eyebrow": "Id-distrett tiegħek",
     "myDistrict.heading": "Distrett {number} — {name}",
     "myDistrict.changeDistrict": "Ibdel id-distrett",
