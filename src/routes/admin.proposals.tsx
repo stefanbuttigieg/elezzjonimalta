@@ -69,6 +69,7 @@ const empty: Proposal = {
   description_en: "",
   description_mt: "",
   category: "",
+  category_ids: [],
   party_id: null,
   candidate_id: null,
   status: "pending_review",
