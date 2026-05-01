@@ -44,8 +44,8 @@ interface ExtractedFaq {
 }
 
 interface BilingualFaq {
-  question_en: string;
-  answer_en: string;
+  question_en: string | null;
+  answer_en: string | null;
   question_mt: string | null;
   answer_mt: string | null;
 }
