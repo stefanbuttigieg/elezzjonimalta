@@ -97,6 +97,36 @@ const empty: Candidate = {
   created_at: "",
 };
 
+type ColumnKey =
+  | "party"
+  | "district"
+  | "status"
+  | "leadership"
+  | "flags"
+  | "email"
+  | "phone"
+  | "profession"
+  | "dob"
+  | "imported_from"
+  | "created_at";
+
+const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "party", label: "Party" },
+  { key: "district", label: "District" },
+  { key: "status", label: "Status" },
+  { key: "leadership", label: "Leadership" },
+  { key: "flags", label: "Flags (MP / News / Commission)" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "profession", label: "Profession" },
+  { key: "dob", label: "Date of birth" },
+  { key: "imported_from", label: "Imported from" },
+  { key: "created_at", label: "Created" },
+];
+
+const DEFAULT_COLUMNS: ColumnKey[] = ["party", "district", "status", "leadership", "flags"];
+const COLUMNS_STORAGE_KEY = "admin:candidates:columns";
+
 function CandidatesAdmin() {
   const [rows, setRows] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<PartyOpt[]>([]);
