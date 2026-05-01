@@ -12,6 +12,7 @@ import {
   StatusSelect,
   Textarea,
 } from "./admin.parties";
+import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 
 type CandidatesSearch = { edit?: string };
 
