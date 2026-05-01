@@ -92,6 +92,9 @@ const empty: Candidate = {
   not_contesting_note_en: "",
   not_contesting_note_mt: "",
   custom_fields: {},
+  profession: "",
+  date_of_birth: null,
+  created_at: "",
 };
 
 function CandidatesAdmin() {
