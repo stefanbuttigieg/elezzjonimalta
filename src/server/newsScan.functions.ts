@@ -496,8 +496,25 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
         ...lookups.districts.map((d) => d.id),
         ...lookups.candidates.map((c) => c.id),
       ]);
-      const cleanedFields: Record<string, string> = {};
+      const cleanedFields: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(parsed.fields)) {
+        if (k === "proposals" && Array.isArray(v)) {
+          // Sanitise each proposal row: drop unknown UUIDs, coerce to strings.
+          const cleanedRows = (v as Array<Record<string, unknown>>).map((row) => {
+            const out: Record<string, string> = {};
+            for (const [rk, rv] of Object.entries(row)) {
+              const sv = typeof rv === "string" ? rv : "";
+              if (rk.endsWith("_id") && sv && !validIds.has(sv)) {
+                out[rk] = "";
+              } else {
+                out[rk] = sv;
+              }
+            }
+            return out;
+          });
+          cleanedFields[k] = cleanedRows;
+          continue;
+        }
         const value = typeof v === "string" ? v : "";
         if (k.endsWith("_id") && value && !validIds.has(value)) {
           cleanedFields[k] = "";
