@@ -402,7 +402,44 @@ function ProposalEditor({
   const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
   const [merging, setMerging] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
   const isNew = !v.id;
+
+  const hasTitleGap =
+    (!!v.title_en?.trim() && !v.title_mt?.trim()) ||
+    (!!v.title_mt?.trim() && !v.title_en?.trim());
+  const hasDescGap =
+    (!!v.description_en?.trim() && !v.description_mt?.trim()) ||
+    (!!v.description_mt?.trim() && !v.description_en?.trim());
+  const canTranslate = hasTitleGap || hasDescGap;
+
+  const translateMissing = async () => {
+    if (!canTranslate || translating) return;
+    setTranslating(true);
+    try {
+      const res = await translateProposalDraft({
+        data: {
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      setV({
+        ...v,
+        title_en: res.result.title_en ?? v.title_en,
+        title_mt: res.result.title_mt ?? v.title_mt,
+        description_en: res.result.description_en ?? v.description_en,
+        description_mt: res.result.description_mt ?? v.description_mt,
+      });
+      toast.success("Translated missing fields — review and save");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Translation failed");
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   const suggestions = useMemo(() => {
     if (isNew || !v.title_en) return [];
