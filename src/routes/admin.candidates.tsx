@@ -31,6 +31,10 @@ interface Candidate {
   website: string | null;
   facebook: string | null;
   twitter: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  email: string | null;
+  phone: string | null;
   parlament_mt_url: string | null;
   status: ReviewStatus;
   source_url: string | null;
