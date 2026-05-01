@@ -190,14 +190,17 @@ function PartiesAdmin() {
 
 function PartyEditor({
   value,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Party;
+  onChange: (next: Party) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Party>(value);
+  const v = value;
+  const setV = (next: Party) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 
