@@ -89,6 +89,51 @@ function ProposalsAdmin() {
   const [manifestoOpen, setManifestoOpen] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
+  const [bulkTranslating, setBulkTranslating] = useState(false);
+
+  const missingTranslationCount = useMemo(
+    () =>
+      rows.filter((r) => {
+        if (r.merged_into_id) return false;
+        const enHas = !!(r.title_en?.trim() || r.description_en?.trim());
+        const mtHas = !!(r.title_mt?.trim() || r.description_mt?.trim());
+        const titleGap =
+          (!!r.title_en?.trim() && !r.title_mt?.trim()) ||
+          (!!r.title_mt?.trim() && !r.title_en?.trim());
+        const descGap =
+          (!!r.description_en?.trim() && !r.description_mt?.trim()) ||
+          (!!r.description_mt?.trim() && !r.description_en?.trim());
+        return (enHas || mtHas) && (titleGap || descGap);
+      }).length,
+    [rows]
+  );
+
+  const runBulkTranslate = async () => {
+    if (bulkTranslating) return;
+    if (
+      !confirm(
+        `Auto-translate up to 25 proposals with missing EN or MT text? (${missingTranslationCount} eligible)`
+      )
+    )
+      return;
+    setBulkTranslating(true);
+    try {
+      const res = await translateMissingProposals({ data: { limit: 25 } });
+      if (!res.ok) throw new Error(res.error);
+      const ok = res.results.filter((r) => r.ok).length;
+      const failed = res.results.filter((r) => !r.ok).length;
+      toast.success(
+        `Translated ${ok} proposal${ok === 1 ? "" : "s"}` +
+          (failed > 0 ? ` (${failed} failed)` : "") +
+          (res.eligible > res.processed ? ` — ${res.eligible - res.processed} more pending` : "")
+      );
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk translation failed");
+    } finally {
+      setBulkTranslating(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
