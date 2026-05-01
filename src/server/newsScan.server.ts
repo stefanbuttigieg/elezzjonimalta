@@ -283,6 +283,20 @@ export async function runNewsScan(opts: ScanOptions): Promise<ScanResult> {
           continue;
         }
 
+        // Skip articles that are clearly too old to be relevant. We still
+        // keep the row so we never re-scrape this URL on a future run.
+        if (!isWithinFreshness(scraped.published)) {
+          await supabaseAdmin
+            .from("news_articles")
+            .update({
+              scan_status: "skipped_old",
+              title: scraped.title ?? null,
+              published_at: scraped.published ?? null,
+            })
+            .eq("id", art.id);
+          continue;
+        }
+
         const finding = await classifyArticle(url, scraped.title, scraped.markdown);
         if (!finding) {
           await supabaseAdmin
