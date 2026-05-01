@@ -42,7 +42,7 @@ function CategoriesAdmin() {
   const [rows, setRows] = useState<Category[]>([]);
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Category | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Category>("admin:editor:categories");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
