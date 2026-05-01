@@ -86,7 +86,7 @@ function CandidatesAdmin() {
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Candidate | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
