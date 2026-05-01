@@ -262,3 +262,53 @@ export async function syncAllFaqSources(triggeredBy: string | null): Promise<Syn
   }
   return results;
 }
+
+// ---------------------------------------------------------------------------
+// On-demand translation: called from the admin UI when staff click
+// "Translate to English" on a Maltese-only FAQ row.
+// ---------------------------------------------------------------------------
+
+const SINGLE_TRANSLATE_PROMPT = `You translate a single Maltese election FAQ entry into clear, neutral English.
+Return ONLY valid JSON with this exact shape:
+{ "question_en": "string", "answer_en": "string" }
+Translate fully and accurately — do not summarise, do not add commentary, preserve the meaning exactly.`;
+
+export async function translateFaqRowToEnglish(faqId: string): Promise<{
+  ok: true;
+  question_en: string;
+  answer_en: string;
+} | { ok: false; error: string }> {
+  const { data: row, error } = await supabaseAdmin
+    .from("voting_faqs")
+    .select("id, question_mt, answer_mt")
+    .eq("id", faqId)
+    .maybeSingle();
+  if (error || !row) return { ok: false, error: error?.message ?? "FAQ not found" };
+  if (!row.question_mt || !row.answer_mt) {
+    return { ok: false, error: "This FAQ has no Maltese content to translate from." };
+  }
+
+  let translated: { question_en?: string; answer_en?: string };
+  try {
+    translated = (await callAi(
+      SINGLE_TRANSLATE_PROMPT,
+      JSON.stringify({ question_mt: row.question_mt, answer_mt: row.answer_mt }),
+    )) as { question_en?: string; answer_en?: string };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
+  const question_en = (translated.question_en ?? "").trim();
+  const answer_en = (translated.answer_en ?? "").trim();
+  if (!question_en || !answer_en) {
+    return { ok: false, error: "Translator returned an empty response." };
+  }
+
+  const { error: upErr } = await supabaseAdmin
+    .from("voting_faqs")
+    .update({ question_en, answer_en })
+    .eq("id", faqId);
+  if (upErr) return { ok: false, error: upErr.message };
+
+  return { ok: true, question_en, answer_en };
+}
