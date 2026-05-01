@@ -148,7 +148,7 @@ function looksLikeArticle(url: string): boolean {
   return /\/[a-z0-9-]{12,}/.test(lowered);
 }
 
-async function scrapeArticle(url: string): Promise<{ markdown: string; title?: string; published?: string } | null> {
+export async function scrapeArticle(url: string): Promise<{ markdown: string; title?: string; published?: string } | null> {
   const apiKey = process.env.FIRECRAWL_API_KEY!;
   const res = await fetch(`${FIRECRAWL_BASE}/scrape`, {
     method: "POST",
