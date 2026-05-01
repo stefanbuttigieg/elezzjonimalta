@@ -7,6 +7,40 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-05-01
 
 ### Added
+- **Proposals: AI-generated bilingual translation.** When a proposal is
+  missing its English or Maltese title/description, admins can trigger a
+  one-click AI translation (via the Lovable AI Gateway) from the proposal
+  editor to fill in the missing language.
+- **Proposals: multiple categories per proposal with AI suggestions.**
+  Each proposal can now be tagged with multiple categories, and the editor
+  surfaces AI-generated category suggestions based on its title and
+  description.
+- **Manifesto Import: PDF preview pane.** The Review step of the
+  Manifesto Import drawer now shows a split layout — the extracted
+  proposals table on the left and a live PDF viewer on the right that
+  jumps to the source page for the selected row, with the AI's verbatim
+  quote displayed above the PDF for side-by-side verification.
+- **Candidate photo finder.** Admins can retrieve missing candidate
+  portraits automatically. A bulk "Find missing photos" action and a
+  per-row "Find photo" button use Firecrawl + Gemini to search trusted
+  sources (parlament.mt, gov.mt, Times of Malta, etc.), verify the URL
+  returns a valid image, and write the result to the candidate record
+  with an audit log entry. Social-media CDN URLs are blocked to avoid
+  expiring links.
+
+### Changed
+- **Voting FAQs: English translation is now on-demand.** The FAQ sync no
+  longer auto-translates Maltese sources to English on import. Maltese-only
+  rows are saved as-is and staff can trigger an AI "Translate" action per
+  row (or from the edit drawer) when needed. The public `/faq` page falls
+  back to the available language when one side is missing.
+
+### Fixed
+- **Disclaimers admin: missing QueryClient.** Resolved a "No QueryClient
+  set" runtime error when opening the disclaimers workspace by ensuring
+  the React Query provider wraps the admin routes.
+
+### Previously added in this release
 - **News Monitor → Convert to Action: AI auto-fill.** The Convert dialog in
   `/admin/news` has a new "Auto-fill with AI" button that re-scrapes the
   source article and uses Gemini (via the Lovable AI Gateway) to populate the
