@@ -257,7 +257,11 @@ function SittingMpsAdmin() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <StatusBadge status={r.status} />
+                        <CandidateStatusBadge
+                          status={r.status}
+                          isIncumbent={true}
+                          electoralConfirmed={r.electoral_confirmed}
+                        />
                         {isRunning ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
                             <CheckCircle2 className="h-3 w-3" /> Running 2026
