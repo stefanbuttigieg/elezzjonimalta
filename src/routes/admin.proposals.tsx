@@ -401,6 +401,7 @@ function ProposalEditor({
         status: v.status,
         source_url: v.source_url || null,
         custom_fields: v.custom_fields ?? {},
+        notes: v.notes || null,
       };
       const { error } = isNew
         ? await supabase.from("proposals").insert(payload as never)
