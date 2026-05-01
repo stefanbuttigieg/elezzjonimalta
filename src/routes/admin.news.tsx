@@ -791,7 +791,15 @@ function NewsMonitor() {
           onSubmit={async (target, payload) => {
             const result = await convertFn({ data: { findingId: convertFor.id, target, payload } });
             if (result.ok) {
-              toast.success(`Created ${result.entity?.type ?? "entity"}`);
+              const count =
+                target === "new_proposal" && Array.isArray((payload as { proposals?: unknown[] }).proposals)
+                  ? (payload as { proposals: unknown[] }).proposals.length
+                  : 1;
+              toast.success(
+                count > 1
+                  ? `Created ${count} proposals`
+                  : `Created ${result.entity?.type ?? "entity"}`
+              );
               setConvertFor(null);
               await load();
             } else {
@@ -810,7 +818,7 @@ interface ConvertDialogProps {
   districts: DistrictOpt[];
   candidates: CandidateOpt[];
   onClose: () => void;
-  onSubmit: (target: ConvertTarget, payload: Record<string, string>) => Promise<void>;
+  onSubmit: (target: ConvertTarget, payload: Record<string, unknown>) => Promise<void>;
 }
 
 function ConvertDialog({ finding, parties, districts, candidates, onClose, onSubmit }: ConvertDialogProps) {
@@ -833,6 +841,37 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     bio_en: finding.summary_en ?? "",
     notes: finding.summary_en ?? "",
   });
+  // Multiple proposals can be created from a single finding (an article often
+  // contains several pledges). The first row mirrors the legacy single-form
+  // fields so existing autofill behaviour keeps working.
+  type ProposalRow = {
+    title_en: string;
+    description_en: string;
+    category: string;
+    party_id: string;
+    candidate_id: string;
+  };
+  const emptyProposal = (): ProposalRow => ({
+    title_en: "",
+    description_en: "",
+    category: "",
+    party_id: "",
+    candidate_id: "",
+  });
+  const [proposals, setProposals] = useState<ProposalRow[]>([
+    {
+      title_en: finding.title ?? "",
+      description_en: finding.summary_en ?? "",
+      category: "",
+      party_id: "",
+      candidate_id: "",
+    },
+  ]);
+  const updateProposal = (i: number, k: keyof ProposalRow, v: string) =>
+    setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const addProposal = () => setProposals((rows) => [...rows, emptyProposal()]);
+  const removeProposal = (i: number) =>
+    setProposals((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
   const autofillFn = useServerFn(autofillFindingForm);
 
@@ -856,6 +895,37 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
         }
         return merged;
       });
+      // If the AI returned a `proposals` array, replace the proposal rows.
+      const aiProposals = (result.fields as { proposals?: unknown }).proposals;
+      if (target === "new_proposal" && Array.isArray(aiProposals) && aiProposals.length > 0) {
+        const rows: ProposalRow[] = (aiProposals as Array<Record<string, unknown>>).map((r) => ({
+          title_en: typeof r.title_en === "string" ? r.title_en : "",
+          description_en: typeof r.description_en === "string" ? r.description_en : "",
+          category: typeof r.category === "string" ? r.category : "",
+          party_id: typeof r.party_id === "string" ? r.party_id : "",
+          candidate_id: typeof r.candidate_id === "string" ? r.candidate_id : "",
+        })).filter((r) => r.title_en.trim().length > 0);
+        if (rows.length > 0) setProposals(rows);
+      } else if (target === "new_proposal") {
+        // Fallback: seed the first row from the merged single-form fields so
+        // the AI's single-proposal answer still shows up in the row UI.
+        setProposals((prev) => {
+          if (prev.length > 1) return prev;
+          const fields = result.fields as Record<string, unknown>;
+          const titleStr = typeof fields.title_en === "string" ? fields.title_en : "";
+          const descStr = typeof fields.description_en === "string" ? fields.description_en : "";
+          const catStr = typeof fields.category === "string" ? fields.category : "";
+          const partyStr = typeof fields.party_id === "string" ? fields.party_id : "";
+          const candStr = typeof fields.candidate_id === "string" ? fields.candidate_id : "";
+          return [{
+            title_en: titleStr || prev[0]?.title_en || "",
+            description_en: descStr || prev[0]?.description_en || "",
+            category: catStr || prev[0]?.category || "",
+            party_id: partyStr || prev[0]?.party_id || "",
+            candidate_id: candStr || prev[0]?.candidate_id || "",
+          }];
+        });
+      }
       const switched =
         result.suggestedTarget && result.suggestedTarget !== target
           ? ` AI suggests "${result.suggestedTarget.replace("_", " ")}" instead — switch tabs if that fits better.`
@@ -873,7 +943,24 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     e.preventDefault();
     setSubmitting(true);
     try {
-      await onSubmit(target, form);
+      if (target === "new_proposal") {
+        const cleaned = proposals
+          .map((r) => ({
+            title_en: r.title_en.trim(),
+            description_en: r.description_en.trim(),
+            category: r.category.trim(),
+            party_id: r.party_id,
+            candidate_id: r.candidate_id,
+          }))
+          .filter((r) => r.title_en.length > 0);
+        if (cleaned.length === 0) {
+          toast.error("Add at least one proposal title");
+          return;
+        }
+        await onSubmit(target, { proposals: cleaned });
+      } else {
+        await onSubmit(target, form);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -962,15 +1049,42 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
           ) : null}
 
           {target === "new_proposal" ? (
-            <>
-              <Field label="Title *" value={form.title_en ?? ""} onChange={(v) => set("title_en", v)} />
-              <TextArea label="Description (EN)" value={form.description_en ?? ""} onChange={(v) => set("description_en", v)} />
-              <Field label="Category" value={form.category ?? ""} onChange={(v) => set("category", v)} placeholder="e.g. Health, Transport" />
-              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
-                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
-              <SelectField label="Candidate" value={form.candidate_id ?? ""} onChange={(v) => set("candidate_id", v)}
-                options={[{ value: "", label: "— none —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
-            </>
+            <div className="space-y-4">
+              {proposals.map((row, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Proposal {i + 1}
+                    </span>
+                    {proposals.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeProposal(i)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent"
+                      >
+                        <X className="h-3 w-3" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <Field label="Title *" value={row.title_en} onChange={(v) => updateProposal(i, "title_en", v)} />
+                    <TextArea label="Description (EN)" value={row.description_en} onChange={(v) => updateProposal(i, "description_en", v)} />
+                    <Field label="Category" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="e.g. Health, Transport" />
+                    <SelectField label="Party" value={row.party_id} onChange={(v) => updateProposal(i, "party_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+                    <SelectField label="Candidate" value={row.candidate_id} onChange={(v) => updateProposal(i, "candidate_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addProposal}
+                className="w-full rounded-md border border-dashed border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+              >
+                + Add another proposal
+              </button>
+            </div>
           ) : null}
 
           {target === "new_party" ? (
