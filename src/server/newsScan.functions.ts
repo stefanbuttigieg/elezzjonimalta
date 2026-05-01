@@ -2,9 +2,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runNewsScan, scanSingleUrl } from "./newsScan.server";
+import { runNewsScan, scanSingleUrl, scrapeArticle } from "./newsScan.server";
 import { writeAudit } from "./auditLog.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 async function assertStaff(supabase: { rpc: (fn: string) => Promise<{ data: unknown; error: unknown }> }) {
   const { data, error } = await supabase.rpc("get_my_roles");
