@@ -277,16 +277,19 @@ function CandidateEditor({
   value,
   parties,
   districts,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Candidate;
   parties: PartyOpt[];
   districts: DistrictOpt[];
+  onChange: (next: Candidate) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Candidate>(value);
+  const v = value;
+  const setV = (next: Candidate) => onChange(next);
   const [saving, setSaving] = useState(false);
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
