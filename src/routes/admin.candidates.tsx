@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
-import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3, ImagePlus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   Drawer,
@@ -13,6 +13,10 @@ import {
   Textarea,
 } from "./admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
+import {
+  findMissingCandidatePhotos,
+  findPhotoForCandidateById,
+} from "@/server/findCandidatePhoto.functions";
 
 type CandidatesSearch = { edit?: string };
 
