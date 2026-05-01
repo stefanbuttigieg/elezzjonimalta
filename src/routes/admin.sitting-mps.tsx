@@ -149,6 +149,7 @@ function SittingMpsAdmin() {
         </div>
         <Link
           to="/admin/candidates"
+          search={{}}
           className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent"
         >
           <Users className="h-3.5 w-3.5" /> All candidates
