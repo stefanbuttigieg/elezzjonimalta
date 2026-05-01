@@ -156,7 +156,7 @@ function ProposalsAdmin() {
         </button>
       </header>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -166,6 +166,20 @@ function ProposalsAdmin() {
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={showMerged}
+            onChange={(e) => setShowMerged(e.target.checked)}
+          />
+          Show merged ({mergedCount})
+        </label>
+        <Link
+          to="/admin/duplicates"
+          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+        >
+          <Layers className="h-4 w-4" /> Find duplicates
+        </Link>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
