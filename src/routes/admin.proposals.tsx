@@ -138,21 +138,45 @@ function ProposalsAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes, categoriesRes] = await Promise.all([
-      supabase
-        .from("proposals")
-        .select(
-          "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
-        )
-        .order("created_at", { ascending: false }),
-      supabase.from("parties").select("id, name_en, short_name").order("name_en"),
-      supabase.from("candidates").select("id, full_name").order("full_name"),
-      supabase.from("proposal_categories").select("id, name_en").order("sort_order").order("name_en"),
-    ]);
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
+      await Promise.all([
+        supabase
+          .from("proposals")
+          .select(
+            "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
+          )
+          .order("created_at", { ascending: false }),
+        supabase.from("parties").select("id, name_en, short_name").order("name_en"),
+        supabase.from("candidates").select("id, full_name").order("full_name"),
+        supabase
+          .from("proposal_categories")
+          .select("id, name_en")
+          .order("sort_order")
+          .order("name_en"),
+        supabase
+          .from("proposal_category_assignments")
+          .select("proposal_id, category_id"),
+      ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
     if (candidatesRes.error) toast.error(candidatesRes.error.message);
-    setRows((proposalsRes.data ?? []) as Proposal[]);
+    if (assignmentsRes.error) toast.error(assignmentsRes.error.message);
+    const assignmentsByProposal = new Map<string, string[]>();
+    for (const a of (assignmentsRes.data ?? []) as Array<{
+      proposal_id: string;
+      category_id: string;
+    }>) {
+      const list = assignmentsByProposal.get(a.proposal_id) ?? [];
+      list.push(a.category_id);
+      assignmentsByProposal.set(a.proposal_id, list);
+    }
+    const enrichedRows = ((proposalsRes.data ?? []) as Array<Record<string, unknown>>).map(
+      (r) => ({
+        ...(r as unknown as Proposal),
+        category_ids: assignmentsByProposal.get((r as { id: string }).id) ?? [],
+      })
+    );
+    setRows(enrichedRows);
     setParties((partiesRes.data ?? []) as PartyLite[]);
     setCandidates((candidatesRes.data ?? []) as CandidateLite[]);
     setCategories((categoriesRes.data ?? []) as CategoryLite[]);
