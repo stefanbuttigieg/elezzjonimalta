@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge, slugify, deleteRow, type ReviewStatus } from "@/lib/admin";
+import { StatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,7 +42,7 @@ const empty: Party = {
 function PartiesAdmin() {
   const [rows, setRows] = useState<Party[]>([]);
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Party | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Party>("admin:editor:parties");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -176,9 +176,10 @@ function PartiesAdmin() {
       {editing ? (
         <PartyEditor
           value={editing}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
@@ -189,14 +190,17 @@ function PartiesAdmin() {
 
 function PartyEditor({
   value,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Party;
+  onChange: (next: Party) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Party>(value);
+  const v = value;
+  const setV = (next: Party) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 

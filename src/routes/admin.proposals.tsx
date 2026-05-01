@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge, deleteRow, type ReviewStatus } from "@/lib/admin";
+import { StatusBadge, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
 import {
   Drawer,
   DrawerActions,
@@ -65,7 +65,7 @@ function ProposalsAdmin() {
   const [candidates, setCandidates] = useState<CandidateLite[]>([]);
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Proposal | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -220,9 +220,10 @@ function ProposalsAdmin() {
           parties={parties}
           candidates={candidates}
           categories={categories}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
@@ -236,6 +237,7 @@ function ProposalEditor({
   parties,
   candidates,
   categories,
+  onChange,
   onClose,
   onSaved,
 }: {
@@ -243,10 +245,12 @@ function ProposalEditor({
   parties: PartyLite[];
   candidates: CandidateLite[];
   categories: CategoryLite[];
+  onChange: (next: Proposal) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Proposal>(value);
+  const v = value;
+  const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 

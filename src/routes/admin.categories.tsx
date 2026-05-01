@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerActions, Field, Input } from "@/routes/admin.parties";
+import { usePersistentEditor } from "@/lib/admin";
 import { Plus, Pencil, Trash2, Search, Tag } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +42,7 @@ function CategoriesAdmin() {
   const [rows, setRows] = useState<Category[]>([]);
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Category | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Category>("admin:editor:categories");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -194,9 +195,10 @@ function CategoriesAdmin() {
       {editing ? (
         <CategoryEditor
           value={editing}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
@@ -207,14 +209,17 @@ function CategoriesAdmin() {
 
 function CategoryEditor({
   value,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Category;
+  onChange: (next: Category) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Category>(value);
+  const v = value;
+  const setV = (next: Category) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CandidateStatusBadge, slugify, deleteRow, type ReviewStatus } from "@/lib/admin";
+import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
 import { Plus, Pencil, Trash2, Search, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -86,7 +86,7 @@ function CandidatesAdmin() {
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Candidate | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -261,9 +261,10 @@ function CandidatesAdmin() {
           value={editing}
           parties={parties}
           districts={districts}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
@@ -276,16 +277,19 @@ function CandidateEditor({
   value,
   parties,
   districts,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Candidate;
   parties: PartyOpt[];
   districts: DistrictOpt[];
+  onChange: (next: Candidate) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Candidate>(value);
+  const v = value;
+  const setV = (next: Candidate) => onChange(next);
   const [saving, setSaving] = useState(false);
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);

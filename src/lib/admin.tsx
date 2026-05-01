@@ -1,6 +1,54 @@
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ReviewStatus = "draft" | "pending_review" | "published" | "archived";
+
+/**
+ * Persist an admin editor's open record (and in-progress edits) to
+ * sessionStorage so the drawer survives navigating away to look up info
+ * from another page, and full page refreshes within the same tab.
+ *
+ * Storage is per-tab (sessionStorage) and scoped by `storageKey` so
+ * different editors don't collide. Call `clearEditing()` after a
+ * successful save or explicit close to remove the persisted draft.
+ */
+export function usePersistentEditor<T>(
+  storageKey: string
+): [T | null, (next: T | null) => void, () => void] {
+  const [editing, setEditingState] = useState<T | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.sessionStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as T) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Avoid writing back what we just read on the very first render.
+  const hydrated = useRef(false);
+  useEffect(() => {
+    hydrated.current = true;
+  }, []);
+
+  const setEditing = (next: T | null) => {
+    setEditingState(next);
+    if (typeof window === "undefined") return;
+    try {
+      if (next === null) {
+        window.sessionStorage.removeItem(storageKey);
+      } else {
+        window.sessionStorage.setItem(storageKey, JSON.stringify(next));
+      }
+    } catch {
+      // ignore quota / privacy-mode errors
+    }
+  };
+
+  const clearEditing = () => setEditing(null);
+
+  return [editing, setEditing, clearEditing];
+}
 
 export const STATUS_LABEL: Record<ReviewStatus, string> = {
   draft: "Draft",
