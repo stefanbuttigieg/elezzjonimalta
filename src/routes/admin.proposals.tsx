@@ -13,11 +13,15 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
 import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
-import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages } from "lucide-react";
 import { ManifestoImportDrawer } from "@/components/admin/ManifestoImportDrawer";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
 import { mergeProposals } from "@/lib/proposal-merge";
+import {
+  translateProposalDraft,
+  translateMissingProposals,
+} from "@/server/translateProposal.functions";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
