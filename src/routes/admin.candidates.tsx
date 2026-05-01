@@ -15,6 +15,9 @@ import {
 
 export const Route = createFileRoute("/admin/candidates")({
   component: CandidatesAdmin,
+  validateSearch: (search: Record<string, unknown>) => ({
+    edit: typeof search.edit === "string" ? search.edit : undefined,
+  }),
 });
 
 interface Candidate {
