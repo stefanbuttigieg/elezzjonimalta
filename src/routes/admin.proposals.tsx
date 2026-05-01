@@ -714,22 +714,101 @@ function ProposalEditor({
             onChange={(x) => setV({ ...v, description_mt: x })}
           />
         </Field>
-        <Field label="Category">
-          <select
-            value={v.category ?? ""}
-            onChange={(e) => setV({ ...v, category: e.target.value || null })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">— None —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.name_en}>
-                {c.name_en}
-              </option>
-            ))}
-            {v.category && !categories.some((c) => c.name_en === v.category) ? (
-              <option value={v.category}>{v.category} (legacy)</option>
+        <Field label="Categories" full>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Pick one or more. The first selected becomes the primary label.
+              </p>
+              <button
+                type="button"
+                onClick={suggestCategories}
+                disabled={suggesting}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {suggesting ? "Suggesting…" : "AI suggest"}
+              </button>
+            </div>
+
+            {categorySuggestions.length > 0 ? (
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+                <p className="mb-2 text-xs font-semibold text-foreground">
+                  Suggestions
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {categorySuggestions.map((s) => {
+                    const selected = v.category_ids.includes(s.id);
+                    return (
+                      <button
+                        type="button"
+                        key={s.id}
+                        onClick={() => toggleCategory(s.id)}
+                        title={s.reason || undefined}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background hover:bg-accent"
+                        }`}
+                      >
+                        <span>{s.name_en}</span>
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-[10px] uppercase ${
+                            selected
+                              ? "bg-primary-foreground/20"
+                              : s.confidence === "high"
+                                ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                                : s.confidence === "medium"
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                  : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {s.confidence}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             ) : null}
-          </select>
+
+            <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">
+              {categories.length === 0 ? (
+                <p className="px-1 py-1 text-xs text-muted-foreground">
+                  No categories defined yet — add some in the Categories admin page.
+                </p>
+              ) : (
+                categories.map((c) => {
+                  const selected = v.category_ids.includes(c.id);
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => toggleCategory(c.id)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                        selected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:bg-accent"
+                      }`}
+                    >
+                      {selected ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Plus className="h-3 w-3" />
+                      )}
+                      {c.name_en}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {v.category && !categories.some((c) => c.id === v.category_ids[0]) && v.category_ids.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Legacy category text: <span className="font-medium">{v.category}</span>
+              </p>
+            ) : null}
+          </div>
         </Field>
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
