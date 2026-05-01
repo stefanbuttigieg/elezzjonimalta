@@ -195,9 +195,10 @@ function CategoriesAdmin() {
       {editing ? (
         <CategoryEditor
           value={editing}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
