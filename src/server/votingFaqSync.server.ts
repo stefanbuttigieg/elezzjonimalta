@@ -179,20 +179,21 @@ export async function syncFaqSource(
         answer_mt: null,
       }));
     } else {
-      // MT source — translate to EN, also keep MT
-      const translated = await translateMtToEn(rawFaqs);
-      bilingual = rawFaqs.map((f, i) => ({
-        question_en: translated[i]?.question_en ?? f.question,
-        answer_en: translated[i]?.answer_en ?? f.answer,
+      // MT source — store MT only, leave EN null. Staff translate on demand.
+      bilingual = rawFaqs.map((f) => ({
+        question_en: null,
+        answer_en: null,
         question_mt: f.question,
         answer_mt: f.answer,
       }));
     }
 
-    // Upsert each row using (source_key, external_hash) as unique key
+    // Upsert each row using (source_key, external_hash) as unique key.
+    // Hash is keyed off whichever language is available so re-syncs match prior rows.
     for (let i = 0; i < bilingual.length; i++) {
       const row = bilingual[i];
-      const hash = hashItem(row.question_en);
+      const hashSource = row.question_en ?? row.question_mt ?? "";
+      const hash = hashItem(hashSource);
 
       const { data: existing } = await supabaseAdmin
         .from("voting_faqs")
