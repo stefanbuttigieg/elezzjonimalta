@@ -115,17 +115,20 @@ function FaqPage() {
 
   // JSON-LD FAQ schema for SEO
   const jsonLd =
-    rows.length > 0
+    displayableRows.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: rows.slice(0, 50).map((r) => {
-            const { question, answer } = get(r);
-            return {
-              "@type": "Question",
-              name: question,
-              acceptedAnswer: { "@type": "Answer", text: answer },
-            };
+          mainEntity: displayableRows.slice(0, 50).flatMap((r) => {
+            const got = get(r);
+            if (!got) return [];
+            return [
+              {
+                "@type": "Question",
+                name: got.question,
+                acceptedAnswer: { "@type": "Answer", text: got.answer },
+              },
+            ];
           }),
         }
       : null;
