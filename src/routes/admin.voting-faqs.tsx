@@ -372,7 +372,6 @@ function VotingFaqsAdmin() {
 
       {editing ? (
         <Drawer
-          open
           onClose={() => setEditing(null)}
           title={editing.id ? "Edit FAQ" : "New FAQ"}
         >
@@ -412,59 +411,48 @@ function VotingFaqsAdmin() {
             <Field label="Source URL">
               <Input
                 value={editing.source_url}
-                onChange={(e) => setEditing({ ...editing, source_url: e.target.value })}
+                onChange={(v) => setEditing({ ...editing, source_url: v })}
               />
             </Field>
             <Field label="Question (English)">
               <Input
                 value={editing.question_en}
-                onChange={(e) => setEditing({ ...editing, question_en: e.target.value })}
+                onChange={(v) => setEditing({ ...editing, question_en: v })}
               />
             </Field>
             <Field label="Answer (English)">
               <Textarea
-                rows={4}
                 value={editing.answer_en}
-                onChange={(e) => setEditing({ ...editing, answer_en: e.target.value })}
+                onChange={(v) => setEditing({ ...editing, answer_en: v })}
               />
             </Field>
             <Field label="Question (Maltese)">
               <Input
                 value={editing.question_mt ?? ""}
-                onChange={(e) => setEditing({ ...editing, question_mt: e.target.value })}
+                onChange={(v) => setEditing({ ...editing, question_mt: v })}
               />
             </Field>
             <Field label="Answer (Maltese)">
               <Textarea
-                rows={4}
                 value={editing.answer_mt ?? ""}
-                onChange={(e) => setEditing({ ...editing, answer_mt: e.target.value })}
+                onChange={(v) => setEditing({ ...editing, answer_mt: v })}
               />
             </Field>
             <Field label="Sort order">
               <Input
                 type="number"
                 value={String(editing.sort_order)}
-                onChange={(e) =>
-                  setEditing({ ...editing, sort_order: Number(e.target.value) || 0 })
+                onChange={(v) =>
+                  setEditing({ ...editing, sort_order: Number(v) || 0 })
                 }
               />
             </Field>
           </div>
-          <DrawerActions>
-            <button
-              onClick={() => setEditing(null)}
-              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => void save()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-            >
-              Save
-            </button>
-          </DrawerActions>
+          <DrawerActions
+            onClose={() => setEditing(null)}
+            onSave={() => void save()}
+            saving={false}
+          />
         </Drawer>
       ) : null}
     </div>
