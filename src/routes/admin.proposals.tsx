@@ -10,6 +10,7 @@ import {
   StatusSelect,
   Textarea,
 } from "@/routes/admin.parties";
+import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { Plus, Pencil, Trash2, Search, FileText } from "lucide-react";
 import { toast } from "sonner";
 
