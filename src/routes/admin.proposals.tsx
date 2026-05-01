@@ -242,9 +242,24 @@ function ProposalsAdmin() {
           />
           Show merged ({mergedCount})
         </label>
+        <button
+          onClick={runBulkTranslate}
+          disabled={bulkTranslating || missingTranslationCount === 0}
+          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          title={
+            missingTranslationCount === 0
+              ? "All proposals have both EN and MT text"
+              : `${missingTranslationCount} proposal(s) missing a translation`
+          }
+        >
+          <Languages className="h-4 w-4" />
+          {bulkTranslating
+            ? "Translating…"
+            : `Auto-translate missing${missingTranslationCount ? ` (${missingTranslationCount})` : ""}`}
+        </button>
         <Link
           to="/admin/duplicates"
-          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
         >
           <Layers className="h-4 w-4" /> Find duplicates
         </Link>
