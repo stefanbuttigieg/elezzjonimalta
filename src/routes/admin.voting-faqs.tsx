@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerActions, Field, Input, Textarea } from "@/routes/admin.parties";
-import { Plus, Pencil, Trash2, Search, RefreshCw, ExternalLink, HelpCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, RefreshCw, ExternalLink, HelpCircle, Languages } from "lucide-react";
 import { toast } from "sonner";
-import { triggerFaqSync } from "@/server/votingFaqSync.functions";
+import { triggerFaqSync, translateFaqToEnglish } from "@/server/votingFaqSync.functions";
 
 export const Route = createFileRoute("/admin/voting-faqs")({
   component: VotingFaqsAdmin,
