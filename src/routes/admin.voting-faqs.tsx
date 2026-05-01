@@ -143,18 +143,22 @@ function VotingFaqsAdmin() {
 
   const save = async () => {
     if (!editing) return;
-    if (!editing.question_en.trim() || !editing.answer_en.trim()) {
-      toast.error("English question and answer are required.");
+    const qEn = (editing.question_en ?? "").trim();
+    const aEn = (editing.answer_en ?? "").trim();
+    const qMt = (editing.question_mt ?? "").trim();
+    const aMt = (editing.answer_mt ?? "").trim();
+    if ((!qEn || !aEn) && (!qMt || !aMt)) {
+      toast.error("Provide a question and answer in at least one language.");
       return;
     }
     const payload = {
       source_key: editing.source_key,
       source_label: editing.source_label,
       source_url: editing.source_url,
-      question_en: editing.question_en,
-      answer_en: editing.answer_en,
-      question_mt: editing.question_mt || null,
-      answer_mt: editing.answer_mt || null,
+      question_en: qEn || null,
+      answer_en: aEn || null,
+      question_mt: qMt || null,
+      answer_mt: aMt || null,
       sort_order: editing.sort_order,
       status: editing.status,
     };
