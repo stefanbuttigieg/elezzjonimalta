@@ -36,7 +36,37 @@ import {
 
 const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
 
+type LandingStats = {
+  candidates: number;
+  parties: number;
+  proposals: number;
+  districts: number;
+  sittingMps: number;
+  faqs: number;
+};
+
+async function loadLandingStats(): Promise<LandingStats> {
+  const head = { count: "exact" as const, head: true };
+  const [candidates, parties, proposals, districts, sittingMps, faqs] = await Promise.all([
+    supabase.from("candidates").select("id", head).eq("status", "published").eq("electoral_confirmed", true),
+    supabase.from("parties").select("id", head).eq("status", "published"),
+    supabase.from("proposals").select("id", head).eq("status", "published").is("merged_into_id", null),
+    supabase.from("districts").select("id", head).eq("status", "published"),
+    supabase.from("candidates").select("id", head).eq("is_incumbent", true),
+    supabase.from("voting_faqs").select("id", head).eq("status", "published"),
+  ]);
+  return {
+    candidates: candidates.count ?? 0,
+    parties: parties.count ?? 0,
+    proposals: proposals.count ?? 0,
+    districts: districts.count ?? 0,
+    sittingMps: sittingMps.count ?? 0,
+    faqs: faqs.count ?? 0,
+  };
+}
+
 export const Route = createFileRoute("/$lang/")({
+  loader: () => loadLandingStats().catch(() => null),
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title =
