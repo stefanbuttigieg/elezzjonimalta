@@ -37,7 +37,26 @@ interface Source {
   name: string;
   enabled: boolean;
   last_scanned_at: string | null;
+  base_url: string;
+  sitemap_url: string | null;
 }
+
+type SourceDraft = {
+  id?: string;
+  slug: string;
+  name: string;
+  base_url: string;
+  sitemap_url: string;
+  enabled: boolean;
+};
+
+const EMPTY_SOURCE: SourceDraft = {
+  slug: "",
+  name: "",
+  base_url: "",
+  sitemap_url: "",
+  enabled: true,
+};
 
 interface PartyOpt { id: string; name_en: string; short_name: string | null }
 interface DistrictOpt { id: string; number: number; name_en: string }
@@ -102,6 +121,8 @@ function NewsMonitor() {
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [candidates, setCandidates] = useState<CandidateOpt[]>([]);
   const [convertFor, setConvertFor] = useState<Finding | null>(null);
+  const [sourceDraft, setSourceDraft] = useState<SourceDraft | null>(null);
+  const [showSourceManager, setShowSourceManager] = useState(false);
 
   const triggerFn = useServerFn(triggerNewsScan);
   const updateFn = useServerFn(updateFindingStatus);
@@ -186,6 +207,58 @@ function NewsMonitor() {
     }
   };
 
+  const saveSource = async () => {
+    if (!sourceDraft) return;
+    const slug = sourceDraft.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)+/g, "");
+    if (!slug || !sourceDraft.name.trim() || !sourceDraft.base_url.trim()) {
+      toast.error("Slug, name, and base URL are required");
+      return;
+    }
+    try {
+      new URL(sourceDraft.base_url);
+      if (sourceDraft.sitemap_url.trim()) new URL(sourceDraft.sitemap_url);
+    } catch {
+      toast.error("Invalid URL");
+      return;
+    }
+    const payload = {
+      slug,
+      name: sourceDraft.name.trim(),
+      base_url: sourceDraft.base_url.trim(),
+      sitemap_url: sourceDraft.sitemap_url.trim() || null,
+      enabled: sourceDraft.enabled,
+    };
+    const res = sourceDraft.id
+      ? await supabase.from("news_sources").update(payload).eq("id", sourceDraft.id)
+      : await supabase.from("news_sources").insert(payload);
+    if (res.error) {
+      toast.error(res.error.message);
+      return;
+    }
+    toast.success(sourceDraft.id ? "Source updated" : "Source added");
+    setSourceDraft(null);
+    await load();
+  };
+
+  const toggleSourceEnabled = async (s: Source) => {
+    const { error } = await supabase
+      .from("news_sources")
+      .update({ enabled: !s.enabled })
+      .eq("id", s.id);
+    if (error) toast.error(error.message);
+    else await load();
+  };
+
+  const deleteSource = async (s: Source) => {
+    if (!confirm(`Delete source "${s.name}"? Articles and findings already collected from it will remain but become orphaned.`)) return;
+    const { error } = await supabase.from("news_sources").delete().eq("id", s.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Source deleted");
+      await load();
+    }
+  };
+
   const lastRun = runs[0];
 
   return (
@@ -266,7 +339,23 @@ function NewsMonitor() {
 
 
       <section className="mt-6 rounded-xl border border-border bg-surface p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sources</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sources</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowSourceManager((v) => !v)}
+              className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent"
+            >
+              {showSourceManager ? "Hide manager" : "Manage sources"}
+            </button>
+            <button
+              onClick={() => { setShowSourceManager(true); setSourceDraft({ ...EMPTY_SOURCE }); }}
+              className="rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              + Add source
+            </button>
+          </div>
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {sources.map((s) => {
             const checked = selectedSources.has(s.id);
@@ -292,6 +381,7 @@ function NewsMonitor() {
                   }}
                 />
                 {s.name}
+                {!s.enabled ? <span className="text-[10px] text-amber-700">· disabled</span> : null}
                 {s.last_scanned_at ? (
                   <span className="text-[10px] text-muted-foreground">
                     · {formatDistanceToNow(new Date(s.last_scanned_at))} ago
@@ -304,7 +394,147 @@ function NewsMonitor() {
         <p className="mt-2 text-[11px] text-muted-foreground">
           Leave all unchecked to scan every enabled source.
         </p>
+
+        {showSourceManager ? (
+          <div className="mt-4 rounded-lg border border-border bg-background p-3">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="py-1.5 pr-2">Name</th>
+                  <th className="py-1.5 pr-2">Slug</th>
+                  <th className="py-1.5 pr-2">Base URL</th>
+                  <th className="py-1.5 pr-2">Enabled</th>
+                  <th className="py-1.5 pr-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sources.length === 0 ? (
+                  <tr><td colSpan={5} className="py-3 text-center text-muted-foreground">No sources configured.</td></tr>
+                ) : sources.map((s) => (
+                  <tr key={s.id} className="border-t border-border">
+                    <td className="py-1.5 pr-2 font-medium">{s.name}</td>
+                    <td className="py-1.5 pr-2 text-muted-foreground"><code>{s.slug}</code></td>
+                    <td className="py-1.5 pr-2 text-muted-foreground">
+                      <a href={s.base_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        {s.base_url}
+                      </a>
+                    </td>
+                    <td className="py-1.5 pr-2">
+                      <button
+                        onClick={() => toggleSourceEnabled(s)}
+                        className={
+                          "rounded-full px-2 py-0.5 text-[11px] font-semibold " +
+                          (s.enabled
+                            ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100"
+                            : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300")
+                        }
+                      >
+                        {s.enabled ? "Enabled" : "Disabled"}
+                      </button>
+                    </td>
+                    <td className="py-1.5 pr-2 text-right">
+                      <button
+                        onClick={() => setSourceDraft({
+                          id: s.id,
+                          slug: s.slug,
+                          name: s.name,
+                          base_url: s.base_url,
+                          sitemap_url: s.sitemap_url ?? "",
+                          enabled: s.enabled,
+                        })}
+                        className="mr-2 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteSource(s)}
+                        className="rounded-md border border-destructive/30 px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
       </section>
+
+      {sourceDraft ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setSourceDraft(null)}>
+          <div className="w-full max-w-lg rounded-xl border border-border bg-surface p-5 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-lg font-semibold">{sourceDraft.id ? "Edit source" : "Add source"}</h2>
+              <button onClick={() => setSourceDraft(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4 space-y-3 text-sm">
+              <label className="block">
+                <span className="text-xs font-medium text-muted-foreground">Name</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5"
+                  value={sourceDraft.name}
+                  onChange={(e) => setSourceDraft({ ...sourceDraft, name: e.target.value })}
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-muted-foreground">Slug (lowercase, hyphens)</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 font-mono"
+                  value={sourceDraft.slug}
+                  onChange={(e) => setSourceDraft({ ...sourceDraft, slug: e.target.value })}
+                  placeholder="times-of-malta"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-muted-foreground">Base URL</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5"
+                  value={sourceDraft.base_url}
+                  onChange={(e) => setSourceDraft({ ...sourceDraft, base_url: e.target.value })}
+                  placeholder="https://timesofmalta.com"
+                />
+                <span className="mt-1 block text-[11px] text-muted-foreground">
+                  Used to scope Firecrawl Search with <code>site:domain</code>.
+                </span>
+              </label>
+              <label className="block">
+                <span className="text-xs font-medium text-muted-foreground">Sitemap URL (optional)</span>
+                <input
+                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5"
+                  value={sourceDraft.sitemap_url}
+                  onChange={(e) => setSourceDraft({ ...sourceDraft, sitemap_url: e.target.value })}
+                  placeholder="https://timesofmalta.com/sitemap.xml"
+                />
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={sourceDraft.enabled}
+                  onChange={(e) => setSourceDraft({ ...sourceDraft, enabled: e.target.checked })}
+                />
+                <span className="text-sm">Enabled (included in scheduled scans)</span>
+              </label>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setSourceDraft(null)}
+                className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveSource}
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                {sourceDraft.id ? "Save changes" : "Add source"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <nav className="mt-6 flex flex-wrap gap-1 border-b border-border">
         {(["pending", "reviewed", "dismissed", "all"] as const).map((t) => (
