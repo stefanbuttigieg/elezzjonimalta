@@ -93,6 +93,10 @@ function CandidatesAdmin() {
   const [parties, setParties] = useState<PartyOpt[]>([]);
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
+  const [partyFilter, setPartyFilter] = useState<string>("all"); // "all" | "none" | partyId
+  const [districtFilter, setDistrictFilter] = useState<string>("all"); // "all" | "none" | districtId
+  const [leadershipFilter, setLeadershipFilter] = useState<"all" | "leader" | "deputy_leader" | "any" | "none">("all");
+  const [flagFilter, setFlagFilter] = useState<"all" | "mp" | "news" | "commission" | "unconfirmed" | "not_contesting">("all");
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
