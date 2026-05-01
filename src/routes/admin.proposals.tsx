@@ -291,6 +291,7 @@ function ProposalEditor({
   parties,
   candidates,
   categories,
+  dupePool,
   onChange,
   onClose,
   onSaved,
@@ -299,6 +300,17 @@ function ProposalEditor({
   parties: PartyLite[];
   candidates: CandidateLite[];
   categories: CategoryLite[];
+  dupePool: Array<{
+    id: string;
+    title_en: string;
+    title_mt: string | null;
+    description_en: string | null;
+    description_mt: string | null;
+    party_id: string | null;
+    candidate_id: string | null;
+    status: string;
+    merged_into_id: string | null;
+  }>;
   onChange: (next: Proposal) => void;
   onClose: () => void;
   onSaved: () => void;
@@ -306,7 +318,70 @@ function ProposalEditor({
   const v = value;
   const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
+  const [merging, setMerging] = useState<string | null>(null);
   const isNew = !v.id;
+
+  const suggestions = useMemo(() => {
+    if (isNew || !v.title_en) return [];
+    return findDuplicates(
+      {
+        id: v.id,
+        title_en: v.title_en,
+        title_mt: v.title_mt,
+        description_en: v.description_en,
+        description_mt: v.description_mt,
+        party_id: v.party_id,
+        candidate_id: v.candidate_id,
+        status: v.status,
+        merged_into_id: v.merged_into_id,
+      },
+      dupePool,
+      0.4
+    );
+  }, [isNew, v, dupePool]);
+
+  const mergeOne = async (dupId: string) => {
+    const dup = dupePool.find((p) => p.id === dupId);
+    if (!dup) return;
+    const note = prompt("Merge note (optional):") ?? "";
+    setMerging(dupId);
+    try {
+      await mergeProposals({
+        primary: {
+          id: v.id,
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+          source_url: v.source_url,
+          notes: v.notes,
+          party_id: v.party_id,
+          candidate_id: v.candidate_id,
+          status: v.status,
+        },
+        duplicates: [
+          {
+            id: dup.id,
+            title_en: dup.title_en,
+            title_mt: dup.title_mt,
+            description_en: dup.description_en,
+            description_mt: dup.description_mt,
+            source_url: null,
+            party_id: dup.party_id,
+            candidate_id: dup.candidate_id,
+            status: dup.status,
+          },
+        ],
+        note,
+      });
+      toast.success("Merged");
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Merge failed");
+    } finally {
+      setMerging(null);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
