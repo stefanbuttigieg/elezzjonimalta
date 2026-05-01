@@ -11,6 +11,8 @@ import {
   Textarea,
 } from "@/routes/admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
+import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
+import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
 import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
@@ -403,10 +405,37 @@ function ProposalEditor({
         custom_fields: v.custom_fields ?? {},
         notes: v.notes || null,
       };
-      const { error } = isNew
-        ? await supabase.from("proposals").insert(payload as never)
-        : await supabase.from("proposals").update(payload as never).eq("id", v.id);
-      if (error) throw error;
+      let savedId = v.id;
+      if (isNew) {
+        const { data, error } = await supabase
+          .from("proposals")
+          .insert(payload as never)
+          .select("id")
+          .single();
+        if (error) throw error;
+        savedId = (data as { id: string }).id;
+      } else {
+        const { error } = await supabase
+          .from("proposals")
+          .update(payload as never)
+          .eq("id", v.id);
+        if (error) throw error;
+      }
+      // Write audit log entry (best-effort, non-blocking)
+      try {
+        const { data: userRes } = await supabase.auth.getUser();
+        await supabase.from("admin_audit_log").insert({
+          entity_type: "proposal",
+          entity_id: savedId,
+          action: isNew ? "create" : "update",
+          actor_id: userRes.user?.id ?? null,
+          actor_email: userRes.user?.email ?? null,
+          before: isNew ? null : (value as unknown as Record<string, unknown>),
+          after: { id: savedId, ...payload } as unknown as Record<string, unknown>,
+        } as never);
+      } catch {
+        // ignore audit failures
+      }
       toast.success(isNew ? "Proposal created" : "Proposal updated");
       onSaved();
     } catch (e) {
@@ -486,7 +515,7 @@ function ProposalEditor({
             ))}
           </select>
         </Field>
-        <Field label="Source URL" full>
+        <Field label="Primary source URL" full>
           <Input value={v.source_url ?? ""} onChange={(x) => setV({ ...v, source_url: x })} />
         </Field>
         <Field label="Internal notes" full>
@@ -534,6 +563,18 @@ function ProposalEditor({
         values={(v.custom_fields ?? {}) as Record<string, unknown>}
         onChange={(next) => setV({ ...v, custom_fields: next })}
       />
+
+      {!isNew ? (
+        <>
+          <ProposalSourcesSection proposalId={v.id} />
+          <ProposalHistorySection proposalId={v.id} />
+        </>
+      ) : (
+        <p className="mt-6 rounded-md border border-dashed border-border bg-muted/20 p-3 text-xs text-muted-foreground">
+          Save the proposal first to manage additional source URLs and view its update history.
+        </p>
+      )}
+
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );
