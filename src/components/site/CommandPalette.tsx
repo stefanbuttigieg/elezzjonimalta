@@ -81,7 +81,9 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
     }
   }, [open]);
 
-  // Debounced search
+  // Debounced search. We intentionally DO NOT clear hits between keystrokes
+  // so a fast typist doesn't see a flash of "No results" while a new query is
+  // in flight — the previous results stay visible until the new ones arrive.
   useEffect(() => {
     if (!open) return;
     const term = q.trim();
@@ -91,17 +93,22 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
       return;
     }
     setLoading(true);
-    const ctrl = new AbortController();
+    let cancelled = false;
     const handle = setTimeout(async () => {
       const like = `%${escapeLike(term)}%`;
       try {
         const [c, p, r, d] = await Promise.all([
+          // Candidates: text match AND (published OR sitting MP).
+          // Using a single `.or()` with an embedded `and(...)` keeps PostgREST's
+          // boolean grouping unambiguous instead of chaining two `.or()` calls.
           supabase
             .from("candidates")
-            .select("id, slug, full_name, party:parties(name_en, name_mt, color)")
-            .or(`full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like}`)
-            .or("status.eq.published,is_incumbent.eq.true")
-            .limit(8),
+            .select("id, slug, full_name, status, is_incumbent, party:parties(name_en, name_mt, color)")
+            .or(
+              `and(status.eq.published,or(full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like})),` +
+                `and(is_incumbent.eq.true,or(full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like}))`,
+            )
+            .limit(10),
           supabase
             .from("parties")
             .select("id, slug, name_en, name_mt, short_name, color")
@@ -109,7 +116,7 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
             .or(
               `name_en.ilike.${like},name_mt.ilike.${like},short_name.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like}`,
             )
-            .limit(6),
+            .limit(8),
           supabase
             .from("proposals")
             .select(
@@ -119,7 +126,7 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
             .or(
               `title_en.ilike.${like},title_mt.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like},category.ilike.${like}`,
             )
-            .limit(8),
+            .limit(20),
           supabase
             .from("districts")
             .select("id, number, name_en, name_mt, localities_en, localities_mt")
@@ -127,10 +134,15 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
             .or(
               `name_en.ilike.${like},name_mt.ilike.${like},localities_en.ilike.${like},localities_mt.ilike.${like}`,
             )
-            .limit(6),
+            .limit(8),
         ]);
 
-        if (ctrl.signal.aborted) return;
+        if (cancelled) return;
+
+        if (c.error) console.error("[search] candidates", c.error);
+        if (p.error) console.error("[search] parties", p.error);
+        if (r.error) console.error("[search] proposals", r.error);
+        if (d.error) console.error("[search] districts", d.error);
 
         const out: Hit[] = [];
         for (const row of c.data ?? []) {
@@ -198,12 +210,14 @@ export function CommandPalette({ lang: rawLang }: { lang: string }) {
 
         setHits(out);
         setActive(0);
+      } catch (err) {
+        if (!cancelled) console.error("[search] failed", err);
       } finally {
-        if (!ctrl.signal.aborted) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }, 180);
     return () => {
-      ctrl.abort();
+      cancelled = true;
       clearTimeout(handle);
     };
   }, [q, open, lang]);
