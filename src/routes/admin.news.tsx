@@ -37,7 +37,26 @@ interface Source {
   name: string;
   enabled: boolean;
   last_scanned_at: string | null;
+  base_url: string;
+  sitemap_url: string | null;
 }
+
+type SourceDraft = {
+  id?: string;
+  slug: string;
+  name: string;
+  base_url: string;
+  sitemap_url: string;
+  enabled: boolean;
+};
+
+const EMPTY_SOURCE: SourceDraft = {
+  slug: "",
+  name: "",
+  base_url: "",
+  sitemap_url: "",
+  enabled: true,
+};
 
 interface PartyOpt { id: string; name_en: string; short_name: string | null }
 interface DistrictOpt { id: string; number: number; name_en: string }
