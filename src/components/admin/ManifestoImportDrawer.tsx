@@ -426,11 +426,15 @@ function ReviewTable({
   onChange,
   pageCount,
   sourceUrl,
+  selectedIdx,
+  onSelect,
 }: {
   rows: RowDecision[];
   onChange: (rows: RowDecision[]) => void;
   pageCount: number | null;
   sourceUrl: string | null;
+  selectedIdx: number | null;
+  onSelect: (idx: number | null) => void;
 }) {
   const update = (idx: number, patch: Partial<RowDecision>) => {
     const next = [...rows];
