@@ -113,9 +113,16 @@ Rules:
 - Skip generic site sections that aren't questions.
 - If no FAQs found, return { "faqs": [] }.`;
 
+async function extractFaqs(markdown: string): Promise<ExtractedFaq[]> {
+  // Truncate to keep token usage reasonable
+  const trimmed = markdown.slice(0, 18000);
+  const result = (await callAi(EXTRACT_PROMPT, trimmed)) as { faqs?: ExtractedFaq[] };
+  return Array.isArray(result.faqs) ? result.faqs.filter((f) => f.question && f.answer) : [];
+}
+
 // NOTE: Auto-translation during sync was removed. Maltese-only sources are stored
 // with `question_en`/`answer_en` left null; staff translate them on demand from the
-// admin UI via the `translateFaqToEnglish` server function.
+// admin UI via the `translateFaqToEnglish` server function below.
 
 function hashItem(question: string): string {
   // Deterministic short hash based on normalized question text
