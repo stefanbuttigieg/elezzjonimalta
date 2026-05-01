@@ -166,18 +166,18 @@ Deno.serve(async (req) => {
     let context = "";
     let retrievalNote = "";
     if (lastUser) {
-      const { context: semCtx, usedSemantic } = await buildSemanticContext(
+      const { context: kwCtx, usedIndex } = await buildKeywordContext(
         supabase,
         lastUser.content,
         settings,
       );
-      if (semCtx.trim()) {
-        context = semCtx;
-        retrievalNote = "semantic";
+      if (kwCtx.trim()) {
+        context = kwCtx;
+        retrievalNote = "fts";
       } else {
         const fallback = await buildFallbackContext(supabase, lastUser.content);
         context = fallback;
-        retrievalNote = usedSemantic ? "semantic-empty→fallback" : "no-embedding→fallback";
+        retrievalNote = usedIndex ? "fts-empty→fallback" : "no-index→fallback";
       }
     }
 
