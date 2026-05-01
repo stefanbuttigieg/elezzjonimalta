@@ -388,6 +388,17 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.eligibility.cta": "Check eligibility",
     "home.eligibility.note": "You'll be redirected to electoral.gov.mt — the official source.",
 
+    "home.stats.eyebrow": "By the numbers",
+    "home.stats.title": "What's tracked so far",
+    "home.stats.subtitle": "Live counts from our database — updated as we publish new data.",
+    "home.stats.candidates": "Confirmed candidates",
+    "home.stats.parties": "Parties",
+    "home.stats.proposals": "Published proposals",
+    "home.stats.districts": "Electoral districts",
+    "home.stats.sittingMps": "Sitting MPs tracked",
+    "home.stats.faqs": "Voting FAQs",
+    "home.stats.daysToGo": "Days to election",
+
     "myDistrict.eyebrow": "Your district",
     "myDistrict.heading": "District {number} — {name}",
     "myDistrict.changeDistrict": "Change district",
