@@ -14,6 +14,8 @@ import {
   Database,
   FileText,
   MapPin,
+  CheckCircle2,
+  ExternalLink,
   X,
 } from "lucide-react";
 import { useT } from "@/i18n/useT";
