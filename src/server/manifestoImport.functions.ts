@@ -193,7 +193,7 @@ export const applyManifestoImport = createServerFn({ method: "POST" })
         action: "apply",
         actorId: userId,
         actorEmail: email,
-        metadata: result,
+        metadata: { ...result } as Record<string, unknown>,
       });
 
       return { ok: true as const, ...result };

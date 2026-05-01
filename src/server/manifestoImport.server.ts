@@ -217,7 +217,6 @@ async function extractPdfPages(bytes: Uint8Array): Promise<PageText[]> {
   const loadingTask = pdfjs.getDocument({
     data: bytes,
     useWorkerFetch: false,
-    isEvalSupported: false,
     useSystemFonts: false,
     disableFontFace: true,
   });
