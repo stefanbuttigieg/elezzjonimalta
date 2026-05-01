@@ -142,11 +142,40 @@ function CandidatesAdmin() {
     () =>
       rows.filter((r) => {
         if (statusFilter !== "all" && r.status !== statusFilter) return false;
+        if (partyFilter === "none" && r.party_id) return false;
+        if (partyFilter !== "all" && partyFilter !== "none" && r.party_id !== partyFilter) return false;
+        if (districtFilter === "none" && r.primary_district_id) return false;
+        if (districtFilter !== "all" && districtFilter !== "none" && r.primary_district_id !== districtFilter) return false;
+        if (leadershipFilter === "leader" && r.leadership_role !== "leader") return false;
+        if (leadershipFilter === "deputy_leader" && r.leadership_role !== "deputy_leader") return false;
+        if (leadershipFilter === "any" && !r.leadership_role) return false;
+        if (leadershipFilter === "none" && r.leadership_role) return false;
+        if (flagFilter === "mp" && !r.is_incumbent) return false;
+        if (flagFilter === "news" && !r.electoral_confirmed) return false;
+        if (flagFilter === "commission" && !r.commission_confirmed) return false;
+        if (flagFilter === "unconfirmed" && (r.electoral_confirmed || r.commission_confirmed)) return false;
+        if (flagFilter === "not_contesting" && !r.not_contesting_2026) return false;
         if (!q) return true;
         return r.full_name.toLowerCase().includes(q.toLowerCase());
       }),
-    [rows, q, statusFilter]
+    [rows, q, statusFilter, partyFilter, districtFilter, leadershipFilter, flagFilter]
   );
+
+  const resetFilters = () => {
+    setStatusFilter("all");
+    setPartyFilter("all");
+    setDistrictFilter("all");
+    setLeadershipFilter("all");
+    setFlagFilter("all");
+    setQ("");
+  };
+  const filtersActive =
+    statusFilter !== "all" ||
+    partyFilter !== "all" ||
+    districtFilter !== "all" ||
+    leadershipFilter !== "all" ||
+    flagFilter !== "all" ||
+    q !== "";
 
   return (
     <div>
