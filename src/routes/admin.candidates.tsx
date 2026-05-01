@@ -214,6 +214,15 @@ function CandidatesAdmin() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
+                      {r.leadership_role === "leader" ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
+                          Leader
+                        </span>
+                      ) : r.leadership_role === "deputy_leader" ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
+                          Deputy Leader
+                        </span>
+                      ) : null}
                       {r.is_incumbent ? (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                           MP
