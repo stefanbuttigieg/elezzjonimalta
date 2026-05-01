@@ -828,6 +828,71 @@ export type Database = {
         }
         Relationships: []
       }
+      manifesto_imports: {
+        Row: {
+          created_at: string
+          error: string | null
+          extracted: Json
+          file_path: string | null
+          finished_at: string | null
+          id: string
+          imported_by: string | null
+          language: string
+          page_count: number | null
+          party_id: string
+          source_kind: string
+          source_url: string | null
+          stage: string | null
+          status: string
+          summary: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          extracted?: Json
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          language?: string
+          page_count?: number | null
+          party_id: string
+          source_kind: string
+          source_url?: string | null
+          stage?: string | null
+          status?: string
+          summary?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          extracted?: Json
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          language?: string
+          page_count?: number | null
+          party_id?: string
+          source_kind?: string
+          source_url?: string | null
+          stage?: string | null
+          status?: string
+          summary?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manifesto_imports_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_articles: {
         Row: {
           created_at: string
@@ -1291,11 +1356,13 @@ export type Database = {
         Row: {
           candidate_id: string | null
           category: string | null
+          confirmed_in_manifesto: boolean
           created_at: string
           custom_fields: Json
           description_en: string | null
           description_mt: string | null
           id: string
+          manifesto_import_id: string | null
           merge_note: string | null
           merged_at: string | null
           merged_into_id: string | null
@@ -1310,11 +1377,13 @@ export type Database = {
         Insert: {
           candidate_id?: string | null
           category?: string | null
+          confirmed_in_manifesto?: boolean
           created_at?: string
           custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
           id?: string
+          manifesto_import_id?: string | null
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null
@@ -1329,11 +1398,13 @@ export type Database = {
         Update: {
           candidate_id?: string | null
           category?: string | null
+          confirmed_in_manifesto?: boolean
           created_at?: string
           custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
           id?: string
+          manifesto_import_id?: string | null
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null
@@ -1351,6 +1422,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_manifesto_import_id_fkey"
+            columns: ["manifesto_import_id"]
+            isOneToOne: false
+            referencedRelation: "manifesto_imports"
             referencedColumns: ["id"]
           },
           {
@@ -1518,6 +1596,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_similar_proposals: {
+        Args: {
+          _limit?: number
+          _party_id: string
+          _threshold?: number
+          _title: string
+        }
+        Returns: {
+          description_en: string
+          id: string
+          score: number
+          status: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt: string
+        }[]
+      }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -1548,6 +1642,8 @@ export type Database = {
           url: string
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
