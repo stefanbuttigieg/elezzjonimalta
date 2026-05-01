@@ -87,6 +87,7 @@ const empty: Candidate = {
   not_contesting_source_url: "",
   not_contesting_note_en: "",
   not_contesting_note_mt: "",
+  custom_fields: {},
 };
 
 function CandidatesAdmin() {
