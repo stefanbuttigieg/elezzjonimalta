@@ -45,6 +45,7 @@ All routes are localised under `/en/...` or `/mt/...`.
 | `/compare` | Side-by-side **candidate comparison** (up to 4 at a time) |
 | `/ask` | AI assistant grounded in the database |
 | `/resources` | Voter guides and external references |
+| `/faq` | Bilingual voting FAQs synced from official sources |
 | `/contact` | Contact details (via the maintainer's GitHub) |
 | `/changelog` | Public release notes |
 | `/admin` | Staff-only dashboard (requires login + role) |
