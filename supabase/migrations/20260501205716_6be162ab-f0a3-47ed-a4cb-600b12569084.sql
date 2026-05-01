@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.find_similar_proposals(uuid, text, real, integer) FROM anon, authenticated, public;
