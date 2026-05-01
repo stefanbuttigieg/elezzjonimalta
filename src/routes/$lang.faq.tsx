@@ -10,8 +10,8 @@ interface Faq {
   source_key: string;
   source_label: string;
   source_url: string;
-  question_en: string;
-  answer_en: string;
+  question_en: string | null;
+  answer_en: string | null;
   question_mt: string | null;
   answer_mt: string | null;
   sort_order: number;
@@ -64,25 +64,39 @@ function FaqPage() {
     };
   }, []);
 
-  const get = (r: Faq) => {
-    if (locale === "mt" && r.question_mt && r.answer_mt) {
-      return { question: r.question_mt, answer: r.answer_mt };
+  const get = (r: Faq): { question: string; answer: string } | null => {
+    // Prefer the requested locale; fall back to the other language if missing
+    // (rows can now be MT-only until staff translate them on demand).
+    if (locale === "mt") {
+      if (r.question_mt && r.answer_mt) return { question: r.question_mt, answer: r.answer_mt };
+      if (r.question_en && r.answer_en) return { question: r.question_en, answer: r.answer_en };
+      return null;
     }
-    return { question: r.question_en, answer: r.answer_en };
+    if (r.question_en && r.answer_en) return { question: r.question_en, answer: r.answer_en };
+    if (r.question_mt && r.answer_mt) return { question: r.question_mt, answer: r.answer_mt };
+    return null;
   };
 
+  // Skip rows that have no renderable content for either language.
+  const displayableRows = useMemo(
+    () => rows.filter((r) => get(r) !== null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, locale],
+  );
+
   const filtered = useMemo(() => {
-    if (!q) return rows;
+    if (!q) return displayableRows;
     const needle = q.toLowerCase();
-    return rows.filter((r) => {
-      const { question, answer } = get(r);
+    return displayableRows.filter((r) => {
+      const got = get(r);
+      if (!got) return false;
       return (
-        question.toLowerCase().includes(needle) ||
-        answer.toLowerCase().includes(needle)
+        got.question.toLowerCase().includes(needle) ||
+        got.answer.toLowerCase().includes(needle)
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, locale]);
+  }, [displayableRows, q, locale]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, { label: string; url: string; items: Faq[] }>();
@@ -101,17 +115,20 @@ function FaqPage() {
 
   // JSON-LD FAQ schema for SEO
   const jsonLd =
-    rows.length > 0
+    displayableRows.length > 0
       ? {
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: rows.slice(0, 50).map((r) => {
-            const { question, answer } = get(r);
-            return {
-              "@type": "Question",
-              name: question,
-              acceptedAnswer: { "@type": "Answer", text: answer },
-            };
+          mainEntity: displayableRows.slice(0, 50).flatMap((r) => {
+            const got = get(r);
+            if (!got) return [];
+            return [
+              {
+                "@type": "Question",
+                name: got.question,
+                acceptedAnswer: { "@type": "Answer", text: got.answer },
+              },
+            ];
           }),
         }
       : null;
@@ -173,7 +190,9 @@ function FaqPage() {
                 </div>
                 <ul className="space-y-2">
                   {group.items.map((r) => {
-                    const { question, answer } = get(r);
+                    const got = get(r);
+                    if (!got) return null;
+                    const { question, answer } = got;
                     const isOpen = openId === r.id;
                     return (
                       <li key={r.id}>

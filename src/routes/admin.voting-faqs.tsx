@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerActions, Field, Input, Textarea } from "@/routes/admin.parties";
-import { Plus, Pencil, Trash2, Search, RefreshCw, ExternalLink, HelpCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, RefreshCw, ExternalLink, HelpCircle, Languages } from "lucide-react";
 import { toast } from "sonner";
-import { triggerFaqSync } from "@/server/votingFaqSync.functions";
+import { triggerFaqSync, translateFaqToEnglish } from "@/server/votingFaqSync.functions";
 
 export const Route = createFileRoute("/admin/voting-faqs")({
   component: VotingFaqsAdmin,
@@ -15,8 +15,8 @@ interface Faq {
   source_key: string;
   source_label: string;
   source_url: string;
-  question_en: string;
-  answer_en: string;
+  question_en: string | null;
+  answer_en: string | null;
   question_mt: string | null;
   answer_mt: string | null;
   sort_order: number;
@@ -63,6 +63,7 @@ function VotingFaqsAdmin() {
   const [editing, setEditing] = useState<Faq | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -141,20 +142,48 @@ function VotingFaqsAdmin() {
     }
   };
 
+  const handleTranslate = async (id: string) => {
+    setTranslatingId(id);
+    try {
+      const res = await translateFaqToEnglish({ data: { faqId: id } });
+      if (!res.ok) {
+        toast.error(`Translation failed: ${res.error}`);
+      } else {
+        toast.success("Translated to English.");
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, question_en: res.question_en, answer_en: res.answer_en } : r,
+          ),
+        );
+        if (editing?.id === id) {
+          setEditing({ ...editing, question_en: res.question_en, answer_en: res.answer_en });
+        }
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setTranslatingId(null);
+    }
+  };
+
   const save = async () => {
     if (!editing) return;
-    if (!editing.question_en.trim() || !editing.answer_en.trim()) {
-      toast.error("English question and answer are required.");
+    const qEn = (editing.question_en ?? "").trim();
+    const aEn = (editing.answer_en ?? "").trim();
+    const qMt = (editing.question_mt ?? "").trim();
+    const aMt = (editing.answer_mt ?? "").trim();
+    if ((!qEn || !aEn) && (!qMt || !aMt)) {
+      toast.error("Provide a question and answer in at least one language.");
       return;
     }
     const payload = {
       source_key: editing.source_key,
       source_label: editing.source_label,
       source_url: editing.source_url,
-      question_en: editing.question_en,
-      answer_en: editing.answer_en,
-      question_mt: editing.question_mt || null,
-      answer_mt: editing.answer_mt || null,
+      question_en: qEn || null,
+      answer_en: aEn || null,
+      question_mt: qMt || null,
+      answer_mt: aMt || null,
       sort_order: editing.sort_order,
       status: editing.status,
     };
@@ -321,10 +350,23 @@ function VotingFaqsAdmin() {
                       {items.map((r) => (
                         <tr key={r.id} className="hover:bg-accent/50">
                           <td className="px-3 py-2">
-                            <div className="font-medium text-foreground">{r.question_en}</div>
-                            <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                              {r.answer_en}
-                            </div>
+                            {r.question_en ? (
+                              <>
+                                <div className="font-medium text-foreground">{r.question_en}</div>
+                                <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                                  {r.answer_en}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="font-medium text-muted-foreground italic">
+                                  {r.question_mt ?? "—"}
+                                </div>
+                                <div className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                                  No English version yet
+                                </div>
+                              </>
+                            )}
                           </td>
                           <td className="px-3 py-2 text-xs text-muted-foreground">
                             {r.question_mt ? "✓" : "—"}
@@ -343,6 +385,20 @@ function VotingFaqsAdmin() {
                           </td>
                           <td className="px-3 py-2">
                             <div className="flex justify-end gap-1">
+                              {r.question_mt && !r.question_en ? (
+                                <button
+                                  onClick={() => void handleTranslate(r.id)}
+                                  disabled={translatingId === r.id}
+                                  className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                                  aria-label="Translate to English"
+                                  title="Translate to English"
+                                >
+                                  <Languages
+                                    className={`h-3.5 w-3.5 ${translatingId === r.id ? "animate-pulse" : ""}`}
+                                  />
+                                  {translatingId === r.id ? "Translating…" : "Translate"}
+                                </button>
+                              ) : null}
                               <button
                                 onClick={() => setEditing(r)}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
@@ -414,15 +470,30 @@ function VotingFaqsAdmin() {
                 onChange={(v) => setEditing({ ...editing, source_url: v })}
               />
             </Field>
+            {editing.id && editing.question_mt && !editing.question_en ? (
+              <button
+                type="button"
+                onClick={() => void handleTranslate(editing.id)}
+                disabled={translatingId === editing.id}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
+              >
+                <Languages
+                  className={`h-4 w-4 ${translatingId === editing.id ? "animate-pulse" : ""}`}
+                />
+                {translatingId === editing.id
+                  ? "Translating from Maltese…"
+                  : "Translate from Maltese to English"}
+              </button>
+            ) : null}
             <Field label="Question (English)">
               <Input
-                value={editing.question_en}
+                value={editing.question_en ?? ""}
                 onChange={(v) => setEditing({ ...editing, question_en: v })}
               />
             </Field>
             <Field label="Answer (English)">
               <Textarea
-                value={editing.answer_en}
+                value={editing.answer_en ?? ""}
                 onChange={(v) => setEditing({ ...editing, answer_en: v })}
               />
             </Field>

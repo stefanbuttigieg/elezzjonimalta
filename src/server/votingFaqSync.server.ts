@@ -44,8 +44,8 @@ interface ExtractedFaq {
 }
 
 interface BilingualFaq {
-  question_en: string;
-  answer_en: string;
+  question_en: string | null;
+  answer_en: string | null;
   question_mt: string | null;
   answer_mt: string | null;
 }
@@ -113,11 +113,6 @@ Rules:
 - Skip generic site sections that aren't questions.
 - If no FAQs found, return { "faqs": [] }.`;
 
-const TRANSLATE_PROMPT = `You translate Maltese election FAQ entries into clear, neutral English.
-Return ONLY valid JSON with this exact shape:
-{ "faqs": [ { "question_en": "string", "answer_en": "string" } ] }
-The output array must have the same length and order as the input. Do not summarise — translate fully and accurately.`;
-
 async function extractFaqs(markdown: string): Promise<ExtractedFaq[]> {
   // Truncate to keep token usage reasonable
   const trimmed = markdown.slice(0, 18000);
@@ -125,16 +120,9 @@ async function extractFaqs(markdown: string): Promise<ExtractedFaq[]> {
   return Array.isArray(result.faqs) ? result.faqs.filter((f) => f.question && f.answer) : [];
 }
 
-async function translateMtToEn(faqs: ExtractedFaq[]): Promise<Array<{ question_en: string; answer_en: string }>> {
-  if (faqs.length === 0) return [];
-  const result = (await callAi(
-    TRANSLATE_PROMPT,
-    JSON.stringify({ faqs }),
-  )) as { faqs?: Array<{ question_en: string; answer_en: string }> };
-  const out = Array.isArray(result.faqs) ? result.faqs : [];
-  // Ensure length matches; fall back to source if not
-  return faqs.map((f, i) => out[i] ?? { question_en: f.question, answer_en: f.answer });
-}
+// NOTE: Auto-translation during sync was removed. Maltese-only sources are stored
+// with `question_en`/`answer_en` left null; staff translate them on demand from the
+// admin UI via the `translateFaqToEnglish` server function below.
 
 function hashItem(question: string): string {
   // Deterministic short hash based on normalized question text
@@ -191,20 +179,21 @@ export async function syncFaqSource(
         answer_mt: null,
       }));
     } else {
-      // MT source — translate to EN, also keep MT
-      const translated = await translateMtToEn(rawFaqs);
-      bilingual = rawFaqs.map((f, i) => ({
-        question_en: translated[i]?.question_en ?? f.question,
-        answer_en: translated[i]?.answer_en ?? f.answer,
+      // MT source — store MT only, leave EN null. Staff translate on demand.
+      bilingual = rawFaqs.map((f) => ({
+        question_en: null,
+        answer_en: null,
         question_mt: f.question,
         answer_mt: f.answer,
       }));
     }
 
-    // Upsert each row using (source_key, external_hash) as unique key
+    // Upsert each row using (source_key, external_hash) as unique key.
+    // Hash is keyed off whichever language is available so re-syncs match prior rows.
     for (let i = 0; i < bilingual.length; i++) {
       const row = bilingual[i];
-      const hash = hashItem(row.question_en);
+      const hashSource = row.question_en ?? row.question_mt ?? "";
+      const hash = hashItem(hashSource);
 
       const { data: existing } = await supabaseAdmin
         .from("voting_faqs")
@@ -272,4 +261,54 @@ export async function syncAllFaqSources(triggeredBy: string | null): Promise<Syn
     results.push(await syncFaqSource(src.key, triggeredBy));
   }
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// On-demand translation: called from the admin UI when staff click
+// "Translate to English" on a Maltese-only FAQ row.
+// ---------------------------------------------------------------------------
+
+const SINGLE_TRANSLATE_PROMPT = `You translate a single Maltese election FAQ entry into clear, neutral English.
+Return ONLY valid JSON with this exact shape:
+{ "question_en": "string", "answer_en": "string" }
+Translate fully and accurately — do not summarise, do not add commentary, preserve the meaning exactly.`;
+
+export async function translateFaqRowToEnglish(faqId: string): Promise<{
+  ok: true;
+  question_en: string;
+  answer_en: string;
+} | { ok: false; error: string }> {
+  const { data: row, error } = await supabaseAdmin
+    .from("voting_faqs")
+    .select("id, question_mt, answer_mt")
+    .eq("id", faqId)
+    .maybeSingle();
+  if (error || !row) return { ok: false, error: error?.message ?? "FAQ not found" };
+  if (!row.question_mt || !row.answer_mt) {
+    return { ok: false, error: "This FAQ has no Maltese content to translate from." };
+  }
+
+  let translated: { question_en?: string; answer_en?: string };
+  try {
+    translated = (await callAi(
+      SINGLE_TRANSLATE_PROMPT,
+      JSON.stringify({ question_mt: row.question_mt, answer_mt: row.answer_mt }),
+    )) as { question_en?: string; answer_en?: string };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
+  const question_en = (translated.question_en ?? "").trim();
+  const answer_en = (translated.answer_en ?? "").trim();
+  if (!question_en || !answer_en) {
+    return { ok: false, error: "Translator returned an empty response." };
+  }
+
+  const { error: upErr } = await supabaseAdmin
+    .from("voting_faqs")
+    .update({ question_en, answer_en })
+    .eq("id", faqId);
+  if (upErr) return { ok: false, error: upErr.message };
+
+  return { ok: true, question_en, answer_en };
 }
