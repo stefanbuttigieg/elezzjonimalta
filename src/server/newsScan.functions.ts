@@ -376,6 +376,12 @@ Field keys per target (use empty string when unknown — do NOT omit the key):
 - new_candidate: full_name, party_id (UUID from lookup or ""), primary_district_id (UUID from lookup or ""), bio_en, notes
 - update_candidate: candidate_id (UUID from lookup, REQUIRED if you can match), party_id, primary_district_id, bio_en, notes
 - new_proposal: title_en, description_en, category, party_id, candidate_id
+   PLUS for new_proposal you MAY (and SHOULD when the article contains several
+   distinct pledges) also return a "proposals" key inside "fields" whose value
+   is an ARRAY of objects with the same keys, one per distinct proposal:
+   "proposals": [ { "title_en": "...", "description_en": "...", "category": "...", "party_id": "...", "candidate_id": "..." }, ... ]
+   Keep each proposal a single concrete commitment — do not bundle unrelated
+   pledges together. If the article only contains one pledge, omit "proposals".
 - new_party: name_en, short_name, color, website, description_en
 
 Rules:
