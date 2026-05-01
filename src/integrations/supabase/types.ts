@@ -424,6 +424,7 @@ export type Database = {
           birthplace: string | null
           commission_confirmed: boolean
           created_at: string
+          custom_fields: Json
           date_of_birth: string | null
           education: string | null
           electoral_confirmed: boolean
@@ -466,6 +467,7 @@ export type Database = {
           birthplace?: string | null
           commission_confirmed?: boolean
           created_at?: string
+          custom_fields?: Json
           date_of_birth?: string | null
           education?: string | null
           electoral_confirmed?: boolean
@@ -508,6 +510,7 @@ export type Database = {
           birthplace?: string | null
           commission_confirmed?: boolean
           created_at?: string
+          custom_fields?: Json
           date_of_birth?: string | null
           education?: string | null
           electoral_confirmed?: boolean
@@ -560,6 +563,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_field_definitions: {
+        Row: {
+          created_at: string
+          entity_type: Database["public"]["Enums"]["custom_field_entity"]
+          field_type: Database["public"]["Enums"]["custom_field_type"]
+          help_text: string | null
+          id: string
+          key: string
+          label: string
+          options: Json
+          public_visible: boolean
+          required: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_type: Database["public"]["Enums"]["custom_field_entity"]
+          field_type?: Database["public"]["Enums"]["custom_field_type"]
+          help_text?: string | null
+          id?: string
+          key: string
+          label: string
+          options?: Json
+          public_visible?: boolean
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_type?: Database["public"]["Enums"]["custom_field_entity"]
+          field_type?: Database["public"]["Enums"]["custom_field_type"]
+          help_text?: string | null
+          id?: string
+          key?: string
+          label?: string
+          options?: Json
+          public_visible?: boolean
+          required?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       districts: {
         Row: {
@@ -1023,6 +1071,7 @@ export type Database = {
           candidate_id: string | null
           category: string | null
           created_at: string
+          custom_fields: Json
           description_en: string | null
           description_mt: string | null
           id: string
@@ -1037,6 +1086,7 @@ export type Database = {
           candidate_id?: string | null
           category?: string | null
           created_at?: string
+          custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
           id?: string
@@ -1051,6 +1101,7 @@ export type Database = {
           candidate_id?: string | null
           category?: string | null
           created_at?: string
+          custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
           id?: string
@@ -1125,6 +1176,15 @@ export type Database = {
         | "interview"
         | "speech"
         | "article"
+      custom_field_entity: "candidate" | "proposal"
+      custom_field_type:
+        | "text"
+        | "textarea"
+        | "number"
+        | "boolean"
+        | "date"
+        | "url"
+        | "select"
       news_finding_kind:
         | "proposal"
         | "new_candidate"
@@ -1268,6 +1328,16 @@ export const Constants = {
         "interview",
         "speech",
         "article",
+      ],
+      custom_field_entity: ["candidate", "proposal"],
+      custom_field_type: [
+        "text",
+        "textarea",
+        "number",
+        "boolean",
+        "date",
+        "url",
+        "select",
       ],
       news_finding_kind: [
         "proposal",
