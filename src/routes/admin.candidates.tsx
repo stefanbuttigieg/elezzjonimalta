@@ -499,6 +499,18 @@ function CandidateEditor({
         <Field label="X / Twitter">
           <Input value={v.twitter ?? ""} onChange={(x) => setV({ ...v, twitter: x })} />
         </Field>
+        <Field label="Instagram">
+          <Input value={v.instagram ?? ""} onChange={(x) => setV({ ...v, instagram: x })} />
+        </Field>
+        <Field label="TikTok">
+          <Input value={v.tiktok ?? ""} onChange={(x) => setV({ ...v, tiktok: x })} />
+        </Field>
+        <Field label="Email">
+          <Input value={v.email ?? ""} onChange={(x) => setV({ ...v, email: x })} placeholder="name@example.com" />
+        </Field>
+        <Field label="Contact number">
+          <Input value={v.phone ?? ""} onChange={(x) => setV({ ...v, phone: x })} placeholder="+356 …" />
+        </Field>
         <Field label="parlament.mt URL" full>
           <Input
             value={v.parlament_mt_url ?? ""}
