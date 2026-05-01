@@ -376,12 +376,26 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
           )}
 
           {step === 3 && row && (
-            <ReviewTable
-              rows={decisions}
-              onChange={setDecisions}
-              pageCount={row.page_count}
-              sourceUrl={row.source_url}
-            />
+            <div className="flex h-full min-h-0">
+              <div className="flex-1 min-w-0 overflow-y-auto px-6 py-6">
+                <ReviewTable
+                  rows={decisions}
+                  onChange={setDecisions}
+                  pageCount={row.page_count}
+                  sourceUrl={row.source_url}
+                  selectedIdx={selectedIdx}
+                  onSelect={setSelectedIdx}
+                />
+              </div>
+              <div className="hidden w-[42%] min-w-[420px] max-w-[720px] flex-col border-l border-border bg-muted/30 lg:flex">
+                <PdfPreviewPane
+                  pdfUrl={pdfUrl}
+                  pdfError={pdfError}
+                  selectedRow={selectedIdx != null ? decisions[selectedIdx] : null}
+                  pageCount={row.page_count}
+                />
+              </div>
+            </div>
           )}
         </div>
 
