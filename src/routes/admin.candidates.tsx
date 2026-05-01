@@ -255,13 +255,15 @@ function CandidatesAdmin() {
             Review imported candidates. Only "Published" appear on the public site.
           </p>
         </div>
-        <button
-          onClick={() => setEditing({ ...empty })}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> New candidate
-        </button>
-      </header>
+        <div className="flex items-center gap-2">
+          <BulkFindPhotosButton onDone={() => void load()} />
+          <button
+            onClick={() => setEditing({ ...empty })}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> New candidate
+          </button>
+        </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
