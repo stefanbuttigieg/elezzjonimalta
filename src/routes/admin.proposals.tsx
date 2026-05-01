@@ -48,6 +48,7 @@ interface Proposal {
   description_en: string | null;
   description_mt: string | null;
   category: string | null;
+  category_ids: string[];
   party_id: string | null;
   candidate_id: string | null;
   status: ReviewStatus;
