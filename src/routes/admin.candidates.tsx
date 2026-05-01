@@ -344,6 +344,7 @@ function CandidateEditor({
         primary_district_id: primaryDistrict,
         is_incumbent: v.is_incumbent,
         electoral_confirmed: v.electoral_confirmed,
+        commission_confirmed: v.commission_confirmed,
         bio_en: v.bio_en || null,
         bio_mt: v.bio_mt || null,
         photo_url: v.photo_url || null,
