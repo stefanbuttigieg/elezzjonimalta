@@ -264,6 +264,7 @@ function CandidatesAdmin() {
             <Plus className="h-4 w-4" /> New candidate
           </button>
         </div>
+      </header>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
