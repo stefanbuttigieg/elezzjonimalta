@@ -211,7 +211,14 @@ function ProposalsAdmin() {
               filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-foreground">{r.title_en}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-foreground">{r.title_en}</div>
+                      {r.merged_into_id ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                          <GitMerge className="h-3 w-3" /> Merged
+                        </span>
+                      ) : null}
+                    </div>
                     {r.title_mt ? (
                       <div className="text-xs text-muted-foreground">{r.title_mt}</div>
                     ) : null}
