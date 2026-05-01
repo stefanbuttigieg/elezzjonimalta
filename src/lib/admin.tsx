@@ -153,7 +153,7 @@ export async function updateStatus(
 }
 
 export async function deleteRow(
-  table: "parties" | "districts" | "candidates" | "proposals",
+  table: "parties" | "districts" | "candidates" | "proposals" | "custom_field_definitions",
   id: string
 ) {
   const { error } = await supabase.from(table).delete().eq("id", id);
