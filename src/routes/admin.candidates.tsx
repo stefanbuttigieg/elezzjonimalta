@@ -25,6 +25,7 @@ interface Candidate {
   primary_district_id: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  commission_confirmed: boolean;
   bio_en: string | null;
   bio_mt: string | null;
   photo_url: string | null;
