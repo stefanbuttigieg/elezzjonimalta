@@ -1049,15 +1049,42 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
           ) : null}
 
           {target === "new_proposal" ? (
-            <>
-              <Field label="Title *" value={form.title_en ?? ""} onChange={(v) => set("title_en", v)} />
-              <TextArea label="Description (EN)" value={form.description_en ?? ""} onChange={(v) => set("description_en", v)} />
-              <Field label="Category" value={form.category ?? ""} onChange={(v) => set("category", v)} placeholder="e.g. Health, Transport" />
-              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
-                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
-              <SelectField label="Candidate" value={form.candidate_id ?? ""} onChange={(v) => set("candidate_id", v)}
-                options={[{ value: "", label: "— none —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
-            </>
+            <div className="space-y-4">
+              {proposals.map((row, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Proposal {i + 1}
+                    </span>
+                    {proposals.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeProposal(i)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent"
+                      >
+                        <X className="h-3 w-3" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <Field label="Title *" value={row.title_en} onChange={(v) => updateProposal(i, "title_en", v)} />
+                    <TextArea label="Description (EN)" value={row.description_en} onChange={(v) => updateProposal(i, "description_en", v)} />
+                    <Field label="Category" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="e.g. Health, Transport" />
+                    <SelectField label="Party" value={row.party_id} onChange={(v) => updateProposal(i, "party_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+                    <SelectField label="Candidate" value={row.candidate_id} onChange={(v) => updateProposal(i, "candidate_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...candidates.map((c) => ({ value: c.id, label: c.full_name }))]} />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addProposal}
+                className="w-full rounded-md border border-dashed border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+              >
+                + Add another proposal
+              </button>
+            </div>
           ) : null}
 
           {target === "new_party" ? (
