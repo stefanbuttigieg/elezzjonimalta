@@ -393,66 +393,130 @@ function CandidatesAdmin() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  Loading…
-                </td>
-              </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  No candidates match.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((r) => (
+            {(() => {
+              const colCount =
+                1 + visibleColumns.length + 1; // name + visible + actions
+              if (loading) {
+                return (
+                  <tr>
+                    <td colSpan={colCount} className="px-4 py-8 text-center text-muted-foreground">
+                      Loading…
+                    </td>
+                  </tr>
+                );
+              }
+              if (filtered.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={colCount} className="px-4 py-8 text-center text-muted-foreground">
+                      No candidates match.
+                    </td>
+                  </tr>
+                );
+              }
+              return filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
-                      {r.leadership_role === "leader" ? (
+                      {!showCol("leadership") && r.leadership_role === "leader" ? (
                         <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
                           Leader
                         </span>
-                      ) : r.leadership_role === "deputy_leader" ? (
+                      ) : !showCol("leadership") && r.leadership_role === "deputy_leader" ? (
                         <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
                           Deputy Leader
                         </span>
                       ) : null}
-                      {r.is_incumbent ? (
+                      {!showCol("flags") && r.is_incumbent ? (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                           MP
                         </span>
                       ) : null}
-                      {r.electoral_confirmed ? (
+                      {!showCol("flags") && r.electoral_confirmed ? (
                         <span title="Confirmed via news sources" className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                           <CheckCircle2 className="h-3 w-3" /> News
                         </span>
                       ) : null}
-                      {r.commission_confirmed ? (
+                      {!showCol("flags") && r.commission_confirmed ? (
                         <span title="Confirmed by Electoral Commission" className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
                           <CheckCircle2 className="h-3 w-3" /> Commission
                         </span>
                       ) : null}
                     </div>
-                    {r.imported_from ? (
+                    {!showCol("imported_from") && r.imported_from ? (
                       <div className="text-xs text-muted-foreground">imported · {r.imported_from}</div>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <CandidateStatusBadge
-                      status={r.status}
-                      isIncumbent={r.is_incumbent}
-                      electoralConfirmed={r.electoral_confirmed}
-                    />
-                  </td>
+                  {showCol("party") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("district") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("status") ? (
+                    <td className="px-4 py-3">
+                      <CandidateStatusBadge
+                        status={r.status}
+                        isIncumbent={r.is_incumbent}
+                        electoralConfirmed={r.electoral_confirmed}
+                      />
+                    </td>
+                  ) : null}
+                  {showCol("leadership") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.leadership_role === "leader"
+                        ? "Leader"
+                        : r.leadership_role === "deputy_leader"
+                        ? "Deputy Leader"
+                        : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("flags") ? (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {r.is_incumbent ? (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">MP</span>
+                        ) : null}
+                        {r.electoral_confirmed ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">News</span>
+                        ) : null}
+                        {r.commission_confirmed ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">Commission</span>
+                        ) : null}
+                        {r.not_contesting_2026 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Not 2026</span>
+                        ) : null}
+                        {!r.is_incumbent && !r.electoral_confirmed && !r.commission_confirmed && !r.not_contesting_2026 ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : null}
+                      </div>
+                    </td>
+                  ) : null}
+                  {showCol("email") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.email || "—"}</td>
+                  ) : null}
+                  {showCol("phone") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.phone || "—"}</td>
+                  ) : null}
+                  {showCol("profession") ? (
+                    <td className="px-4 py-3 text-muted-foreground">{r.profession || "—"}</td>
+                  ) : null}
+                  {showCol("dob") ? (
+                    <td className="px-4 py-3 text-muted-foreground">{r.date_of_birth || "—"}</td>
+                  ) : null}
+                  {showCol("imported_from") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.imported_from || "—"}</td>
+                  ) : null}
+                  {showCol("created_at") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => setEditing(r)}
@@ -477,8 +541,8 @@ function CandidatesAdmin() {
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
+              ));
+            })()}
           </tbody>
         </table>
       </div>
