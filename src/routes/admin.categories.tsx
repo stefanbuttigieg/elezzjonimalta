@@ -209,14 +209,17 @@ function CategoriesAdmin() {
 
 function CategoryEditor({
   value,
+  onChange,
   onClose,
   onSaved,
 }: {
   value: Category;
+  onChange: (next: Category) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Category>(value);
+  const v = value;
+  const setV = (next: Category) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 
