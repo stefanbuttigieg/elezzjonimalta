@@ -73,6 +73,14 @@ upcoming election.
 Every page, label, district name, and most editorial content is available in
 English and Maltese. Locale lives in the URL (`/en/...`, `/mt/...`).
 
+### Admin: AI Assistant
+The `/admin/assistant` workspace lets staff configure which data sources feed
+the public AI assistant (`/ask`), reindex the knowledge base on demand
+(all enabled sources or per source), edit the system prompt and model, and
+review recent reindex runs with chunk counts and any errors. Retrieval uses
+Postgres full-text search over a generated `tsvector` index on
+`knowledge_chunks`, with an ILIKE fallback when the index is empty.
+
 ### Admin: News Monitor
 The admin section includes a **News monitor** that scans Times of Malta, The
 Malta Independent, MaltaToday, Lovin Malta, and Newsbook (4× daily via cron,
@@ -81,7 +89,7 @@ candidates, and key election developments. Findings are queued for staff
 review with confidence scores and source links, and each can be **converted in
 one click** into a new candidate, an update to an existing candidate, a new
 proposal, or a new party — auto-linking the source URL and writing to the
-admin audit log.
+admin audit log. Staff can also paste any article URL to scan it on demand.
 
 ### Admin: API Request Logging
 The admin section includes an **API logs viewer** that records every call to
