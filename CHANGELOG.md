@@ -7,6 +7,34 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-05-01
 
 ### Added
+- **AI Assistant admin (`/admin/assistant`).** New workspace to configure data
+  sources (candidates, parties, proposals, voting FAQs, districts, news
+  findings), reindex the knowledge base on demand (all enabled or per source),
+  edit the assistant's system prompt and model, and review recent reindex runs
+  with chunk counts and errors.
+- **Paste-a-URL news scan.** Admins can paste any article URL into
+  `/admin/news` and run it through the same Firecrawl scrape + Lovable AI
+  classify pipeline used by the scheduled scans, with the result queued for
+  review immediately.
+- **Voting eligibility CTA on the landing page.** A bilingual call-to-action
+  links voters to the official Electoral Commission register at
+  electoral.gov.mt/electoral-registers.
+- **Dynamic stats strip on the landing page.** Live counts of confirmed
+  candidates, parties, proposals, districts, sitting MPs, published FAQs and
+  a days-to-election countdown — each card linking to the relevant detail
+  page.
+- **District candidate counts on the landing-page map.** The interactive
+  Malta districts map now shows the number of confirmed 2026 candidates per
+  district.
+
+### Changed
+- **AI Assistant retrieval switched from vector embeddings to Postgres
+  full-text search.** The Lovable AI Gateway no longer exposes an embeddings
+  endpoint, so the indexer now stores plain text chunks and the chat function
+  ranks them with `ts_rank` over a generated `tsvector` column (GIN-indexed).
+  Reindexing no longer fails with "invalid model" errors.
+
+### Previously in this release
 - **Bilingual voting FAQs (`/faq`).** New public page with searchable,
   accordion-style questions grouped by source, available in English and
   Maltese, with FAQPage JSON-LD for SEO. Content is sourced from
