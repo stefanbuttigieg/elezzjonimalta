@@ -53,3 +53,31 @@ export const triggerFaqSync = createServerFn({ method: "POST" })
       return { ok: false as const, error: message };
     }
   });
+
+const TranslateInput = z.object({ faqId: z.string().uuid() });
+
+export const translateFaqToEnglish = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => TranslateInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+      const result = await translateFaqRowToEnglish(data.faqId);
+      if (!result.ok) return result;
+      const email = (claims as { email?: string }).email ?? null;
+      await writeAudit(supabaseAdmin, {
+        entityType: "voting_faqs",
+        entityId: data.faqId,
+        action: "translate_to_en",
+        actorId: userId,
+        actorEmail: email,
+        metadata: { length_q: result.question_en.length, length_a: result.answer_en.length },
+      });
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("translateFaqToEnglish failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
