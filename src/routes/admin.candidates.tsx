@@ -558,7 +558,15 @@ function CandidateEditor({
                 checked={v.electoral_confirmed}
                 onChange={(e) => setV({ ...v, electoral_confirmed: e.target.checked })}
               />
-              Confirmed on electoral.gov.mt
+              Confirmed via news sources
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={v.commission_confirmed}
+                onChange={(e) => setV({ ...v, commission_confirmed: e.target.checked })}
+              />
+              Confirmed on electoral commission
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input
