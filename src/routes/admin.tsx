@@ -57,6 +57,7 @@ const items: NavItem[] = [
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/duplicates", label: "Duplicates", icon: FileText },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/custom-fields", label: "Custom fields", icon: FileText },
   { to: "/admin/audit", label: "Audit log", icon: History },

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
@@ -11,8 +11,10 @@ import {
   Textarea,
 } from "@/routes/admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
-import { Plus, Pencil, Trash2, Search, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers } from "lucide-react";
 import { toast } from "sonner";
+import { findDuplicates } from "@/lib/proposal-dedupe";
+import { mergeProposals } from "@/lib/proposal-merge";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
@@ -44,6 +46,10 @@ interface Proposal {
   status: ReviewStatus;
   source_url: string | null;
   custom_fields: Record<string, unknown>;
+  notes: string | null;
+  merged_into_id: string | null;
+  merged_at: string | null;
+  merge_note: string | null;
   party?: PartyLite | null;
   candidate?: CandidateLite | null;
 }
@@ -60,6 +66,10 @@ const empty: Proposal = {
   status: "pending_review",
   source_url: "",
   custom_fields: {},
+  notes: null,
+  merged_into_id: null,
+  merged_at: null,
+  merge_note: null,
 };
 
 function ProposalsAdmin() {
@@ -68,6 +78,7 @@ function ProposalsAdmin() {
   const [candidates, setCandidates] = useState<CandidateLite[]>([]);
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
+  const [showMerged, setShowMerged] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
 
@@ -100,14 +111,32 @@ function ProposalsAdmin() {
 
   const filtered = useMemo(
     () =>
-      rows.filter((r) =>
-        q
-          ? `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
-              .toLowerCase()
-              .includes(q.toLowerCase())
-          : true
-      ),
-    [rows, q]
+      rows.filter((r) => {
+        if (!showMerged && r.merged_into_id) return false;
+        if (!q) return true;
+        return `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
+          .toLowerCase()
+          .includes(q.toLowerCase());
+      }),
+    [rows, q, showMerged]
+  );
+
+  const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
+  // Lightweight pool used for in-editor duplicate suggestions
+  const dupePool = useMemo(
+    () =>
+      rows.map((r) => ({
+        id: r.id,
+        title_en: r.title_en,
+        title_mt: r.title_mt,
+        description_en: r.description_en,
+        description_mt: r.description_mt,
+        party_id: r.party_id,
+        candidate_id: r.candidate_id,
+        status: r.status,
+        merged_into_id: r.merged_into_id,
+      })),
+    [rows]
   );
 
   return (
@@ -127,7 +156,7 @@ function ProposalsAdmin() {
         </button>
       </header>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -137,6 +166,20 @@ function ProposalsAdmin() {
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={showMerged}
+            onChange={(e) => setShowMerged(e.target.checked)}
+          />
+          Show merged ({mergedCount})
+        </label>
+        <Link
+          to="/admin/duplicates"
+          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+        >
+          <Layers className="h-4 w-4" /> Find duplicates
+        </Link>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
@@ -168,7 +211,14 @@ function ProposalsAdmin() {
               filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-foreground">{r.title_en}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-foreground">{r.title_en}</div>
+                      {r.merged_into_id ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                          <GitMerge className="h-3 w-3" /> Merged
+                        </span>
+                      ) : null}
+                    </div>
                     {r.title_mt ? (
                       <div className="text-xs text-muted-foreground">{r.title_mt}</div>
                     ) : null}
@@ -223,6 +273,7 @@ function ProposalsAdmin() {
           parties={parties}
           candidates={candidates}
           categories={categories}
+          dupePool={dupePool}
           onChange={setEditing}
           onClose={clearEditing}
           onSaved={() => {
@@ -240,6 +291,7 @@ function ProposalEditor({
   parties,
   candidates,
   categories,
+  dupePool,
   onChange,
   onClose,
   onSaved,
@@ -248,6 +300,17 @@ function ProposalEditor({
   parties: PartyLite[];
   candidates: CandidateLite[];
   categories: CategoryLite[];
+  dupePool: Array<{
+    id: string;
+    title_en: string;
+    title_mt: string | null;
+    description_en: string | null;
+    description_mt: string | null;
+    party_id: string | null;
+    candidate_id: string | null;
+    status: string;
+    merged_into_id: string | null;
+  }>;
   onChange: (next: Proposal) => void;
   onClose: () => void;
   onSaved: () => void;
@@ -255,7 +318,70 @@ function ProposalEditor({
   const v = value;
   const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
+  const [merging, setMerging] = useState<string | null>(null);
   const isNew = !v.id;
+
+  const suggestions = useMemo(() => {
+    if (isNew || !v.title_en) return [];
+    return findDuplicates(
+      {
+        id: v.id,
+        title_en: v.title_en,
+        title_mt: v.title_mt,
+        description_en: v.description_en,
+        description_mt: v.description_mt,
+        party_id: v.party_id,
+        candidate_id: v.candidate_id,
+        status: v.status,
+        merged_into_id: v.merged_into_id,
+      },
+      dupePool,
+      0.4
+    );
+  }, [isNew, v, dupePool]);
+
+  const mergeOne = async (dupId: string) => {
+    const dup = dupePool.find((p) => p.id === dupId);
+    if (!dup) return;
+    const note = prompt("Merge note (optional):") ?? "";
+    setMerging(dupId);
+    try {
+      await mergeProposals({
+        primary: {
+          id: v.id,
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+          source_url: v.source_url,
+          notes: v.notes,
+          party_id: v.party_id,
+          candidate_id: v.candidate_id,
+          status: v.status,
+        },
+        duplicates: [
+          {
+            id: dup.id,
+            title_en: dup.title_en,
+            title_mt: dup.title_mt,
+            description_en: dup.description_en,
+            description_mt: dup.description_mt,
+            source_url: null,
+            party_id: dup.party_id,
+            candidate_id: dup.candidate_id,
+            status: dup.status,
+          },
+        ],
+        note,
+      });
+      toast.success("Merged");
+      onSaved();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Merge failed");
+    } finally {
+      setMerging(null);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -275,6 +401,7 @@ function ProposalEditor({
         status: v.status,
         source_url: v.source_url || null,
         custom_fields: v.custom_fields ?? {},
+        notes: v.notes || null,
       };
       const { error } = isNew
         ? await supabase.from("proposals").insert(payload as never)
@@ -362,11 +489,46 @@ function ProposalEditor({
         <Field label="Source URL" full>
           <Input value={v.source_url ?? ""} onChange={(x) => setV({ ...v, source_url: x })} />
         </Field>
+        <Field label="Internal notes" full>
+          <Textarea value={v.notes ?? ""} onChange={(x) => setV({ ...v, notes: x })} />
+        </Field>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">
         At least one of <span className="font-semibold">linked party</span> or{" "}
         <span className="font-semibold">linked candidate</span> is required.
       </p>
+
+      {!isNew && suggestions.length > 0 ? (
+        <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-900/60 dark:bg-amber-950/30">
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-100">
+            <GitMerge className="h-4 w-4" /> Possible duplicates ({suggestions.length})
+          </h3>
+          <ul className="space-y-2">
+            {suggestions.map(({ proposal, score }) => (
+              <li
+                key={proposal.id}
+                className="flex items-start justify-between gap-3 rounded-md border border-border bg-background p-2 text-sm"
+              >
+                <div className="flex-1">
+                  <div className="font-medium">{proposal.title_en}</div>
+                  <div className="text-xs text-muted-foreground">
+                    similarity {(score * 100).toFixed(0)}% · status {proposal.status}
+                  </div>
+                </div>
+                <button
+                  disabled={merging === proposal.id}
+                  onClick={() => mergeOne(proposal.id)}
+                  className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <GitMerge className="h-3 w-3" />
+                  {merging === proposal.id ? "Merging…" : "Merge into this"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <CustomFieldsSection
         entityType="proposal"
         values={(v.custom_fields ?? {}) as Record<string, unknown>}
