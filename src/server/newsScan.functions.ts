@@ -64,6 +64,9 @@ export const scanUrlNow = createServerFn({ method: "POST" })
         triggeredByEmail: email,
       });
       return { ...result, ok: true as const };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("scanUrlNow failed:", message);
       return { ok: false as const, error: message };
     }
   });
