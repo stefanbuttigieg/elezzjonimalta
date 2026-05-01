@@ -818,7 +818,7 @@ interface ConvertDialogProps {
   districts: DistrictOpt[];
   candidates: CandidateOpt[];
   onClose: () => void;
-  onSubmit: (target: ConvertTarget, payload: Record<string, string>) => Promise<void>;
+  onSubmit: (target: ConvertTarget, payload: Record<string, unknown>) => Promise<void>;
 }
 
 function ConvertDialog({ finding, parties, districts, candidates, onClose, onSubmit }: ConvertDialogProps) {
