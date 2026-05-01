@@ -199,7 +199,14 @@ function CandidatesAdmin() {
                         </span>
                       ) : null}
                       {r.electoral_confirmed ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                        <span title="Confirmed via news sources" className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+                          <CheckCircle2 className="h-3 w-3" /> News
+                        </span>
+                      ) : null}
+                      {r.commission_confirmed ? (
+                        <span title="Confirmed by Electoral Commission" className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
+                          <CheckCircle2 className="h-3 w-3" /> Commission
+                        </span>
                       ) : null}
                     </div>
                     {r.imported_from ? (
