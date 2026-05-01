@@ -251,7 +251,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div
+          className={`flex-1 ${step === 3 ? "min-h-0 overflow-hidden" : "overflow-y-auto px-6 py-6"}`}
+        >
           {step === 1 && (
             <div className="mx-auto max-w-2xl space-y-5">
               <div>
