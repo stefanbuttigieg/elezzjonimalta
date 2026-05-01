@@ -207,6 +207,58 @@ function NewsMonitor() {
     }
   };
 
+  const saveSource = async () => {
+    if (!sourceDraft) return;
+    const slug = sourceDraft.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)+/g, "");
+    if (!slug || !sourceDraft.name.trim() || !sourceDraft.base_url.trim()) {
+      toast.error("Slug, name, and base URL are required");
+      return;
+    }
+    try {
+      new URL(sourceDraft.base_url);
+      if (sourceDraft.sitemap_url.trim()) new URL(sourceDraft.sitemap_url);
+    } catch {
+      toast.error("Invalid URL");
+      return;
+    }
+    const payload = {
+      slug,
+      name: sourceDraft.name.trim(),
+      base_url: sourceDraft.base_url.trim(),
+      sitemap_url: sourceDraft.sitemap_url.trim() || null,
+      enabled: sourceDraft.enabled,
+    };
+    const res = sourceDraft.id
+      ? await supabase.from("news_sources").update(payload).eq("id", sourceDraft.id)
+      : await supabase.from("news_sources").insert(payload);
+    if (res.error) {
+      toast.error(res.error.message);
+      return;
+    }
+    toast.success(sourceDraft.id ? "Source updated" : "Source added");
+    setSourceDraft(null);
+    await load();
+  };
+
+  const toggleSourceEnabled = async (s: Source) => {
+    const { error } = await supabase
+      .from("news_sources")
+      .update({ enabled: !s.enabled })
+      .eq("id", s.id);
+    if (error) toast.error(error.message);
+    else await load();
+  };
+
+  const deleteSource = async (s: Source) => {
+    if (!confirm(`Delete source "${s.name}"? Articles and findings already collected from it will remain but become orphaned.`)) return;
+    const { error } = await supabase.from("news_sources").delete().eq("id", s.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Source deleted");
+      await load();
+    }
+  };
+
   const lastRun = runs[0];
 
   return (
