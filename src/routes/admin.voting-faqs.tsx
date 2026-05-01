@@ -142,6 +142,30 @@ function VotingFaqsAdmin() {
     }
   };
 
+  const handleTranslate = async (id: string) => {
+    setTranslatingId(id);
+    try {
+      const res = await translateFaqToEnglish({ data: { faqId: id } });
+      if (!res.ok) {
+        toast.error(`Translation failed: ${res.error}`);
+      } else {
+        toast.success("Translated to English.");
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, question_en: res.question_en, answer_en: res.answer_en } : r,
+          ),
+        );
+        if (editing?.id === id) {
+          setEditing({ ...editing, question_en: res.question_en, answer_en: res.answer_en });
+        }
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setTranslatingId(null);
+    }
+  };
+
   const save = async () => {
     if (!editing) return;
     const qEn = (editing.question_en ?? "").trim();
