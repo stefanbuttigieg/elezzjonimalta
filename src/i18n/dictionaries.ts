@@ -381,6 +381,13 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.welcomeBack.cta": "Open my district",
     "home.welcomeBack.clear": "Change",
 
+    "home.eligibility.eyebrow": "Before you vote",
+    "home.eligibility.title": "Check if you're on the electoral register",
+    "home.eligibility.desc":
+      "Confirm your voting eligibility and polling details on the official Electoral Commission register.",
+    "home.eligibility.cta": "Check eligibility",
+    "home.eligibility.note": "You'll be redirected to electoral.gov.mt — the official source.",
+
     "myDistrict.eyebrow": "Your district",
     "myDistrict.heading": "District {number} — {name}",
     "myDistrict.changeDistrict": "Change district",
