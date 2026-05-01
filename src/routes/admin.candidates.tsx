@@ -13,11 +13,14 @@ import {
   Textarea,
 } from "./admin.parties";
 
+type CandidatesSearch = { edit?: string };
+
 export const Route = createFileRoute("/admin/candidates")({
   component: CandidatesAdmin,
-  validateSearch: (search: Record<string, unknown>) => ({
-    edit: typeof search.edit === "string" ? search.edit : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): CandidatesSearch => {
+    const edit = typeof search.edit === "string" ? search.edit : undefined;
+    return edit ? { edit } : {};
+  },
 });
 
 interface Candidate {
