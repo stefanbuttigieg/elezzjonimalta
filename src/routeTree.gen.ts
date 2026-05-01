@@ -21,6 +21,7 @@ import { Route as AdminReviewRouteImport } from './routes/admin.review'
 import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminNewsRouteImport } from './routes/admin.news'
+import { Route as AdminDuplicatesRouteImport } from './routes/admin.duplicates'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fields'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
@@ -110,6 +111,11 @@ const AdminPartiesRoute = AdminPartiesRouteImport.update({
 const AdminNewsRoute = AdminNewsRouteImport.update({
   id: '/news',
   path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDuplicatesRoute = AdminDuplicatesRouteImport.update({
+  id: '/duplicates',
+  path: '/duplicates',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/duplicates': typeof AdminDuplicatesRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -330,6 +337,7 @@ export interface FileRoutesByTo {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/duplicates': typeof AdminDuplicatesRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/districts': typeof AdminDistrictsRoute
+  '/admin/duplicates': typeof AdminDuplicatesRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -421,6 +430,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/custom-fields'
     | '/admin/districts'
+    | '/admin/duplicates'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/custom-fields'
     | '/admin/districts'
+    | '/admin/duplicates'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -507,6 +518,7 @@ export interface FileRouteTypes {
     | '/admin/categories'
     | '/admin/custom-fields'
     | '/admin/districts'
+    | '/admin/duplicates'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -622,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/news'
       fullPath: '/admin/news'
       preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/duplicates': {
+      id: '/admin/duplicates'
+      path: '/duplicates'
+      fullPath: '/admin/duplicates'
+      preLoaderRoute: typeof AdminDuplicatesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/districts': {
@@ -894,6 +913,7 @@ interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomFieldsRoute: typeof AdminCustomFieldsRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
+  AdminDuplicatesRoute: typeof AdminDuplicatesRoute
   AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
   AdminProposalsRoute: typeof AdminProposalsRoute
@@ -910,6 +930,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomFieldsRoute: AdminCustomFieldsRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
+  AdminDuplicatesRoute: AdminDuplicatesRoute,
   AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
   AdminProposalsRoute: AdminProposalsRoute,
