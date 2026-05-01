@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge, slugify, deleteRow, type ReviewStatus } from "@/lib/admin";
+import { CandidateStatusBadge, slugify, deleteRow, type ReviewStatus } from "@/lib/admin";
 import { Plus, Pencil, Trash2, Search, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -220,7 +220,11 @@ function CandidatesAdmin() {
                     {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={r.status} />
+                    <CandidateStatusBadge
+                      status={r.status}
+                      isIncumbent={r.is_incumbent}
+                      electoralConfirmed={r.electoral_confirmed}
+                    />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
