@@ -342,7 +342,31 @@ function ProposalsAdmin() {
                       {!r.party && !r.candidate ? "—" : null}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.category ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {r.category_ids.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {r.category_ids.slice(0, 3).map((cid) => {
+                          const cat = categories.find((c) => c.id === cid);
+                          if (!cat) return null;
+                          return (
+                            <span
+                              key={cid}
+                              className="inline-flex rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium"
+                            >
+                              {cat.name_en}
+                            </span>
+                          );
+                        })}
+                        {r.category_ids.length > 3 ? (
+                          <span className="text-[11px]">+{r.category_ids.length - 3}</span>
+                        ) : null}
+                      </div>
+                    ) : r.category ? (
+                      <span className="text-xs italic">{r.category}</span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.status} />
                   </td>
