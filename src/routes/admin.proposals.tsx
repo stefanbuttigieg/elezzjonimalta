@@ -274,10 +274,11 @@ function ProposalEditor({
         candidate_id: v.candidate_id || null,
         status: v.status,
         source_url: v.source_url || null,
+        custom_fields: v.custom_fields ?? {},
       };
       const { error } = isNew
-        ? await supabase.from("proposals").insert(payload)
-        : await supabase.from("proposals").update(payload).eq("id", v.id);
+        ? await supabase.from("proposals").insert(payload as never)
+        : await supabase.from("proposals").update(payload as never).eq("id", v.id);
       if (error) throw error;
       toast.success(isNew ? "Proposal created" : "Proposal updated");
       onSaved();
