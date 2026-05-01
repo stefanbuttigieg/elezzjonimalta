@@ -63,6 +63,7 @@ function VotingFaqsAdmin() {
   const [editing, setEditing] = useState<Faq | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
