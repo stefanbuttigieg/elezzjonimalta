@@ -292,33 +292,22 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
         existingMap.set(k, { id: e.id, content_hash: e.content_hash });
       }
 
-      // Decide which need (re)embedding
-      const toEmbed: typeof withHash = [];
+      // Decide which need (re)writing
+      const toWrite: typeof withHash = [];
       const fresh = new Set<string>();
       for (const b of withHash) {
         const k = `${b.entity_id ?? "_"}::${b.external_ref ?? "_"}`;
         fresh.add(k);
         const prior = existingMap.get(k);
         if (!prior || prior.content_hash !== b.content_hash) {
-          toEmbed.push(b);
+          toWrite.push(b);
         } else {
           unchanged += 1;
         }
       }
 
-      // Embed in batches of 50
-      const BATCH = 50;
-      const embeddings: number[][] = [];
-      for (let i = 0; i < toEmbed.length; i += BATCH) {
-        const batch = toEmbed.slice(i, i + BATCH);
-        const vecs = await embedTexts(batch.map((b) => b.content), embeddingModel);
-        embeddings.push(...vecs);
-      }
-
-      // Upsert
-      for (let i = 0; i < toEmbed.length; i += 1) {
-        const b = toEmbed[i];
-        const vec = toPgVector(embeddings[i]);
+      // Upsert (no embeddings — retrieval uses Postgres full-text search)
+      for (const b of toWrite) {
         const k = `${b.entity_id ?? "_"}::${b.external_ref ?? "_"}`;
         const prior = existingMap.get(k);
         if (prior) {
@@ -329,7 +318,6 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
               content: b.content,
               url: b.url,
               metadata: b.metadata as never,
-              embedding: vec as unknown as never,
               content_hash: b.content_hash,
             })
             .eq("id", prior.id);
@@ -345,7 +333,6 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
             content: b.content,
             url: b.url,
             metadata: b.metadata as never,
-            embedding: vec as unknown as never,
             content_hash: b.content_hash,
           });
           if (error) throw new Error(error.message);
