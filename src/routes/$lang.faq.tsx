@@ -64,11 +64,17 @@ function FaqPage() {
     };
   }, []);
 
-  const get = (r: Faq) => {
-    if (locale === "mt" && r.question_mt && r.answer_mt) {
-      return { question: r.question_mt, answer: r.answer_mt };
+  const get = (r: Faq): { question: string; answer: string } | null => {
+    // Prefer the requested locale; fall back to the other language if missing
+    // (rows can now be MT-only until staff translate them on demand).
+    if (locale === "mt") {
+      if (r.question_mt && r.answer_mt) return { question: r.question_mt, answer: r.answer_mt };
+      if (r.question_en && r.answer_en) return { question: r.question_en, answer: r.answer_en };
+      return null;
     }
-    return { question: r.question_en, answer: r.answer_en };
+    if (r.question_en && r.answer_en) return { question: r.question_en, answer: r.answer_en };
+    if (r.question_mt && r.answer_mt) return { question: r.question_mt, answer: r.answer_mt };
+    return null;
   };
 
   const filtered = useMemo(() => {
