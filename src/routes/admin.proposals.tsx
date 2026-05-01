@@ -367,6 +367,11 @@ function ProposalEditor({
         At least one of <span className="font-semibold">linked party</span> or{" "}
         <span className="font-semibold">linked candidate</span> is required.
       </p>
+      <CustomFieldsSection
+        entityType="proposal"
+        values={(v.custom_fields ?? {}) as Record<string, unknown>}
+        onChange={(next) => setV({ ...v, custom_fields: next })}
+      />
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );
