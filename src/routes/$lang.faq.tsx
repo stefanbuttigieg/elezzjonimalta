@@ -77,18 +77,26 @@ function FaqPage() {
     return null;
   };
 
+  // Skip rows that have no renderable content for either language.
+  const displayableRows = useMemo(
+    () => rows.filter((r) => get(r) !== null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, locale],
+  );
+
   const filtered = useMemo(() => {
-    if (!q) return rows;
+    if (!q) return displayableRows;
     const needle = q.toLowerCase();
-    return rows.filter((r) => {
-      const { question, answer } = get(r);
+    return displayableRows.filter((r) => {
+      const got = get(r);
+      if (!got) return false;
       return (
-        question.toLowerCase().includes(needle) ||
-        answer.toLowerCase().includes(needle)
+        got.question.toLowerCase().includes(needle) ||
+        got.answer.toLowerCase().includes(needle)
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, q, locale]);
+  }, [displayableRows, q, locale]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, { label: string; url: string; items: Faq[] }>();
