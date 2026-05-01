@@ -65,9 +65,9 @@ async function loadLandingStats(): Promise<LandingStats> {
         .eq("candidate.electoral_confirmed", true),
     ]);
 
-  const numberById = new Map<string, number>();
+  const numberById: Record<string, number> = {};
   for (const d of (districtRows.data ?? []) as Array<{ id: string; number: number }>) {
-    numberById.set(d.id, d.number);
+    numberById[d.id] = d.number;
   }
   const districtCandidateCounts: Record<number, number> = {};
   for (const row of (candDistricts.data ?? []) as Array<{ district_id: string }>) {
