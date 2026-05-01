@@ -52,6 +52,7 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   const startFn = useServerFn(startManifestoImport);
   const applyFn = useServerFn(applyManifestoImport);
   const uploadUrlFn = useServerFn(createManifestoUploadUrl);
+  const pdfUrlFn = useServerFn(getManifestoPdfUrl);
 
   const [partyId, setPartyId] = useState<string>("");
   const [sourceMode, setSourceMode] = useState<"url" | "upload">("url");
