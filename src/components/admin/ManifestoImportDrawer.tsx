@@ -65,6 +65,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   const [importId, setImportId] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<RowDecision[]>([]);
   const [applying, setApplying] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const { row, error: pollError } = useManifestoImport(importId);
 
