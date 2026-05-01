@@ -215,6 +215,60 @@ function CandidatesAdmin() {
           <option value="published">Published</option>
           <option value="archived">Archived</option>
         </select>
+        <select
+          value={partyFilter}
+          onChange={(e) => setPartyFilter(e.target.value)}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="all">All parties</option>
+          <option value="none">No party (independent)</option>
+          {parties.map((p) => (
+            <option key={p.id} value={p.id}>{p.name_en}</option>
+          ))}
+        </select>
+        <select
+          value={districtFilter}
+          onChange={(e) => setDistrictFilter(e.target.value)}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="all">All districts</option>
+          <option value="none">No primary district</option>
+          {districts.map((d) => (
+            <option key={d.id} value={d.id}>{d.number} · {d.name_en}</option>
+          ))}
+        </select>
+        <select
+          value={leadershipFilter}
+          onChange={(e) => setLeadershipFilter(e.target.value as typeof leadershipFilter)}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="all">Any leadership</option>
+          <option value="any">Leader or Deputy</option>
+          <option value="leader">Leader only</option>
+          <option value="deputy_leader">Deputy Leader only</option>
+          <option value="none">No leadership role</option>
+        </select>
+        <select
+          value={flagFilter}
+          onChange={(e) => setFlagFilter(e.target.value as typeof flagFilter)}
+          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="all">Any flag</option>
+          <option value="mp">Sitting MP</option>
+          <option value="news">Confirmed via news</option>
+          <option value="commission">Confirmed by Commission</option>
+          <option value="unconfirmed">Unconfirmed</option>
+          <option value="not_contesting">Not contesting 2026</option>
+        </select>
+        {filtersActive ? (
+          <button
+            onClick={resetFilters}
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+          >
+            Clear filters
+          </button>
+        ) : null}
+        <span className="text-xs text-muted-foreground">{filtered.length} of {rows.length}</span>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
