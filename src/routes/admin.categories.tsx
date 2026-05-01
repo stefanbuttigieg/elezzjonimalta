@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerActions, Field, Input } from "@/routes/admin.parties";
+import { usePersistentEditor } from "@/lib/admin";
 import { Plus, Pencil, Trash2, Search, Tag } from "lucide-react";
 import { toast } from "sonner";
 
