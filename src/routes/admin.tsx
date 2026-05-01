@@ -28,6 +28,7 @@ import {
   History,
   Tag,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Sheet,
@@ -63,6 +64,7 @@ const items: NavItem[] = [
   { to: "/admin/assistant", label: "AI Assistant", icon: Sparkles },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/custom-fields", label: "Custom fields", icon: FileText },
+  { to: "/admin/disclaimers", label: "Disclaimers", icon: AlertTriangle },
   { to: "/admin/audit", label: "Audit log", icon: History },
   { to: "/admin/api-logs", label: "API logs", icon: Activity },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
