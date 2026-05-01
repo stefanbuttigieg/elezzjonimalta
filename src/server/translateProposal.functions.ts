@@ -216,7 +216,12 @@ export const translateMissingProposals = createServerFn({ method: "POST" })
       for (const row of slice) {
         try {
           const out = await aiTranslate(row);
-          const updates: Record<string, string | null> = {};
+          const updates: {
+            title_en?: string;
+            title_mt?: string;
+            description_en?: string;
+            description_mt?: string;
+          } = {};
           const filled: string[] = [];
           if (!row.title_en?.trim() && out.title_en) {
             updates.title_en = out.title_en;
