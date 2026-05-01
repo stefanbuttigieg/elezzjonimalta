@@ -943,7 +943,24 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     e.preventDefault();
     setSubmitting(true);
     try {
-      await onSubmit(target, form);
+      if (target === "new_proposal") {
+        const cleaned = proposals
+          .map((r) => ({
+            title_en: r.title_en.trim(),
+            description_en: r.description_en.trim(),
+            category: r.category.trim(),
+            party_id: r.party_id,
+            candidate_id: r.candidate_id,
+          }))
+          .filter((r) => r.title_en.length > 0);
+        if (cleaned.length === 0) {
+          toast.error("Add at least one proposal title");
+          return;
+        }
+        await onSubmit(target, { proposals: cleaned });
+      } else {
+        await onSubmit(target, form);
+      }
     } finally {
       setSubmitting(false);
     }
