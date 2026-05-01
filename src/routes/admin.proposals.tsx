@@ -13,7 +13,7 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
 import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
-import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages, Sparkles, Check } from "lucide-react";
 import { ManifestoImportDrawer } from "@/components/admin/ManifestoImportDrawer";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
@@ -22,6 +22,7 @@ import {
   translateProposalDraft,
   translateMissingProposals,
 } from "@/server/translateProposal.functions";
+import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
@@ -48,6 +49,7 @@ interface Proposal {
   description_en: string | null;
   description_mt: string | null;
   category: string | null;
+  category_ids: string[];
   party_id: string | null;
   candidate_id: string | null;
   status: ReviewStatus;
@@ -68,6 +70,7 @@ const empty: Proposal = {
   description_en: "",
   description_mt: "",
   category: "",
+  category_ids: [],
   party_id: null,
   candidate_id: null,
   status: "pending_review",
@@ -137,21 +140,45 @@ function ProposalsAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes, categoriesRes] = await Promise.all([
-      supabase
-        .from("proposals")
-        .select(
-          "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
-        )
-        .order("created_at", { ascending: false }),
-      supabase.from("parties").select("id, name_en, short_name").order("name_en"),
-      supabase.from("candidates").select("id, full_name").order("full_name"),
-      supabase.from("proposal_categories").select("id, name_en").order("sort_order").order("name_en"),
-    ]);
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
+      await Promise.all([
+        supabase
+          .from("proposals")
+          .select(
+            "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
+          )
+          .order("created_at", { ascending: false }),
+        supabase.from("parties").select("id, name_en, short_name").order("name_en"),
+        supabase.from("candidates").select("id, full_name").order("full_name"),
+        supabase
+          .from("proposal_categories")
+          .select("id, name_en")
+          .order("sort_order")
+          .order("name_en"),
+        supabase
+          .from("proposal_category_assignments")
+          .select("proposal_id, category_id"),
+      ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
     if (candidatesRes.error) toast.error(candidatesRes.error.message);
-    setRows((proposalsRes.data ?? []) as Proposal[]);
+    if (assignmentsRes.error) toast.error(assignmentsRes.error.message);
+    const assignmentsByProposal = new Map<string, string[]>();
+    for (const a of (assignmentsRes.data ?? []) as Array<{
+      proposal_id: string;
+      category_id: string;
+    }>) {
+      const list = assignmentsByProposal.get(a.proposal_id) ?? [];
+      list.push(a.category_id);
+      assignmentsByProposal.set(a.proposal_id, list);
+    }
+    const enrichedRows = ((proposalsRes.data ?? []) as Array<Record<string, unknown>>).map(
+      (r) => ({
+        ...(r as unknown as Proposal),
+        category_ids: assignmentsByProposal.get((r as { id: string }).id) ?? [],
+      })
+    );
+    setRows(enrichedRows);
     setParties((partiesRes.data ?? []) as PartyLite[]);
     setCandidates((candidatesRes.data ?? []) as CandidateLite[]);
     setCategories((categoriesRes.data ?? []) as CategoryLite[]);
@@ -315,7 +342,31 @@ function ProposalsAdmin() {
                       {!r.party && !r.candidate ? "—" : null}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{r.category ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {r.category_ids.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {r.category_ids.slice(0, 3).map((cid) => {
+                          const cat = categories.find((c) => c.id === cid);
+                          if (!cat) return null;
+                          return (
+                            <span
+                              key={cid}
+                              className="inline-flex rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium"
+                            >
+                              {cat.name_en}
+                            </span>
+                          );
+                        })}
+                        {r.category_ids.length > 3 ? (
+                          <span className="text-[11px]">+{r.category_ids.length - 3}</span>
+                        ) : null}
+                      </div>
+                    ) : r.category ? (
+                      <span className="text-xs italic">{r.category}</span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={r.status} />
                   </td>
@@ -403,6 +454,52 @@ function ProposalEditor({
   const [saving, setSaving] = useState(false);
   const [merging, setMerging] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [categorySuggestions, setCategorySuggestions] = useState<
+    Array<{
+      id: string;
+      name_en: string;
+      name_mt: string | null;
+      confidence: "high" | "medium" | "low";
+      reason: string;
+    }>
+  >([]);
+
+  const suggestCategories = async () => {
+    if (suggesting) return;
+    if (!v.title_en?.trim() && !v.description_en?.trim() && !v.title_mt?.trim()) {
+      toast.error("Add a title or description first");
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const res = await suggestProposalCategories({
+        data: {
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+          max: 3,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      setCategorySuggestions(res.suggestions);
+      if (res.suggestions.length === 0) {
+        toast.info("No matching categories — pick manually");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Suggestion failed");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const toggleCategory = (id: string) => {
+    const next = v.category_ids.includes(id)
+      ? v.category_ids.filter((x) => x !== id)
+      : [...v.category_ids, id];
+    setV({ ...v, category_ids: next });
+  };
   const isNew = !v.id;
 
   const hasTitleGap =
@@ -510,12 +607,20 @@ function ProposalEditor({
       if (!v.party_id && !v.candidate_id) {
         throw new Error("Link this proposal to a party, a candidate, or both");
       }
+      // Keep the legacy text `category` column in sync with the first selected
+      // category so existing public read paths (party, candidate, district,
+      // search, compare pages) keep showing a label until they migrate to the
+      // join table.
+      const primaryCategoryName =
+        v.category_ids.length > 0
+          ? (categories.find((c) => c.id === v.category_ids[0])?.name_en ?? null)
+          : null;
       const payload = {
         title_en: v.title_en,
         title_mt: v.title_mt || null,
         description_en: v.description_en || null,
         description_mt: v.description_mt || null,
-        category: v.category || null,
+        category: primaryCategoryName,
         party_id: v.party_id || null,
         candidate_id: v.candidate_id || null,
         status: v.status,
@@ -538,6 +643,39 @@ function ProposalEditor({
           .update(payload as never)
           .eq("id", v.id);
         if (error) throw error;
+      }
+
+      // Replace category assignments (delete missing, insert new).
+      const { data: existing, error: existErr } = await supabase
+        .from("proposal_category_assignments")
+        .select("category_id")
+        .eq("proposal_id", savedId);
+      if (existErr) throw existErr;
+      const existingIds = new Set(
+        (existing ?? []).map((r) => (r as { category_id: string }).category_id)
+      );
+      const desiredIds = new Set(v.category_ids);
+      const toDelete = [...existingIds].filter((id) => !desiredIds.has(id));
+      const toInsert = v.category_ids
+        .map((id, idx) => ({
+          proposal_id: savedId,
+          category_id: id,
+          sort_order: idx,
+        }))
+        .filter((r) => !existingIds.has(r.category_id));
+      if (toDelete.length > 0) {
+        const { error: delErr } = await supabase
+          .from("proposal_category_assignments")
+          .delete()
+          .eq("proposal_id", savedId)
+          .in("category_id", toDelete);
+        if (delErr) throw delErr;
+      }
+      if (toInsert.length > 0) {
+        const { error: insErr } = await supabase
+          .from("proposal_category_assignments")
+          .insert(toInsert as never);
+        if (insErr) throw insErr;
       }
       // Write audit log entry (best-effort, non-blocking)
       try {
@@ -600,22 +738,101 @@ function ProposalEditor({
             onChange={(x) => setV({ ...v, description_mt: x })}
           />
         </Field>
-        <Field label="Category">
-          <select
-            value={v.category ?? ""}
-            onChange={(e) => setV({ ...v, category: e.target.value || null })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">— None —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.name_en}>
-                {c.name_en}
-              </option>
-            ))}
-            {v.category && !categories.some((c) => c.name_en === v.category) ? (
-              <option value={v.category}>{v.category} (legacy)</option>
+        <Field label="Categories" full>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Pick one or more. The first selected becomes the primary label.
+              </p>
+              <button
+                type="button"
+                onClick={suggestCategories}
+                disabled={suggesting}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {suggesting ? "Suggesting…" : "AI suggest"}
+              </button>
+            </div>
+
+            {categorySuggestions.length > 0 ? (
+              <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
+                <p className="mb-2 text-xs font-semibold text-foreground">
+                  Suggestions
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {categorySuggestions.map((s) => {
+                    const selected = v.category_ids.includes(s.id);
+                    return (
+                      <button
+                        type="button"
+                        key={s.id}
+                        onClick={() => toggleCategory(s.id)}
+                        title={s.reason || undefined}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background hover:bg-accent"
+                        }`}
+                      >
+                        <span>{s.name_en}</span>
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-[10px] uppercase ${
+                            selected
+                              ? "bg-primary-foreground/20"
+                              : s.confidence === "high"
+                                ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                                : s.confidence === "medium"
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                  : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {s.confidence}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             ) : null}
-          </select>
+
+            <div className="flex flex-wrap gap-2 rounded-md border border-border bg-background p-2">
+              {categories.length === 0 ? (
+                <p className="px-1 py-1 text-xs text-muted-foreground">
+                  No categories defined yet — add some in the Categories admin page.
+                </p>
+              ) : (
+                categories.map((c) => {
+                  const selected = v.category_ids.includes(c.id);
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => toggleCategory(c.id)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                        selected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:bg-accent"
+                      }`}
+                    >
+                      {selected ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Plus className="h-3 w-3" />
+                      )}
+                      {c.name_en}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {v.category && !categories.some((c) => c.id === v.category_ids[0]) && v.category_ids.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Legacy category text: <span className="font-medium">{v.category}</span>
+              </p>
+            ) : null}
+          </div>
         </Field>
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
