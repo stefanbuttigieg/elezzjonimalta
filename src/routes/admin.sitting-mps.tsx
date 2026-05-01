@@ -245,6 +245,7 @@ function SittingMpsAdmin() {
                       <div className="font-medium text-foreground">{r.full_name}</div>
                       <Link
                         to="/admin/candidates"
+                        search={{ edit: r.id }}
                         className="text-xs text-muted-foreground hover:underline"
                       >
                         Open in editor
