@@ -90,10 +90,12 @@ export function CandidateStatusBadge({
   status,
   isIncumbent,
   electoralConfirmed,
+  notContesting2026 = false,
 }: {
   status: ReviewStatus;
   isIncumbent: boolean;
   electoralConfirmed: boolean;
+  notContesting2026?: boolean;
 }) {
   const base = "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ";
 
@@ -109,6 +111,16 @@ export function CandidateStatusBadge({
   }
 
   if (isIncumbent && status === "published" && !electoralConfirmed) {
+    if (notContesting2026) {
+      return (
+        <span
+          className={base + "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"}
+          title="Sitting MP flagged as not contesting the 2026 election"
+        >
+          Sitting MP · not contesting 2026
+        </span>
+      );
+    }
     return (
       <span
         className={base + "bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-100"}
