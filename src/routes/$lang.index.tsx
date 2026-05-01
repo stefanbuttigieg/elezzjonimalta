@@ -391,7 +391,7 @@ function DistrictsMapSection({
           </Link>
         </div>
         <div className="mt-6">
-          <MaltaDistrictsMap locale={lang} height={420} />
+          <MaltaDistrictsMap locale={lang} height={420} candidateCounts={candidateCounts} />
         </div>
       </div>
     </section>
