@@ -420,13 +420,13 @@ function VotingFaqsAdmin() {
             </Field>
             <Field label="Question (English)">
               <Input
-                value={editing.question_en}
+                value={editing.question_en ?? ""}
                 onChange={(v) => setEditing({ ...editing, question_en: v })}
               />
             </Field>
             <Field label="Answer (English)">
               <Textarea
-                value={editing.answer_en}
+                value={editing.answer_en ?? ""}
                 onChange={(v) => setEditing({ ...editing, answer_en: v })}
               />
             </Field>
