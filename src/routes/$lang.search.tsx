@@ -45,13 +45,18 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
   const like = `%${escapeLike(term)}%`;
 
   const [candRes, partyRes, propRes, distRes] = await Promise.all([
+    // Candidates: text match AND (published OR sitting MP). A single nested
+    // `.or()` keeps the boolean grouping unambiguous (chaining two `.or()`
+    // calls relies on PostgREST AND'ing them which can mis-rank or surprise).
     supabase
       .from("candidates")
       .select(
         "id, slug, full_name, bio_en, bio_mt, status, is_incumbent, party:parties(slug, name_en, name_mt, short_name, color)",
       )
-      .or(`full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like}`)
-      .or("status.eq.published,is_incumbent.eq.true")
+      .or(
+        `and(status.eq.published,or(full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like})),` +
+          `and(is_incumbent.eq.true,or(full_name.ilike.${like},bio_en.ilike.${like},bio_mt.ilike.${like}))`,
+      )
       .limit(40),
     supabase
       .from("parties")
@@ -72,7 +77,7 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
       .or(
         `title_en.ilike.${like},title_mt.ilike.${like},description_en.ilike.${like},description_mt.ilike.${like},category.ilike.${like}`,
       )
-      .limit(40),
+      .limit(80),
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt")
@@ -82,6 +87,11 @@ async function runSearch(q: string, locale: Locale): Promise<SearchResult[]> {
       )
       .limit(20),
   ]);
+
+  if (candRes.error) console.error("[search] candidates", candRes.error);
+  if (partyRes.error) console.error("[search] parties", partyRes.error);
+  if (propRes.error) console.error("[search] proposals", propRes.error);
+  if (distRes.error) console.error("[search] districts", distRes.error);
 
   const results: SearchResult[] = [];
 
