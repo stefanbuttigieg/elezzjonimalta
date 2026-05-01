@@ -381,6 +381,13 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.welcomeBack.cta": "Open my district",
     "home.welcomeBack.clear": "Change",
 
+    "home.eligibility.eyebrow": "Before you vote",
+    "home.eligibility.title": "Check if you're on the electoral register",
+    "home.eligibility.desc":
+      "Confirm your voting eligibility and polling details on the official Electoral Commission register.",
+    "home.eligibility.cta": "Check eligibility",
+    "home.eligibility.note": "You'll be redirected to electoral.gov.mt — the official source.",
+
     "myDistrict.eyebrow": "Your district",
     "myDistrict.heading": "District {number} — {name}",
     "myDistrict.changeDistrict": "Change district",
@@ -809,6 +816,13 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.welcomeBack": "Merħba lura — id-distrett tiegħek hu {number}.",
     "home.welcomeBack.cta": "Iftaħ id-distrett tiegħi",
     "home.welcomeBack.clear": "Ibdel",
+
+    "home.eligibility.eyebrow": "Qabel ma tivvota",
+    "home.eligibility.title": "Iċċekkja jekk intix fir-reġistru elettorali",
+    "home.eligibility.desc":
+      "Ikkonferma l-eliġibbiltà tal-vot u d-dettalji tal-kabina tal-vot fir-reġistru uffiċjali tal-Kummissjoni Elettorali.",
+    "home.eligibility.cta": "Iċċekkja l-eliġibbiltà",
+    "home.eligibility.note": "Tiġi indirizzat lejn electoral.gov.mt — is-sors uffiċjali.",
 
     "myDistrict.eyebrow": "Id-distrett tiegħek",
     "myDistrict.heading": "Distrett {number} — {name}",
