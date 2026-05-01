@@ -360,9 +360,11 @@ function StatsSection({
 function DistrictsMapSection({
   lang,
   t,
+  candidateCounts,
 }: {
   lang: Locale;
   t: (k: string, v?: Record<string, string | number>) => string;
+  candidateCounts?: Record<number, number>;
 }) {
   return (
     <section className="border-b border-border bg-background">
