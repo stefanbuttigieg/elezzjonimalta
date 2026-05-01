@@ -111,14 +111,32 @@ function ProposalsAdmin() {
 
   const filtered = useMemo(
     () =>
-      rows.filter((r) =>
-        q
-          ? `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
-              .toLowerCase()
-              .includes(q.toLowerCase())
-          : true
-      ),
-    [rows, q]
+      rows.filter((r) => {
+        if (!showMerged && r.merged_into_id) return false;
+        if (!q) return true;
+        return `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
+          .toLowerCase()
+          .includes(q.toLowerCase());
+      }),
+    [rows, q, showMerged]
+  );
+
+  const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
+  // Lightweight pool used for in-editor duplicate suggestions
+  const dupePool = useMemo(
+    () =>
+      rows.map((r) => ({
+        id: r.id,
+        title_en: r.title_en,
+        title_mt: r.title_mt,
+        description_en: r.description_en,
+        description_mt: r.description_mt,
+        party_id: r.party_id,
+        candidate_id: r.candidate_id,
+        status: r.status,
+        merged_into_id: r.merged_into_id,
+      })),
+    [rows]
   );
 
   return (
