@@ -9,6 +9,7 @@ import {
   reprocessFinding,
   convertFinding,
   scanUrlNow,
+  autofillFindingForm,
 } from "@/server/newsScan.functions";
 import { toast } from "sonner";
 import {
