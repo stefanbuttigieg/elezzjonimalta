@@ -10,6 +10,7 @@ import {
   StatusSelect,
   Textarea,
 } from "@/routes/admin.parties";
+import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { Plus, Pencil, Trash2, Search, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ interface Proposal {
   candidate_id: string | null;
   status: ReviewStatus;
   source_url: string | null;
+  custom_fields: Record<string, unknown>;
   party?: PartyLite | null;
   candidate?: CandidateLite | null;
 }
@@ -57,6 +59,7 @@ const empty: Proposal = {
   candidate_id: null,
   status: "pending_review",
   source_url: "",
+  custom_fields: {},
 };
 
 function ProposalsAdmin() {
@@ -271,10 +274,11 @@ function ProposalEditor({
         candidate_id: v.candidate_id || null,
         status: v.status,
         source_url: v.source_url || null,
+        custom_fields: v.custom_fields ?? {},
       };
       const { error } = isNew
-        ? await supabase.from("proposals").insert(payload)
-        : await supabase.from("proposals").update(payload).eq("id", v.id);
+        ? await supabase.from("proposals").insert(payload as never)
+        : await supabase.from("proposals").update(payload as never).eq("id", v.id);
       if (error) throw error;
       toast.success(isNew ? "Proposal created" : "Proposal updated");
       onSaved();
@@ -363,6 +367,11 @@ function ProposalEditor({
         At least one of <span className="font-semibold">linked party</span> or{" "}
         <span className="font-semibold">linked candidate</span> is required.
       </p>
+      <CustomFieldsSection
+        entityType="proposal"
+        values={(v.custom_fields ?? {}) as Record<string, unknown>}
+        onChange={(next) => setV({ ...v, custom_fields: next })}
+      />
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );

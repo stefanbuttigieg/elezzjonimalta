@@ -12,6 +12,7 @@ import {
   StatusSelect,
   Textarea,
 } from "./admin.parties";
+import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 
 type CandidatesSearch = { edit?: string };
 
@@ -52,6 +53,7 @@ interface Candidate {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  custom_fields: Record<string, unknown>;
 }
 
 interface PartyOpt { id: string; name_en: string; }
@@ -86,6 +88,7 @@ const empty: Candidate = {
   not_contesting_source_url: "",
   not_contesting_note_en: "",
   not_contesting_note_mt: "",
+  custom_fields: {},
 };
 
 function CandidatesAdmin() {
@@ -489,12 +492,13 @@ function CandidateEditor({
         not_contesting_source_url: v.not_contesting_source_url || null,
         not_contesting_note_en: v.not_contesting_note_en || null,
         not_contesting_note_mt: v.not_contesting_note_mt || null,
+        custom_fields: v.custom_fields ?? {},
       };
       let candidateId = v.id;
       if (isNew) {
         const { data, error } = await supabase
           .from("candidates")
-          .insert(payload)
+          .insert(payload as never)
           .select("id")
           .single();
         if (error) throw error;
@@ -502,7 +506,7 @@ function CandidateEditor({
       } else {
         const { error } = await supabase
           .from("candidates")
-          .update(payload)
+          .update(payload as never)
           .eq("id", v.id);
         if (error) throw error;
       }
@@ -747,6 +751,11 @@ function CandidateEditor({
           </>
         ) : null}
       </div>
+      <CustomFieldsSection
+        entityType="candidate"
+        values={(v.custom_fields ?? {}) as Record<string, unknown>}
+        onChange={(next) => setV({ ...v, custom_fields: next })}
+      />
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );
