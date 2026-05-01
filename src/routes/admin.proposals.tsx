@@ -237,6 +237,7 @@ function ProposalEditor({
   parties,
   candidates,
   categories,
+  onChange,
   onClose,
   onSaved,
 }: {
@@ -244,10 +245,12 @@ function ProposalEditor({
   parties: PartyLite[];
   candidates: CandidateLite[];
   categories: CategoryLite[];
+  onChange: (next: Proposal) => void;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [v, setV] = useState<Proposal>(value);
+  const v = value;
+  const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
   const isNew = !v.id;
 
