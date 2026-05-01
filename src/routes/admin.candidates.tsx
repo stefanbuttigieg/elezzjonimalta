@@ -52,6 +52,7 @@ interface Candidate {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  custom_fields: Record<string, unknown>;
 }
 
 interface PartyOpt { id: string; name_en: string; }
