@@ -124,12 +124,17 @@ function NewsMonitor() {
   const [convertFor, setConvertFor] = useState<Finding | null>(null);
   const [sourceDraft, setSourceDraft] = useState<SourceDraft | null>(null);
   const [showSourceManager, setShowSourceManager] = useState(false);
+  const [pasteUrl, setPasteUrl] = useState("");
+  const [pasteForce, setPasteForce] = useState(false);
+  const [pasteScanning, setPasteScanning] = useState(false);
+  const [pasteResult, setPasteResult] = useState<string | null>(null);
 
   const triggerFn = useServerFn(triggerNewsScan);
   const updateFn = useServerFn(updateFindingStatus);
   const ackFn = useServerFn(ackFindingAlerts);
   const reprocessFn = useServerFn(reprocessFinding);
   const convertFn = useServerFn(convertFinding);
+  const scanUrlFn = useServerFn(scanUrlNow);
 
   const load = useCallback(async () => {
     setLoading(true);
