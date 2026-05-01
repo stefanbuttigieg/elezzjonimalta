@@ -1,11 +1,12 @@
 import {
   Outlet,
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Scripts,
   Link,
   useRouterState,
 } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { installServerFnAuthInterceptor } from "@/lib/serverFnFetchInterceptor";
@@ -15,6 +16,10 @@ if (typeof window !== "undefined") {
 }
 
 import appCss from "../styles.css?url";
+
+interface RouterContext {
+  queryClient: QueryClient;
+}
 
 function NotFoundComponent() {
   return (
@@ -38,7 +43,7 @@ function NotFoundComponent() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -111,10 +116,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
   return (
-    <AuthProvider>
-      <Outlet />
-      <Toaster />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Outlet />
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
