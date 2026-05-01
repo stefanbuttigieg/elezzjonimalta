@@ -536,12 +536,20 @@ function ProposalEditor({
       if (!v.party_id && !v.candidate_id) {
         throw new Error("Link this proposal to a party, a candidate, or both");
       }
+      // Keep the legacy text `category` column in sync with the first selected
+      // category so existing public read paths (party, candidate, district,
+      // search, compare pages) keep showing a label until they migrate to the
+      // join table.
+      const primaryCategoryName =
+        v.category_ids.length > 0
+          ? (categories.find((c) => c.id === v.category_ids[0])?.name_en ?? null)
+          : null;
       const payload = {
         title_en: v.title_en,
         title_mt: v.title_mt || null,
         description_en: v.description_en || null,
         description_mt: v.description_mt || null,
-        category: v.category || null,
+        category: primaryCategoryName,
         party_id: v.party_id || null,
         candidate_id: v.candidate_id || null,
         status: v.status,
@@ -564,6 +572,39 @@ function ProposalEditor({
           .update(payload as never)
           .eq("id", v.id);
         if (error) throw error;
+      }
+
+      // Replace category assignments (delete missing, insert new).
+      const { data: existing, error: existErr } = await supabase
+        .from("proposal_category_assignments")
+        .select("category_id")
+        .eq("proposal_id", savedId);
+      if (existErr) throw existErr;
+      const existingIds = new Set(
+        (existing ?? []).map((r) => (r as { category_id: string }).category_id)
+      );
+      const desiredIds = new Set(v.category_ids);
+      const toDelete = [...existingIds].filter((id) => !desiredIds.has(id));
+      const toInsert = v.category_ids
+        .map((id, idx) => ({
+          proposal_id: savedId,
+          category_id: id,
+          sort_order: idx,
+        }))
+        .filter((r) => !existingIds.has(r.category_id));
+      if (toDelete.length > 0) {
+        const { error: delErr } = await supabase
+          .from("proposal_category_assignments")
+          .delete()
+          .eq("proposal_id", savedId)
+          .in("category_id", toDelete);
+        if (delErr) throw delErr;
+      }
+      if (toInsert.length > 0) {
+        const { error: insErr } = await supabase
+          .from("proposal_category_assignments")
+          .insert(toInsert as never);
+        if (insErr) throw insErr;
       }
       // Write audit log entry (best-effort, non-blocking)
       try {
