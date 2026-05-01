@@ -90,6 +90,7 @@ function HomePage() {
   const t = useT();
   const { lang } = Route.useParams();
   const locale: Locale = isLocale(lang) ? lang : "en";
+  const stats = Route.useLoaderData();
   const [preferred, setPreferred] = useState<PreferredDistrict | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
