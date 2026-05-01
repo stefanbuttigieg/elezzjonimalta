@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge, type ReviewStatus } from "@/lib/admin";
+import { CandidateStatusBadge, type ReviewStatus } from "@/lib/admin";
 import { CheckCircle2, Search, Rocket, XCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 
