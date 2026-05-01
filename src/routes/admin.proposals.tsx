@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
@@ -11,8 +11,10 @@ import {
   Textarea,
 } from "@/routes/admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
-import { Plus, Pencil, Trash2, Search, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers } from "lucide-react";
 import { toast } from "sonner";
+import { findDuplicates } from "@/lib/proposal-dedupe";
+import { mergeProposals } from "@/lib/proposal-merge";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
