@@ -22,6 +22,7 @@ import {
   AlertCircle,
   RefreshCw,
   Wand2,
+  Sparkles,
   X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
