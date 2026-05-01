@@ -381,6 +381,47 @@ function NewsMonitor() {
         </p>
       </details>
 
+      <section className="mt-6 rounded-xl border border-border bg-surface p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scan a URL now</p>
+          <span className="text-[11px] text-muted-foreground">Paste any article URL → same scrape + classify pipeline</span>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            type="url"
+            value={pasteUrl}
+            onChange={(e) => setPasteUrl(e.target.value)}
+            placeholder="https://timesofmalta.com/article/..."
+            className="flex-1 min-w-[260px] rounded-md border border-border bg-background px-3 py-2 text-sm"
+            disabled={pasteScanning}
+            onKeyDown={(e) => { if (e.key === "Enter") void handlePasteScan(); }}
+          />
+          <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={pasteForce}
+              onChange={(e) => setPasteForce(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            Re-scan if seen
+          </label>
+          <button
+            onClick={handlePasteScan}
+            disabled={pasteScanning || !pasteUrl.trim()}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {pasteScanning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            {pasteScanning ? "Scanning…" : "Scan URL"}
+          </button>
+        </div>
+        {pasteResult ? (
+          <p className="mt-2 text-xs text-muted-foreground">{pasteResult}</p>
+        ) : (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Bypasses the freshness gate and per-run caps. Always creates a finding so you can see the AI's verdict, even if low-confidence.
+          </p>
+        )}
+      </section>
 
       <section className="mt-6 rounded-xl border border-border bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
