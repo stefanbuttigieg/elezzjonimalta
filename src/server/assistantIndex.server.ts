@@ -1,12 +1,10 @@
 // Server-only AI Assistant indexer.
 // Pulls rows from configured sources, chunks them into citation-ready text,
-// embeds with Lovable AI's text-embedding-004, and upserts into knowledge_chunks.
-// Skips re-embedding when content_hash is unchanged.
+// and upserts into knowledge_chunks. Retrieval uses Postgres full-text search
+// (the Lovable AI gateway no longer exposes an embeddings endpoint).
+// Skips re-writing rows whose content_hash is unchanged.
 import { createHash } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const LOVABLE_EMBED_URL = "https://ai.gateway.lovable.dev/v1/embeddings";
-const EMBEDDING_DIMENSIONS = 768;
 
 export const ALL_SOURCE_KEYS = [
   "candidates",
@@ -242,52 +240,9 @@ async function buildForSource(key: SourceKey, maxItems: number): Promise<BuiltCh
   }
 }
 
-// ---------- Embeddings ----------
-
-export async function embedTexts(texts: string[], model: string): Promise<number[][]> {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
-  if (texts.length === 0) return [];
-  const res = await fetch(LOVABLE_EMBED_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ model, input: texts }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`embeddings ${res.status}: ${t.slice(0, 400)}`);
-  }
-  const body = (await res.json()) as { data?: Array<{ embedding: number[] }> };
-  const out = (body.data ?? []).map((d) => d.embedding);
-  if (out.length !== texts.length) {
-    throw new Error(`embeddings length mismatch: got ${out.length}, expected ${texts.length}`);
-  }
-  for (const v of out) {
-    if (!Array.isArray(v) || v.length !== EMBEDDING_DIMENSIONS) {
-      throw new Error(`embedding dim mismatch: expected ${EMBEDDING_DIMENSIONS}, got ${v?.length}`);
-    }
-  }
-  return out;
-}
-
-// pgvector wants `[1,2,3]` text format
-function toPgVector(v: number[]): string {
-  return "[" + v.join(",") + "]";
-}
-
 // ---------- Reindex orchestrator ----------
 
 export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResult> {
-  const { data: settings } = await supabaseAdmin
-    .from("assistant_settings")
-    .select("embedding_model")
-    .eq("singleton", true)
-    .maybeSingle();
-  const embeddingModel = settings?.embedding_model ?? "google/text-embedding-004";
-
   let sourcesQuery = supabaseAdmin.from("assistant_sources").select("*").eq("enabled", true);
   if (opts.sourceKeys && opts.sourceKeys.length > 0) {
     sourcesQuery = sourcesQuery.in("key", opts.sourceKeys);
@@ -337,33 +292,22 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
         existingMap.set(k, { id: e.id, content_hash: e.content_hash });
       }
 
-      // Decide which need (re)embedding
-      const toEmbed: typeof withHash = [];
+      // Decide which need (re)writing
+      const toWrite: typeof withHash = [];
       const fresh = new Set<string>();
       for (const b of withHash) {
         const k = `${b.entity_id ?? "_"}::${b.external_ref ?? "_"}`;
         fresh.add(k);
         const prior = existingMap.get(k);
         if (!prior || prior.content_hash !== b.content_hash) {
-          toEmbed.push(b);
+          toWrite.push(b);
         } else {
           unchanged += 1;
         }
       }
 
-      // Embed in batches of 50
-      const BATCH = 50;
-      const embeddings: number[][] = [];
-      for (let i = 0; i < toEmbed.length; i += BATCH) {
-        const batch = toEmbed.slice(i, i + BATCH);
-        const vecs = await embedTexts(batch.map((b) => b.content), embeddingModel);
-        embeddings.push(...vecs);
-      }
-
-      // Upsert
-      for (let i = 0; i < toEmbed.length; i += 1) {
-        const b = toEmbed[i];
-        const vec = toPgVector(embeddings[i]);
+      // Upsert (no embeddings — retrieval uses Postgres full-text search)
+      for (const b of toWrite) {
         const k = `${b.entity_id ?? "_"}::${b.external_ref ?? "_"}`;
         const prior = existingMap.get(k);
         if (prior) {
@@ -374,7 +318,6 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
               content: b.content,
               url: b.url,
               metadata: b.metadata as never,
-              embedding: vec as unknown as never,
               content_hash: b.content_hash,
             })
             .eq("id", prior.id);
@@ -390,7 +333,6 @@ export async function runReindex(opts: ReindexOptions = {}): Promise<ReindexResu
             content: b.content,
             url: b.url,
             metadata: b.metadata as never,
-            embedding: vec as unknown as never,
             content_hash: b.content_hash,
           });
           if (error) throw new Error(error.message);

@@ -788,6 +788,7 @@ export type Database = {
           external_ref: string | null
           id: string
           metadata: Json
+          search_tsv: unknown
           source_key: string
           title: string | null
           updated_at: string
@@ -803,6 +804,7 @@ export type Database = {
           external_ref?: string | null
           id?: string
           metadata?: Json
+          search_tsv?: unknown
           source_key: string
           title?: string | null
           updated_at?: string
@@ -818,6 +820,7 @@ export type Database = {
           external_ref?: string | null
           id?: string
           metadata?: Json
+          search_tsv?: unknown
           source_key?: string
           title?: string | null
           updated_at?: string
@@ -1494,11 +1497,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
-      match_knowledge_chunks: {
+      search_knowledge_chunks: {
         Args: {
           match_count?: number
-          query_embedding: string
-          similarity_threshold?: number
+          query_text: string
           source_filter?: string[]
         }
         Returns: {
