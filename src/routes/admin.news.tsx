@@ -895,6 +895,37 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
         }
         return merged;
       });
+      // If the AI returned a `proposals` array, replace the proposal rows.
+      const aiProposals = (result.fields as { proposals?: unknown }).proposals;
+      if (target === "new_proposal" && Array.isArray(aiProposals) && aiProposals.length > 0) {
+        const rows: ProposalRow[] = (aiProposals as Array<Record<string, unknown>>).map((r) => ({
+          title_en: typeof r.title_en === "string" ? r.title_en : "",
+          description_en: typeof r.description_en === "string" ? r.description_en : "",
+          category: typeof r.category === "string" ? r.category : "",
+          party_id: typeof r.party_id === "string" ? r.party_id : "",
+          candidate_id: typeof r.candidate_id === "string" ? r.candidate_id : "",
+        })).filter((r) => r.title_en.trim().length > 0);
+        if (rows.length > 0) setProposals(rows);
+      } else if (target === "new_proposal") {
+        // Fallback: seed the first row from the merged single-form fields so
+        // the AI's single-proposal answer still shows up in the row UI.
+        setProposals((prev) => {
+          if (prev.length > 1) return prev;
+          const fields = result.fields as Record<string, unknown>;
+          const titleStr = typeof fields.title_en === "string" ? fields.title_en : "";
+          const descStr = typeof fields.description_en === "string" ? fields.description_en : "";
+          const catStr = typeof fields.category === "string" ? fields.category : "";
+          const partyStr = typeof fields.party_id === "string" ? fields.party_id : "";
+          const candStr = typeof fields.candidate_id === "string" ? fields.candidate_id : "";
+          return [{
+            title_en: titleStr || prev[0]?.title_en || "",
+            description_en: descStr || prev[0]?.description_en || "",
+            category: catStr || prev[0]?.category || "",
+            party_id: partyStr || prev[0]?.party_id || "",
+            candidate_id: candStr || prev[0]?.candidate_id || "",
+          }];
+        });
+      }
       const switched =
         result.suggestedTarget && result.suggestedTarget !== target
           ? ` AI suggests "${result.suggestedTarget.replace("_", " ")}" instead — switch tabs if that fits better.`
