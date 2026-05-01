@@ -8,6 +8,7 @@ import {
   ackFindingAlerts,
   reprocessFinding,
   convertFinding,
+  scanUrlNow,
 } from "@/server/newsScan.functions";
 import { toast } from "sonner";
 import {
