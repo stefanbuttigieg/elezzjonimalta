@@ -569,3 +569,71 @@ function ReviewTable({
     </div>
   );
 }
+
+function PdfPreviewPane({
+  pdfUrl,
+  pdfError,
+  selectedRow,
+  pageCount,
+}: {
+  pdfUrl: string | null;
+  pdfError: string | null;
+  selectedRow: RowDecision | null;
+  pageCount: number | null;
+}) {
+  const page = selectedRow?.fields.page_number ?? null;
+  // Browser PDF viewers honour #page=N; add zoom for legibility.
+  const iframeSrc = pdfUrl
+    ? `${pdfUrl}#page=${page ?? 1}&view=FitH&zoom=page-width`
+    : null;
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-2 text-xs">
+        <div className="flex items-center gap-2">
+          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="font-semibold">Source preview</span>
+          {pageCount && <span className="text-muted-foreground">· {pageCount} pages</span>}
+        </div>
+        {selectedRow ? (
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+            {page != null ? `Jumped to p. ${page}` : "No page reference"}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Select a proposal to preview</span>
+        )}
+      </div>
+
+      {selectedRow?.fields.verbatim_quote && (
+        <div className="border-b border-border bg-background px-4 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Verbatim quote to find on this page
+          </p>
+          <p className="mt-1 text-xs italic text-foreground">
+            “{selectedRow.fields.verbatim_quote}”
+          </p>
+        </div>
+      )}
+
+      <div className="flex-1 min-h-0 bg-muted">
+        {pdfError ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <p className="text-xs text-muted-foreground">{pdfError}</p>
+          </div>
+        ) : !pdfUrl ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <iframe
+            key={iframeSrc /* re-render on page change to force the viewer to jump */}
+            src={iframeSrc!}
+            title="Manifesto PDF preview"
+            className="h-full w-full border-0"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
