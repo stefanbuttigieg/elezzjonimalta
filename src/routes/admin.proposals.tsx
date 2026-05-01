@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatusBadge, deleteRow, type ReviewStatus } from "@/lib/admin";
+import { StatusBadge, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
 import {
   Drawer,
   DrawerActions,
