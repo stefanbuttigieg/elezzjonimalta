@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   applyManifestoImport,
   createManifestoUploadUrl,
+  getManifestoPdfUrl,
   startManifestoImport,
 } from "@/server/manifestoImport.functions";
 import { useManifestoImport, type ManifestoImportRow } from "@/hooks/useManifestoImport";
@@ -51,6 +52,7 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   const startFn = useServerFn(startManifestoImport);
   const applyFn = useServerFn(applyManifestoImport);
   const uploadUrlFn = useServerFn(createManifestoUploadUrl);
+  const pdfUrlFn = useServerFn(getManifestoPdfUrl);
 
   const [partyId, setPartyId] = useState<string>("");
   const [sourceMode, setSourceMode] = useState<"url" | "upload">("url");
@@ -63,6 +65,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   const [importId, setImportId] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<RowDecision[]>([]);
   const [applying, setApplying] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const { row, error: pollError } = useManifestoImport(importId);
 
@@ -77,6 +82,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
       setLanguage("en");
       setImportId(null);
       setDecisions([]);
+      setPdfUrl(null);
+      setPdfError(null);
+      setSelectedIdx(null);
     }
   }, [open]);
 
@@ -93,6 +101,25 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
       );
     }
   }, [row, decisions.length]);
+
+  // Fetch a signed URL for the archived PDF once extraction is ready.
+  useEffect(() => {
+    if (row?.status !== "ready" || !importId || pdfUrl || pdfError) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await pdfUrlFn({ data: { importId } });
+        if (cancelled) return;
+        if (res.ok) setPdfUrl(res.signedUrl);
+        else setPdfError(res.error);
+      } catch (err) {
+        if (!cancelled) setPdfError(err instanceof Error ? err.message : String(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [row?.status, importId, pdfUrl, pdfError, pdfUrlFn]);
 
   const counts = useMemo(() => {
     return decisions.reduce(
@@ -207,7 +234,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-black/40" onClick={() => onOpenChange(false)} />
-      <div className="flex h-full w-full max-w-5xl flex-col bg-background shadow-2xl">
+      <div
+        className={`flex h-full w-full flex-col bg-background shadow-2xl ${step === 3 ? "max-w-[110rem]" : "max-w-5xl"}`}
+      >
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <h2 className="font-serif text-xl font-bold">Import manifesto</h2>
@@ -222,7 +251,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div
+          className={`flex-1 ${step === 3 ? "min-h-0 overflow-hidden" : "overflow-y-auto px-6 py-6"}`}
+        >
           {step === 1 && (
             <div className="mx-auto max-w-2xl space-y-5">
               <div>
@@ -345,12 +376,26 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
           )}
 
           {step === 3 && row && (
-            <ReviewTable
-              rows={decisions}
-              onChange={setDecisions}
-              pageCount={row.page_count}
-              sourceUrl={row.source_url}
-            />
+            <div className="flex h-full min-h-0">
+              <div className="flex-1 min-w-0 overflow-y-auto px-6 py-6">
+                <ReviewTable
+                  rows={decisions}
+                  onChange={setDecisions}
+                  pageCount={row.page_count}
+                  sourceUrl={row.source_url}
+                  selectedIdx={selectedIdx}
+                  onSelect={setSelectedIdx}
+                />
+              </div>
+              <div className="hidden w-[42%] min-w-[420px] max-w-[720px] flex-col border-l border-border bg-muted/30 lg:flex">
+                <PdfPreviewPane
+                  pdfUrl={pdfUrl}
+                  pdfError={pdfError}
+                  selectedRow={selectedIdx != null ? decisions[selectedIdx] : null}
+                  pageCount={row.page_count}
+                />
+              </div>
+            </div>
           )}
         </div>
 
@@ -381,11 +426,15 @@ function ReviewTable({
   onChange,
   pageCount,
   sourceUrl,
+  selectedIdx,
+  onSelect,
 }: {
   rows: RowDecision[];
   onChange: (rows: RowDecision[]) => void;
   pageCount: number | null;
   sourceUrl: string | null;
+  selectedIdx: number | null;
+  onSelect: (idx: number | null) => void;
 }) {
   const update = (idx: number, patch: Partial<RowDecision>) => {
     const next = [...rows];
@@ -438,7 +487,15 @@ function ReviewTable({
 
       <div className="space-y-2">
         {rows.map((r, idx) => (
-          <div key={idx} className="rounded-md border border-border bg-surface p-3">
+          <div
+            key={idx}
+            onClick={() => onSelect(idx)}
+            className={`cursor-pointer rounded-md border bg-surface p-3 transition-colors ${
+              selectedIdx === idx
+                ? "border-primary ring-2 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            }`}
+          >
             <div className="flex flex-wrap items-start gap-3">
               <select
                 value={r.action}
@@ -508,6 +565,74 @@ function ReviewTable({
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function PdfPreviewPane({
+  pdfUrl,
+  pdfError,
+  selectedRow,
+  pageCount,
+}: {
+  pdfUrl: string | null;
+  pdfError: string | null;
+  selectedRow: RowDecision | null;
+  pageCount: number | null;
+}) {
+  const page = selectedRow?.fields.page_number ?? null;
+  // Browser PDF viewers honour #page=N; add zoom for legibility.
+  const iframeSrc = pdfUrl
+    ? `${pdfUrl}#page=${page ?? 1}&view=FitH&zoom=page-width`
+    : null;
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-2 text-xs">
+        <div className="flex items-center gap-2">
+          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="font-semibold">Source preview</span>
+          {pageCount && <span className="text-muted-foreground">· {pageCount} pages</span>}
+        </div>
+        {selectedRow ? (
+          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+            {page != null ? `Jumped to p. ${page}` : "No page reference"}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Select a proposal to preview</span>
+        )}
+      </div>
+
+      {selectedRow?.fields.verbatim_quote && (
+        <div className="border-b border-border bg-background px-4 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Verbatim quote to find on this page
+          </p>
+          <p className="mt-1 text-xs italic text-foreground">
+            “{selectedRow.fields.verbatim_quote}”
+          </p>
+        </div>
+      )}
+
+      <div className="flex-1 min-h-0 bg-muted">
+        {pdfError ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <p className="text-xs text-muted-foreground">{pdfError}</p>
+          </div>
+        ) : !pdfUrl ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <iframe
+            key={iframeSrc /* re-render on page change to force the viewer to jump */}
+            src={iframeSrc!}
+            title="Manifesto PDF preview"
+            className="h-full w-full border-0"
+          />
+        )}
       </div>
     </div>
   );

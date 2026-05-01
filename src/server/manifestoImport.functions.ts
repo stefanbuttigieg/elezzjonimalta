@@ -214,6 +214,42 @@ const UploadUrlInput = z.object({
   filename: z.string().trim().min(1).max(200),
 });
 
+// ---------------------------------------------------------------------------
+// 5. Signed download URL for the archived PDF — used by the review-step preview
+//    pane so staff can verify the exact pages each extracted proposal came from.
+// ---------------------------------------------------------------------------
+
+const PdfUrlInput = z.object({ importId: z.string().uuid() });
+
+export const getManifestoPdfUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => PdfUrlInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      await assertStaff(context.supabase as never);
+      const { data: row, error } = await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .select("file_path, source_kind")
+        .eq("id", data.importId)
+        .maybeSingle();
+      if (error || !row) return { ok: false as const, error: "Import not found" };
+      const r = row as { file_path: string | null; source_kind: string };
+      if (!r.file_path) {
+        return { ok: false as const, error: "No archived PDF for this import" };
+      }
+      const { data: signed, error: sErr } = await supabaseAdmin.storage
+        .from("manifestos")
+        .createSignedUrl(r.file_path, 60 * 60); // 1h
+      if (sErr || !signed) {
+        return { ok: false as const, error: sErr?.message ?? "Could not sign URL" };
+      }
+      return { ok: true as const, signedUrl: signed.signedUrl };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { ok: false as const, error: message };
+    }
+  });
+
 export const createManifestoUploadUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => UploadUrlInput.parse(input))
