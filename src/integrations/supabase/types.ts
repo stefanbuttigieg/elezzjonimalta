@@ -1066,6 +1066,47 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_sources: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          id: string
+          label: string | null
+          note: string | null
+          proposal_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          note?: string | null
+          proposal_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          note?: string | null
+          proposal_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_sources_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposals: {
         Row: {
           candidate_id: string | null
