@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, notFound } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { CookieConsentBanner } from "@/components/site/CookieConsentBanner";
+import { DisclaimerBanner } from "@/components/site/DisclaimerBanner";
 import { KeyboardShortcuts } from "@/components/site/KeyboardShortcuts";
 import { CommandPalette } from "@/components/site/CommandPalette";
 import { isLocale, LOCALE_HTML_LANG, type Locale } from "@/i18n/types";
@@ -52,6 +53,7 @@ function LangLayout() {
     <div className="flex min-h-screen flex-col overflow-x-clip">
       <SiteHeader />
       <main id="main" className="flex-1 overflow-x-clip">
+        <DisclaimerBanner placement="global" className="container mx-auto max-w-6xl px-4 pt-4" />
         <Outlet />
       </main>
       <SiteFooter />
