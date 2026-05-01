@@ -496,7 +496,8 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
         ...lookups.districts.map((d) => d.id),
         ...lookups.candidates.map((c) => c.id),
       ]);
-      const cleanedFields: Record<string, unknown> = {};
+      type FieldValue = string | Array<Record<string, string>>;
+      const cleanedFields: Record<string, FieldValue> = {};
       for (const [k, v] of Object.entries(parsed.fields)) {
         if (k === "proposals" && Array.isArray(v)) {
           // Sanitise each proposal row: drop unknown UUIDs, coerce to strings.
