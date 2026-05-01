@@ -156,10 +156,10 @@ function AssistantAdmin() {
         <summary className="cursor-pointer font-semibold text-foreground">How the index works</summary>
         <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-muted-foreground">
           <li>For each enabled source we pull rows from the database and build a citation-ready text chunk per row.</li>
-          <li>We hash the text. If it matches the existing chunk we skip — no re-embedding cost.</li>
-          <li>New / changed text is embedded with <code>{settings?.embedding_model}</code> via Lovable AI.</li>
+          <li>We hash the text. If it matches the existing chunk we skip — no re-write.</li>
+          <li>New / changed text is stored in <code>knowledge_chunks</code> and indexed by Postgres full-text search.</li>
           <li>Rows that no longer exist in the source are removed from the index.</li>
-          <li>At chat time, the user's question is embedded and the closest <code>max context chunks</code> above the similarity threshold are sent as grounding context.</li>
+          <li>At chat time, the user's question is matched against the index and the top <code>max context chunks</code> are sent as grounding context to the assistant.</li>
         </ol>
       </details>
 
