@@ -28,6 +28,63 @@ export function StatusBadge({ status }: { status: ReviewStatus }) {
   );
 }
 
+/**
+ * Candidate-specific status badge.
+ *
+ * The plain `status` column is misleading for candidates because:
+ *  - Sitting MPs are publicly visible regardless of `status` (RLS rule on `is_incumbent`).
+ *  - `status = 'published'` only means "running in 2026" when `electoral_confirmed` is also true
+ *    (electoral_confirmed is set by the sitting-MPs publish flow).
+ *
+ * This badge collapses those signals into something an admin can read at a glance.
+ */
+export function CandidateStatusBadge({
+  status,
+  isIncumbent,
+  electoralConfirmed,
+}: {
+  status: ReviewStatus;
+  isIncumbent: boolean;
+  electoralConfirmed: boolean;
+}) {
+  const base = "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ";
+
+  if (status === "published" && electoralConfirmed) {
+    return (
+      <span
+        className={base + "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100"}
+        title="Published as a 2026 candidate"
+      >
+        Published · 2026
+      </span>
+    );
+  }
+
+  if (isIncumbent && status === "published" && !electoralConfirmed) {
+    return (
+      <span
+        className={base + "bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-100"}
+        title="Visible publicly as a sitting MP, but not yet confirmed as a 2026 candidate"
+      >
+        Sitting MP · not yet 2026
+      </span>
+    );
+  }
+
+  if (isIncumbent) {
+    return (
+      <span
+        className={base + "bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-100"}
+        title={`Visible publicly as a sitting MP (review status: ${STATUS_LABEL[status]})`}
+      >
+        Sitting MP · {STATUS_LABEL[status].toLowerCase()}
+      </span>
+    );
+  }
+
+  return <StatusBadge status={status} />;
+}
+
 export function slugify(input: string) {
   return input
     .toLowerCase()
