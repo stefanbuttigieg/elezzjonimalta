@@ -565,6 +565,22 @@ function ProposalEditor({
 
   return (
     <Drawer title={isNew ? "New proposal" : `Edit: ${v.title_en}`} onClose={onClose}>
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2">
+        <p className="text-xs text-muted-foreground">
+          {canTranslate
+            ? "One language is missing — auto-translate to fill it in."
+            : "Both English and Maltese fields are populated."}
+        </p>
+        <button
+          type="button"
+          onClick={translateMissing}
+          disabled={!canTranslate || translating}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Languages className="h-3.5 w-3.5" />
+          {translating ? "Translating…" : "Translate missing"}
+        </button>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Title (EN) *" full>
           <Input value={v.title_en} onChange={(x) => setV({ ...v, title_en: x })} />
