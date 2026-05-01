@@ -102,6 +102,25 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
     }
   }, [row, decisions.length]);
 
+  // Fetch a signed URL for the archived PDF once extraction is ready.
+  useEffect(() => {
+    if (row?.status !== "ready" || !importId || pdfUrl || pdfError) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await pdfUrlFn({ data: { importId } });
+        if (cancelled) return;
+        if (res.ok) setPdfUrl(res.signedUrl);
+        else setPdfError(res.error);
+      } catch (err) {
+        if (!cancelled) setPdfError(err instanceof Error ? err.message : String(err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [row?.status, importId, pdfUrl, pdfError, pdfUrlFn]);
+
   const counts = useMemo(() => {
     return decisions.reduce(
       (acc, d) => {
