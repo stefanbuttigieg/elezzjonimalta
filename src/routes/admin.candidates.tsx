@@ -491,6 +491,7 @@ function CandidateEditor({
         not_contesting_source_url: v.not_contesting_source_url || null,
         not_contesting_note_en: v.not_contesting_note_en || null,
         not_contesting_note_mt: v.not_contesting_note_mt || null,
+        custom_fields: v.custom_fields ?? {},
       };
       let candidateId = v.id;
       if (isNew) {
