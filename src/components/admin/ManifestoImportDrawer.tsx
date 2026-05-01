@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   applyManifestoImport,
   createManifestoUploadUrl,
+  getManifestoPdfUrl,
   startManifestoImport,
 } from "@/server/manifestoImport.functions";
 import { useManifestoImport, type ManifestoImportRow } from "@/hooks/useManifestoImport";
