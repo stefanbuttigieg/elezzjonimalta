@@ -121,6 +121,8 @@ function NewsMonitor() {
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [candidates, setCandidates] = useState<CandidateOpt[]>([]);
   const [convertFor, setConvertFor] = useState<Finding | null>(null);
+  const [sourceDraft, setSourceDraft] = useState<SourceDraft | null>(null);
+  const [showSourceManager, setShowSourceManager] = useState(false);
 
   const triggerFn = useServerFn(triggerNewsScan);
   const updateFn = useServerFn(updateFindingStatus);
