@@ -234,7 +234,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   return (
     <div className="fixed inset-0 z-50 flex">
       <div className="flex-1 bg-black/40" onClick={() => onOpenChange(false)} />
-      <div className="flex h-full w-full max-w-5xl flex-col bg-background shadow-2xl">
+      <div
+        className={`flex h-full w-full flex-col bg-background shadow-2xl ${step === 3 ? "max-w-[110rem]" : "max-w-5xl"}`}
+      >
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <h2 className="font-serif text-xl font-bold">Import manifesto</h2>
