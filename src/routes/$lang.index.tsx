@@ -43,18 +43,39 @@ type LandingStats = {
   districts: number;
   sittingMps: number;
   faqs: number;
+  districtCandidateCounts: Record<number, number>;
 };
 
 async function loadLandingStats(): Promise<LandingStats> {
   const head = { count: "exact" as const, head: true };
-  const [candidates, parties, proposals, districts, sittingMps, faqs] = await Promise.all([
-    supabase.from("candidates").select("id", head).eq("status", "published").eq("electoral_confirmed", true),
-    supabase.from("parties").select("id", head).eq("status", "published"),
-    supabase.from("proposals").select("id", head).eq("status", "published").is("merged_into_id", null),
-    supabase.from("districts").select("id", head).eq("status", "published"),
-    supabase.from("candidates").select("id", head).eq("is_incumbent", true),
-    supabase.from("voting_faqs").select("id", head).eq("status", "published"),
-  ]);
+  const [candidates, parties, proposals, districts, sittingMps, faqs, districtRows, candDistricts] =
+    await Promise.all([
+      supabase.from("candidates").select("id", head).eq("status", "published").eq("electoral_confirmed", true),
+      supabase.from("parties").select("id", head).eq("status", "published"),
+      supabase.from("proposals").select("id", head).eq("status", "published").is("merged_into_id", null),
+      supabase.from("districts").select("id", head).eq("status", "published"),
+      supabase.from("candidates").select("id", head).eq("is_incumbent", true),
+      supabase.from("voting_faqs").select("id", head).eq("status", "published"),
+      supabase.from("districts").select("id, number").eq("status", "published"),
+      supabase
+        .from("candidate_districts")
+        .select("district_id, candidate:candidates!inner(status, electoral_confirmed)")
+        .eq("election_year", 2026)
+        .eq("candidate.status", "published")
+        .eq("candidate.electoral_confirmed", true),
+    ]);
+
+  const numberById: Record<string, number> = {};
+  for (const d of (districtRows.data ?? []) as Array<{ id: string; number: number }>) {
+    numberById[d.id] = d.number;
+  }
+  const districtCandidateCounts: Record<number, number> = {};
+  for (const row of (candDistricts.data ?? []) as Array<{ district_id: string }>) {
+    const num = numberById[row.district_id];
+    if (num == null) continue;
+    districtCandidateCounts[num] = (districtCandidateCounts[num] ?? 0) + 1;
+  }
+
   return {
     candidates: candidates.count ?? 0,
     parties: parties.count ?? 0,
@@ -62,6 +83,7 @@ async function loadLandingStats(): Promise<LandingStats> {
     districts: districts.count ?? 0,
     sittingMps: sittingMps.count ?? 0,
     faqs: faqs.count ?? 0,
+    districtCandidateCounts,
   };
 }
 
@@ -138,7 +160,7 @@ function HomePage() {
       <Hero lang={locale} t={t} />
       <EligibilitySection t={t} />
       <StatsSection stats={stats} lang={locale} t={t} />
-      <DistrictsMapSection lang={locale} t={t} />
+      <DistrictsMapSection lang={locale} t={t} candidateCounts={stats?.districtCandidateCounts} />
       <Principles t={t} />
       <EntryGrid lang={locale} t={t} />
     </>
@@ -338,9 +360,11 @@ function StatsSection({
 function DistrictsMapSection({
   lang,
   t,
+  candidateCounts,
 }: {
   lang: Locale;
   t: (k: string, v?: Record<string, string | number>) => string;
+  candidateCounts?: Record<number, number>;
 }) {
   return (
     <section className="border-b border-border bg-background">
@@ -367,7 +391,7 @@ function DistrictsMapSection({
           </Link>
         </div>
         <div className="mt-6">
-          <MaltaDistrictsMap locale={lang} height={420} />
+          <MaltaDistrictsMap locale={lang} height={420} candidateCounts={candidateCounts} />
         </div>
       </div>
     </section>
