@@ -464,6 +464,7 @@ function CandidatesAdmin() {
                         status={r.status}
                         isIncumbent={r.is_incumbent}
                         electoralConfirmed={r.electoral_confirmed}
+                        notContesting2026={r.not_contesting_2026}
                       />
                     </td>
                   ) : null}
