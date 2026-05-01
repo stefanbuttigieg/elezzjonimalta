@@ -137,6 +137,7 @@ function HomePage() {
       ) : null}
       <Hero lang={locale} t={t} />
       <EligibilitySection t={t} />
+      <StatsSection stats={stats} lang={locale} t={t} />
       <DistrictsMapSection lang={locale} t={t} />
       <Principles t={t} />
       <EntryGrid lang={locale} t={t} />
