@@ -58,6 +58,7 @@ const empty: Candidate = {
   primary_district_id: null,
   is_incumbent: false,
   electoral_confirmed: false,
+  commission_confirmed: false,
   bio_en: "",
   bio_mt: "",
   photo_url: "",
