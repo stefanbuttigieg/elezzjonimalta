@@ -350,10 +350,23 @@ function VotingFaqsAdmin() {
                       {items.map((r) => (
                         <tr key={r.id} className="hover:bg-accent/50">
                           <td className="px-3 py-2">
-                            <div className="font-medium text-foreground">{r.question_en}</div>
-                            <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                              {r.answer_en}
-                            </div>
+                            {r.question_en ? (
+                              <>
+                                <div className="font-medium text-foreground">{r.question_en}</div>
+                                <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                                  {r.answer_en}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="font-medium text-muted-foreground italic">
+                                  {r.question_mt ?? "—"}
+                                </div>
+                                <div className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                                  No English version yet
+                                </div>
+                              </>
+                            )}
                           </td>
                           <td className="px-3 py-2 text-xs text-muted-foreground">
                             {r.question_mt ? "✓" : "—"}
@@ -372,6 +385,20 @@ function VotingFaqsAdmin() {
                           </td>
                           <td className="px-3 py-2">
                             <div className="flex justify-end gap-1">
+                              {r.question_mt && !r.question_en ? (
+                                <button
+                                  onClick={() => void handleTranslate(r.id)}
+                                  disabled={translatingId === r.id}
+                                  className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                                  aria-label="Translate to English"
+                                  title="Translate to English"
+                                >
+                                  <Languages
+                                    className={`h-3.5 w-3.5 ${translatingId === r.id ? "animate-pulse" : ""}`}
+                                  />
+                                  {translatingId === r.id ? "Translating…" : "Translate"}
+                                </button>
+                              ) : null}
                               <button
                                 onClick={() => setEditing(r)}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
