@@ -487,7 +487,15 @@ function ReviewTable({
 
       <div className="space-y-2">
         {rows.map((r, idx) => (
-          <div key={idx} className="rounded-md border border-border bg-surface p-3">
+          <div
+            key={idx}
+            onClick={() => onSelect(idx)}
+            className={`cursor-pointer rounded-md border bg-surface p-3 transition-colors ${
+              selectedIdx === idx
+                ? "border-primary ring-2 ring-primary/30"
+                : "border-border hover:border-primary/50"
+            }`}
+          >
             <div className="flex flex-wrap items-start gap-3">
               <select
                 value={r.action}
