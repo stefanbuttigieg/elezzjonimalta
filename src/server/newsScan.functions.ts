@@ -42,6 +42,35 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
     }
   });
 
+const ScanUrlInput = z.object({
+  url: z.string().trim().url().max(2000),
+  sourceId: z.string().uuid().nullable().optional(),
+  force: z.boolean().optional(),
+});
+
+export const scanUrlNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => ScanUrlInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+      const email = (claims as { email?: string }).email ?? null;
+      const result = await scanSingleUrl({
+        url: data.url,
+        sourceId: data.sourceId ?? null,
+        force: data.force ?? false,
+        triggeredBy: userId,
+        triggeredByEmail: email,
+      });
+      return { ok: true as const, ...result };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("scanUrlNow failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
 const FindingActionInput = z.object({
   findingId: z.string().uuid(),
   action: z.enum(["dismiss", "mark_reviewed", "reopen"]),
