@@ -215,6 +215,56 @@ function NewsMonitor() {
         </button>
       </header>
 
+      <details className="mt-4 rounded-xl border border-border bg-surface p-4 text-sm">
+        <summary className="cursor-pointer font-semibold text-foreground">
+          How the sync works
+        </summary>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-muted-foreground">
+          <li>
+            <span className="font-medium text-foreground">Discover.</span> For each enabled source we ask
+            Firecrawl Search (Google-backed, restricted with <code>site:</code>) for election-related
+            articles published in the last 7 days. This avoids pulling whatever the sitemap returns first,
+            which is what was causing very old articles to keep showing up.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Dedupe by URL.</span> Any URL we have ever seen
+            (in any state — classified, dismissed, scrape-failed, even skipped-as-old) is filtered out
+            before scraping, so the same article never goes through the AI twice.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Scrape.</span> Firecrawl extracts the article
+            body as clean markdown (main content only, capped at ~6,000 characters).
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Freshness gate.</span> If the scraped article
+            has a <code>published</code> date older than 21 days, we record the URL as
+            <code> skipped_old</code> and stop — no AI cost, and we won't see it again.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Classify.</span> Lovable AI (Gemini 2.5 Flash)
+            reads the article and returns a strict JSON verdict:{" "}
+            <code>proposal</code> / <code>new_candidate</code> / <code>election_development</code> /{" "}
+            <code>not_relevant</code>, plus a confidence score, summaries, and entity hints (candidate
+            name, party, district).
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Queue for review.</span> Anything not flagged
+            as <code>not_relevant</code> with confidence ≥ 45% lands in <em>Pending</em> for staff
+            review. Reviewing, dismissing, or converting it never causes it to be re-detected — the
+            originating URL is permanently in the dedup table.
+          </li>
+        </ol>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Per-run caps: max <strong>5</strong> new articles per source, <strong>20</strong> total.
+          Manual runs and the 4× daily cron use the same pipeline.
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          <strong>Re-process</strong> on a finding sends it back to <em>Pending</em> with the alert
+          unread; it does not re-run the AI on the article.
+        </p>
+      </details>
+
+
       <section className="mt-6 rounded-xl border border-border bg-surface p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sources</p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -329,8 +379,13 @@ function NewsMonitor() {
                       Source <ExternalLink className="h-3 w-3" />
                     </a>
                   ) : null}
+                  {f.article?.published_at ? (
+                    <span className="text-[11px] text-muted-foreground">
+                      Published {new Date(f.article.published_at).toLocaleDateString()}
+                    </span>
+                  ) : null}
                   <span className="text-[11px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(f.created_at))} ago
+                    Detected {formatDistanceToNow(new Date(f.created_at))} ago
                   </span>
                 </div>
               </div>
