@@ -17,7 +17,12 @@ import {
   CheckCircle2,
   ExternalLink,
   X,
+  BarChart3,
+  Flag,
+  HelpCircle,
+  CalendarDays,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
