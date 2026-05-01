@@ -491,13 +491,13 @@ function CandidateEditor({
         not_contesting_source_url: v.not_contesting_source_url || null,
         not_contesting_note_en: v.not_contesting_note_en || null,
         not_contesting_note_mt: v.not_contesting_note_mt || null,
-        custom_fields: (v.custom_fields ?? {}) as Record<string, never>,
+        custom_fields: v.custom_fields ?? {},
       };
       let candidateId = v.id;
       if (isNew) {
         const { data, error } = await supabase
           .from("candidates")
-          .insert(payload)
+          .insert(payload as never)
           .select("id")
           .single();
         if (error) throw error;
@@ -505,7 +505,7 @@ function CandidateEditor({
       } else {
         const { error } = await supabase
           .from("candidates")
-          .update(payload)
+          .update(payload as never)
           .eq("id", v.id);
         if (error) throw error;
       }
