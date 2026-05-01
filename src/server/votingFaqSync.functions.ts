@@ -2,7 +2,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { syncAllFaqSources, syncFaqSource, FAQ_SOURCES } from "./votingFaqSync.server";
+import {
+  syncAllFaqSources,
+  syncFaqSource,
+  translateFaqRowToEnglish,
+  FAQ_SOURCES,
+} from "./votingFaqSync.server";
 import { writeAudit } from "./auditLog.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
