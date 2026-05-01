@@ -2,9 +2,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runNewsScan, scanSingleUrl } from "./newsScan.server";
+import { runNewsScan, scanSingleUrl, scrapeArticle } from "./newsScan.server";
 import { writeAudit } from "./auditLog.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 async function assertStaff(supabase: { rpc: (fn: string) => Promise<{ data: unknown; error: unknown }> }) {
   const { data, error } = await supabase.rpc("get_my_roles");
@@ -302,5 +304,182 @@ export const reprocessFinding = createServerFn({ method: "POST" })
       .update({ status: "pending", alert_seen_at: null })
       .eq("id", data.findingId);
 
-    return { ok: true };
+  });
+
+// ───────────────────────────────────────────────────────────────────────────
+// Auto-fill: ask the AI to suggest values for the Convert-to-action form.
+// Re-fetches the article markdown, sends it (plus the AI's earlier extracted
+// hints and short lookup tables for parties/districts/candidates) to Gemini,
+// and asks for a strict JSON payload. We never auto-write — the staff member
+// reviews and edits the values before pressing Create.
+// ───────────────────────────────────────────────────────────────────────────
+
+const AutofillInput = z.object({
+  findingId: z.string().uuid(),
+  target: z.enum(["new_candidate", "update_candidate", "new_proposal", "new_party"]),
+});
+
+interface AutofillSuggestion {
+  suggested_target?: "new_candidate" | "update_candidate" | "new_proposal" | "new_party";
+  reasoning?: string;
+  fields: Record<string, string>;
+}
+
+const AUTOFILL_PROMPT = `You are a strictly neutral assistant helping Maltese election-monitor staff
+turn a news article into a structured database record. Be factual, never opinionated.
+Never invent names, parties, districts, dates, or quotes that are not in the article.
+If a field is not stated in the article, return an empty string for it.
+
+You will receive:
+- the target entity type the staff picked (new_candidate / update_candidate / new_proposal / new_party)
+- the article (URL, title, markdown content)
+- earlier AI hints extracted at scan time
+- short lookup tables of EXISTING parties, districts, candidates so you can match IDs
+
+Return ONLY valid JSON with this exact shape:
+{
+  "suggested_target": "<one of: new_candidate | update_candidate | new_proposal | new_party>",
+  "reasoning": "<one short sentence explaining the choice>",
+  "fields": { "<key>": "<value>", ... }
+}
+
+Field keys per target (use empty string when unknown — do NOT omit the key):
+- new_candidate: full_name, party_id (UUID from lookup or ""), primary_district_id (UUID from lookup or ""), bio_en, notes
+- update_candidate: candidate_id (UUID from lookup, REQUIRED if you can match), party_id, primary_district_id, bio_en, notes
+- new_proposal: title_en, description_en, category, party_id, candidate_id
+- new_party: name_en, short_name, color, website, description_en
+
+Rules:
+- For *_id fields, ONLY use a UUID that appears verbatim in the lookup tables. Otherwise return "".
+- Match by exact or near-exact name (case-insensitive, ignoring punctuation/accents). Don't guess.
+- Keep description_en / bio_en / notes to 1-3 short factual sentences in English.
+- "category" should be a single short phrase (e.g. "Health", "Transport", "Energy").
+- "color" must be a #RRGGBB hex if mentioned, otherwise "".`;
+
+export const autofillFindingForm = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => AutofillInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase } = context;
+      await assertStaff(supabase as never);
+
+      const apiKey = process.env.LOVABLE_API_KEY;
+      if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+
+      // Load the finding + its article URL + the earlier AI hints.
+      const { data: finding, error: fErr } = await supabaseAdmin
+        .from("news_findings")
+        .select(
+          "id, kind, title, summary_en, summary_mt, extracted, articles:news_articles!inner(url, title)"
+        )
+        .eq("id", data.findingId)
+        .single();
+      if (fErr || !finding) throw new Error("finding not found");
+      const articleUrl = (finding as { articles?: { url?: string } }).articles?.url ?? null;
+      const articleTitle = (finding as { articles?: { title?: string } }).articles?.title ?? null;
+      if (!articleUrl) throw new Error("article URL missing");
+
+      // Re-fetch the article body for the model (truncate to keep prompt small).
+      const scraped = await scrapeArticle(articleUrl);
+      const articleBody = (scraped?.markdown ?? "").slice(0, 4500);
+
+      // Lookup tables — keep small. Names + UUIDs only.
+      const [partiesRes, districtsRes, candidatesRes] = await Promise.all([
+        supabaseAdmin.from("parties").select("id, name_en, short_name").limit(50),
+        supabaseAdmin.from("districts").select("id, number, name_en").order("number").limit(20),
+        supabaseAdmin.from("candidates").select("id, full_name").order("full_name").limit(400),
+      ]);
+
+      const lookups = {
+        parties: (partiesRes.data ?? []).map((p) => ({
+          id: p.id,
+          name: p.name_en,
+          short: p.short_name,
+        })),
+        districts: (districtsRes.data ?? []).map((d) => ({
+          id: d.id,
+          label: `${d.number} · ${d.name_en}`,
+        })),
+        candidates: (candidatesRes.data ?? []).map((c) => ({
+          id: c.id,
+          name: c.full_name,
+        })),
+      };
+
+      const userMessage = [
+        `TARGET: ${data.target}`,
+        `ARTICLE_URL: ${articleUrl}`,
+        `ARTICLE_TITLE: ${scraped?.title ?? articleTitle ?? finding.title ?? ""}`,
+        `EARLIER_AI_KIND: ${finding.kind}`,
+        `EARLIER_AI_TITLE: ${finding.title ?? ""}`,
+        `EARLIER_AI_SUMMARY_EN: ${finding.summary_en ?? ""}`,
+        `EARLIER_AI_HINTS: ${JSON.stringify(finding.extracted ?? {})}`,
+        ``,
+        `LOOKUPS (use UUIDs verbatim or return ""):`,
+        JSON.stringify(lookups),
+        ``,
+        `ARTICLE_CONTENT:`,
+        articleBody || "(article content could not be re-fetched — work from the AI hints above)",
+      ].join("\n");
+
+      const res = await fetch(LOVABLE_AI_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: AUTOFILL_PROMPT },
+            { role: "user", content: userMessage },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`AI gateway ${res.status}: ${txt.slice(0, 200)}`);
+      }
+      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const raw = json.choices?.[0]?.message?.content ?? "";
+      let parsed: AutofillSuggestion;
+      try {
+        parsed = JSON.parse(raw) as AutofillSuggestion;
+      } catch {
+        throw new Error("AI returned invalid JSON");
+      }
+      if (!parsed.fields || typeof parsed.fields !== "object") {
+        parsed = { ...parsed, fields: {} };
+      }
+
+      // Defensive: validate UUID-shaped values against the lookup tables to
+      // strip any AI hallucinations before they hit the form.
+      const validIds = new Set<string>([
+        ...lookups.parties.map((p) => p.id),
+        ...lookups.districts.map((d) => d.id),
+        ...lookups.candidates.map((c) => c.id),
+      ]);
+      const cleanedFields: Record<string, string> = {};
+      for (const [k, v] of Object.entries(parsed.fields)) {
+        const value = typeof v === "string" ? v : "";
+        if (k.endsWith("_id") && value && !validIds.has(value)) {
+          cleanedFields[k] = "";
+        } else {
+          cleanedFields[k] = value;
+        }
+      }
+
+      return {
+        ok: true as const,
+        suggestedTarget: parsed.suggested_target ?? null,
+        reasoning: parsed.reasoning ?? "",
+        fields: cleanedFields,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("autofillFindingForm failed:", message);
+      return { ok: false as const, error: message };
+    }
   });

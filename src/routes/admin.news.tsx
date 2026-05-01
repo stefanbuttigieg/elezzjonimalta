@@ -9,6 +9,7 @@ import {
   reprocessFinding,
   convertFinding,
   scanUrlNow,
+  autofillFindingForm,
 } from "@/server/newsScan.functions";
 import { toast } from "sonner";
 import {
@@ -21,6 +22,7 @@ import {
   AlertCircle,
   RefreshCw,
   Wand2,
+  Sparkles,
   X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -821,6 +823,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
         : "new_proposal";
   const [target, setTarget] = useState<ConvertTarget>(defaultTarget);
   const [submitting, setSubmitting] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
+  const [autofillNote, setAutofillNote] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({
     full_name: ex.candidate_name ?? "",
     title_en: finding.title ?? "",
@@ -830,6 +834,40 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     notes: finding.summary_en ?? "",
   });
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+  const autofillFn = useServerFn(autofillFindingForm);
+
+  const runAutofill = async () => {
+    setAutofilling(true);
+    setAutofillNote(null);
+    try {
+      const result = await autofillFn({ data: { findingId: finding.id, target } });
+      if (!result.ok) {
+        toast.error(`Auto-fill failed: ${result.error}`);
+        return;
+      }
+      // Merge AI suggestions into the form, preferring AI values when non-empty
+      // but never wiping a value the user already typed.
+      setForm((prev) => {
+        const merged = { ...prev };
+        for (const [k, v] of Object.entries(result.fields)) {
+          if (typeof v === "string" && v.trim().length > 0) {
+            merged[k] = v;
+          }
+        }
+        return merged;
+      });
+      const switched =
+        result.suggestedTarget && result.suggestedTarget !== target
+          ? ` AI suggests "${result.suggestedTarget.replace("_", " ")}" instead — switch tabs if that fits better.`
+          : "";
+      setAutofillNote((result.reasoning || "Form populated from the article.") + switched);
+      toast.success("Auto-filled from article");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Auto-fill failed");
+    } finally {
+      setAutofilling(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -880,6 +918,22 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
               {label}
             </button>
           ))}
+        </div>
+
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-dashed border-border bg-muted/30 p-3">
+          <button
+            type="button"
+            onClick={runAutofill}
+            disabled={autofilling}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Sparkles className={"h-3.5 w-3.5 " + (autofilling ? "animate-pulse" : "")} />
+            {autofilling ? "Reading article…" : "Auto-fill with AI"}
+          </button>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            {autofillNote ??
+              "Re-reads the source article and populates the form below for the selected entity type. Always review before saving."}
+          </p>
         </div>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
