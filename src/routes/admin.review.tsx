@@ -91,6 +91,7 @@ function ReviewQueue() {
                 <div className="flex flex-wrap gap-2">
                   <Link
                     to="/admin/candidates"
+                    search={{ edit: r.id }}
                     className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-accent"
                   >
                     Open in editor
