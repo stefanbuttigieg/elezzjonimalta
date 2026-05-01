@@ -13,11 +13,15 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
 import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
-import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages } from "lucide-react";
 import { ManifestoImportDrawer } from "@/components/admin/ManifestoImportDrawer";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
 import { mergeProposals } from "@/lib/proposal-merge";
+import {
+  translateProposalDraft,
+  translateMissingProposals,
+} from "@/server/translateProposal.functions";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
@@ -85,6 +89,51 @@ function ProposalsAdmin() {
   const [manifestoOpen, setManifestoOpen] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
+  const [bulkTranslating, setBulkTranslating] = useState(false);
+
+  const missingTranslationCount = useMemo(
+    () =>
+      rows.filter((r) => {
+        if (r.merged_into_id) return false;
+        const enHas = !!(r.title_en?.trim() || r.description_en?.trim());
+        const mtHas = !!(r.title_mt?.trim() || r.description_mt?.trim());
+        const titleGap =
+          (!!r.title_en?.trim() && !r.title_mt?.trim()) ||
+          (!!r.title_mt?.trim() && !r.title_en?.trim());
+        const descGap =
+          (!!r.description_en?.trim() && !r.description_mt?.trim()) ||
+          (!!r.description_mt?.trim() && !r.description_en?.trim());
+        return (enHas || mtHas) && (titleGap || descGap);
+      }).length,
+    [rows]
+  );
+
+  const runBulkTranslate = async () => {
+    if (bulkTranslating) return;
+    if (
+      !confirm(
+        `Auto-translate up to 25 proposals with missing EN or MT text? (${missingTranslationCount} eligible)`
+      )
+    )
+      return;
+    setBulkTranslating(true);
+    try {
+      const res = await translateMissingProposals({ data: { limit: 25 } });
+      if (!res.ok) throw new Error(res.error);
+      const ok = res.results.filter((r) => r.ok).length;
+      const failed = res.results.filter((r) => !r.ok).length;
+      toast.success(
+        `Translated ${ok} proposal${ok === 1 ? "" : "s"}` +
+          (failed > 0 ? ` (${failed} failed)` : "") +
+          (res.eligible > res.processed ? ` — ${res.eligible - res.processed} more pending` : "")
+      );
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk translation failed");
+    } finally {
+      setBulkTranslating(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -193,9 +242,24 @@ function ProposalsAdmin() {
           />
           Show merged ({mergedCount})
         </label>
+        <button
+          onClick={runBulkTranslate}
+          disabled={bulkTranslating || missingTranslationCount === 0}
+          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          title={
+            missingTranslationCount === 0
+              ? "All proposals have both EN and MT text"
+              : `${missingTranslationCount} proposal(s) missing a translation`
+          }
+        >
+          <Languages className="h-4 w-4" />
+          {bulkTranslating
+            ? "Translating…"
+            : `Auto-translate missing${missingTranslationCount ? ` (${missingTranslationCount})` : ""}`}
+        </button>
         <Link
           to="/admin/duplicates"
-          className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
         >
           <Layers className="h-4 w-4" /> Find duplicates
         </Link>
@@ -338,7 +402,44 @@ function ProposalEditor({
   const setV = (next: Proposal) => onChange(next);
   const [saving, setSaving] = useState(false);
   const [merging, setMerging] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
   const isNew = !v.id;
+
+  const hasTitleGap =
+    (!!v.title_en?.trim() && !v.title_mt?.trim()) ||
+    (!!v.title_mt?.trim() && !v.title_en?.trim());
+  const hasDescGap =
+    (!!v.description_en?.trim() && !v.description_mt?.trim()) ||
+    (!!v.description_mt?.trim() && !v.description_en?.trim());
+  const canTranslate = hasTitleGap || hasDescGap;
+
+  const translateMissing = async () => {
+    if (!canTranslate || translating) return;
+    setTranslating(true);
+    try {
+      const res = await translateProposalDraft({
+        data: {
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      setV({
+        ...v,
+        title_en: res.result.title_en ?? v.title_en,
+        title_mt: res.result.title_mt ?? v.title_mt,
+        description_en: res.result.description_en ?? v.description_en,
+        description_mt: res.result.description_mt ?? v.description_mt,
+      });
+      toast.success("Translated missing fields — review and save");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Translation failed");
+    } finally {
+      setTranslating(false);
+    }
+  };
 
   const suggestions = useMemo(() => {
     if (isNew || !v.title_en) return [];
@@ -464,6 +565,22 @@ function ProposalEditor({
 
   return (
     <Drawer title={isNew ? "New proposal" : `Edit: ${v.title_en}`} onClose={onClose}>
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2">
+        <p className="text-xs text-muted-foreground">
+          {canTranslate
+            ? "One language is missing — auto-translate to fill it in."
+            : "Both English and Maltese fields are populated."}
+        </p>
+        <button
+          type="button"
+          onClick={translateMissing}
+          disabled={!canTranslate || translating}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Languages className="h-3.5 w-3.5" />
+          {translating ? "Translating…" : "Translate missing"}
+        </button>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Title (EN) *" full>
           <Input value={v.title_en} onChange={(x) => setV({ ...v, title_en: x })} />
