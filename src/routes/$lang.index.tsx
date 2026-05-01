@@ -243,7 +243,99 @@ function Hero({
   );
 }
 
-function DistrictsMapSection({
+function StatsSection({
+  stats,
+  lang,
+  t,
+}: {
+  stats: LandingStats | null;
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  const daysToGo = Math.max(
+    0,
+    Math.ceil((new Date(ELECTION_DATE_ISO).getTime() - Date.now()) / 86_400_000),
+  );
+  const items: Array<{
+    icon: typeof Users;
+    value: number;
+    label: string;
+    to?: string;
+    accent?: boolean;
+  }> = [
+    { icon: Users, value: stats?.candidates ?? 0, label: t("home.stats.candidates"), to: `/${lang}/candidates` },
+    { icon: Flag, value: stats?.parties ?? 0, label: t("home.stats.parties"), to: `/${lang}/parties` },
+    { icon: FileText, value: stats?.proposals ?? 0, label: t("home.stats.proposals"), to: `/${lang}/proposals` },
+    { icon: Map, value: stats?.districts ?? 0, label: t("home.stats.districts"), to: `/${lang}/districts` },
+    { icon: Landmark, value: stats?.sittingMps ?? 0, label: t("home.stats.sittingMps"), to: `/${lang}/sitting-mps` },
+    { icon: HelpCircle, value: stats?.faqs ?? 0, label: t("home.stats.faqs"), to: `/${lang}/faq` },
+    { icon: CalendarDays, value: daysToGo, label: t("home.stats.daysToGo"), accent: true },
+  ];
+
+  const fmt = new Intl.NumberFormat(lang === "mt" ? "mt-MT" : "en-MT");
+
+  return (
+    <section className="border-b border-border bg-background">
+      <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
+        <div className="max-w-2xl">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+            {t("home.stats.eyebrow")}
+          </p>
+          <h2 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-4xl">
+            {t("home.stats.title")}
+          </h2>
+          <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+            {t("home.stats.subtitle")}
+          </p>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const inner = (
+              <>
+                <div
+                  className={
+                    "flex h-9 w-9 items-center justify-center rounded-lg " +
+                    (item.accent ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground")
+                  }
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div
+                  className="mt-3 font-serif text-3xl font-bold tabular-nums text-foreground md:text-4xl"
+                  suppressHydrationWarning
+                >
+                  {fmt.format(item.value)}
+                </div>
+                <div className="mt-1 text-xs font-medium leading-snug text-muted-foreground">
+                  {item.label}
+                </div>
+              </>
+            );
+            const baseClass =
+              "group flex flex-col rounded-xl border border-border bg-surface p-5 shadow-card transition-all";
+            return item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                className={baseClass + " hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-elevated"}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div key={item.label} className={baseClass}>
+                {inner}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
   lang,
   t,
 }: {
