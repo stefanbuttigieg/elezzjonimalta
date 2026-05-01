@@ -213,6 +213,44 @@ function NewsMonitor() {
     }
   };
 
+  const handlePasteScan = async () => {
+    const url = pasteUrl.trim();
+    if (!url) return;
+    setPasteScanning(true);
+    setPasteResult(null);
+    try {
+      const res = await scanUrlFn({ data: { url, force: pasteForce } });
+      if (!res.ok) {
+        toast.error(`Scan failed: ${res.error}`);
+        setPasteResult(null);
+      } else if (res.status === "duplicate") {
+        toast.info("Already scanned — opened existing finding for review");
+        setPasteResult(`Already scanned (${res.kind}, ${(Number(res.confidence) * 100).toFixed(0)}%). Tick "Re-scan" to re-classify.`);
+        setTab("all");
+      } else if (res.status === "scrape_failed") {
+        toast.error("Could not fetch the page");
+        setPasteResult("Scrape failed — Firecrawl could not extract content from this URL.");
+      } else if (res.status === "classify_failed") {
+        toast.error("Could not classify the article");
+        setPasteResult("Classification failed — the AI did not return a valid verdict.");
+      } else {
+        toast.success(`Classified as ${res.kind} (${Math.round((res.confidence ?? 0) * 100)}%)`);
+        setPasteResult(
+          res.belowThreshold
+            ? `Classified ${res.kind} at ${Math.round((res.confidence ?? 0) * 100)}% — below the auto-queue threshold but added for your review.`
+            : `Classified ${res.kind} at ${Math.round((res.confidence ?? 0) * 100)}% — added to Pending.`
+        );
+        setTab("pending");
+        setPasteUrl("");
+      }
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setPasteScanning(false);
+    }
+  };
+
   const saveSource = async () => {
     if (!sourceDraft) return;
     const slug = sourceDraft.slug.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)+/g, "");
