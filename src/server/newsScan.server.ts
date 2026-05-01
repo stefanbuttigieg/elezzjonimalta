@@ -77,29 +77,60 @@ Return ONLY valid JSON with this exact shape:
   "proposal_category": "short category if proposal, else empty"
 }`;
 
+// Discover recent, election-relevant URLs for a source.
+// Uses Firecrawl `search` (Google-backed) restricted to the source's domain
+// and to the past week. This biases results toward fresh coverage instead of
+// pulling whatever the sitemap returns first (which often surfaces old
+// articles that have already been reviewed or dismissed).
 async function discoverUrls(source: SourceRow): Promise<string[]> {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) throw new Error("FIRECRAWL_API_KEY not configured");
 
-  const res = await fetch(`${FIRECRAWL_BASE}/map`, {
+  const domain = (() => {
+    try {
+      return new URL(source.base_url).hostname.replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  })();
+  const query = domain ? `site:${domain} ${SEARCH_QUERY}` : SEARCH_QUERY;
+
+  const res = await fetch(`${FIRECRAWL_BASE}/search`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      url: source.base_url,
-      limit: 200,
-      includeSubdomains: false,
-      sitemap: "include",
+      query,
+      limit: 25,
+      tbs: "qdr:w", // past week
+      lang: "en",
+      country: "mt",
     }),
   });
-  if (!res.ok) throw new Error(`Firecrawl map ${res.status}: ${await res.text()}`);
-  const data = (await res.json()) as { links?: Array<string | { url: string }> };
-  const urls = (data.links ?? [])
-    .map((l) => (typeof l === "string" ? l : l.url))
-    .filter((u): u is string => typeof u === "string" && u.startsWith("http"));
+  if (!res.ok) throw new Error(`Firecrawl search ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as {
+    data?: { web?: Array<{ url?: string }> } | Array<{ url?: string }>;
+    web?: Array<{ url?: string }>;
+  };
+  const list: Array<{ url?: string }> = Array.isArray(data.data)
+    ? data.data
+    : (data.data?.web ?? data.web ?? []);
+  const urls = list
+    .map((r) => r.url)
+    .filter((u): u is string => typeof u === "string" && u.startsWith("http"))
+    // Belt-and-braces domain filter in case search leaks results from other sites.
+    .filter((u) => (domain ? u.includes(domain) : true));
   return urls;
+}
+
+function isWithinFreshness(published: string | undefined): boolean {
+  if (!published) return true; // unknown date — let the AI decide
+  const t = Date.parse(published);
+  if (Number.isNaN(t)) return true;
+  const ageDays = (Date.now() - t) / (1000 * 60 * 60 * 24);
+  return ageDays <= MAX_ARTICLE_AGE_DAYS;
 }
 
 function looksLikeArticle(url: string): boolean {
