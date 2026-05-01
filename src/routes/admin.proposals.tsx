@@ -220,9 +220,10 @@ function ProposalsAdmin() {
           parties={parties}
           candidates={candidates}
           categories={categories}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
