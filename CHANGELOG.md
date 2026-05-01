@@ -4,7 +4,42 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-04-29
+## [Unreleased] — 2026-05-01
+
+### Added
+- **Bilingual voting FAQs (`/faq`).** New public page with searchable,
+  accordion-style questions grouped by source, available in English and
+  Maltese, with FAQPage JSON-LD for SEO. Content is sourced from
+  intmalta.com (Electoral Commission, auto-translated from Maltese) and
+  pn.org.mt (EN + MT). Added to the main site navigation.
+- **Admin: voting FAQ sync.** New `/admin/voting-faqs` workspace with a
+  per-source and bulk re-sync button. Firecrawl scrapes the source pages,
+  Lovable AI extracts Q&A pairs and translates Maltese-only entries into
+  English, and a deterministic question hash deduplicates items across
+  re-syncs. Each sync run is recorded with item counts, errors, and
+  status (Draft / Published / Archived) is editable per entry.
+- **Multiple source URLs per proposal** with labels and notes, managed
+  from the proposal editor drawer in the admin proposals workspace. The
+  original `source_url` is preserved as the "Primary source URL" and
+  back-filled into the new `proposal_sources` table.
+- **Proposal update history.** The proposal editor now shows a
+  chronological diff of tracked fields (title, description, category,
+  status, etc.) sourced from the admin audit log.
+- **Proposal duplicate detection & guided merge.** New
+  `/admin/duplicates` view flags potential duplicates by normalised
+  title and content similarity; the merge flow keeps a chosen primary
+  record, archives the others, and records the action in the audit log
+  with before/after state and contributing source URLs.
+- **Configurable columns in admin candidates table.** Per-user column
+  visibility (status, flags, leadership, district, etc.) is persisted
+  across sessions.
+
+### Changed
+- **Admin candidates status column** now shows "Sitting MP · not
+  contesting 2026" for sitting MPs flagged as not contesting the 2026
+  election, instead of the default "not yet 2026" label.
+
+## [Earlier Unreleased] — 2026-04-29
 
 ### Added
 - **Admin News monitor** — automated scanner that ingests articles from Times

@@ -45,6 +45,7 @@ All routes are localised under `/en/...` or `/mt/...`.
 | `/compare` | Side-by-side **candidate comparison** (up to 4 at a time) |
 | `/ask` | AI assistant grounded in the database |
 | `/resources` | Voter guides and external references |
+| `/faq` | Bilingual voting FAQs synced from official sources |
 | `/contact` | Contact details (via the maintainer's GitHub) |
 | `/changelog` | Public release notes |
 | `/admin` | Staff-only dashboard (requires login + role) |
@@ -113,6 +114,37 @@ enforced via Postgres RLS, so authorisation cannot be bypassed from the client.
 Candidates who have publicly announced they will not contest the 2026
 election are flagged with a **"Not contesting for 2026"** badge on candidate
 cards and sitting-MP listings, alongside a link to the source announcement.
+In the admin candidates table, the status column surfaces this directly
+(e.g. "Sitting MP · not contesting 2026") instead of the default
+"not yet 2026" label.
+
+### Bilingual Voting FAQs
+A public `/faq` page presents voter-facing questions and answers in both
+English and Maltese, sourced from official references (Electoral
+Commission via intmalta.com and PN's election FAQ). An admin-triggered
+re-sync uses Firecrawl to scrape the source pages and Lovable AI to
+extract Q&A pairs and translate Maltese-only sources into English.
+Deduplication is handled via a deterministic question hash, and each
+sync run is recorded with item counts and any errors. Staff can edit
+content and switch entries between Draft / Published / Archived.
+
+### Proposal Duplicate Detection & Merging
+The admin proposals workspace flags potential duplicates (by normalised
+title and by content similarity) and offers a guided merge flow that
+keeps a chosen primary record and archives the others. Merges are
+captured in the audit log with before/after state and the contributing
+source URLs.
+
+### Multiple Source URLs & Update History per Proposal
+Each proposal can carry multiple labelled source URLs (in addition to
+the primary one) and exposes an inline update history derived from the
+admin audit log, so reviewers can see exactly when titles, descriptions,
+categories or status changed and by whom.
+
+### Configurable Columns in Admin Tables
+The admin candidates table supports per-user column selection so staff
+can hide or show fields (status, flags, leadership, district, etc.)
+based on what they're working on; the choice persists across sessions.
 
 ### Global Search & Command Palette
 A single search experience covers **candidates, parties, proposals, and
