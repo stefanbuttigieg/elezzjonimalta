@@ -1581,13 +1581,13 @@ export type Database = {
       }
       voting_faqs: {
         Row: {
-          answer_en: string
+          answer_en: string | null
           answer_mt: string | null
           created_at: string
           external_hash: string | null
           id: string
           last_synced_at: string | null
-          question_en: string
+          question_en: string | null
           question_mt: string | null
           sort_order: number
           source_key: string
@@ -1597,13 +1597,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          answer_en: string
+          answer_en?: string | null
           answer_mt?: string | null
           created_at?: string
           external_hash?: string | null
           id?: string
           last_synced_at?: string | null
-          question_en: string
+          question_en?: string | null
           question_mt?: string | null
           sort_order?: number
           source_key: string
@@ -1613,13 +1613,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          answer_en?: string
+          answer_en?: string | null
           answer_mt?: string | null
           created_at?: string
           external_hash?: string | null
           id?: string
           last_synced_at?: string | null
-          question_en?: string
+          question_en?: string | null
           question_mt?: string | null
           sort_order?: number
           source_key?: string
