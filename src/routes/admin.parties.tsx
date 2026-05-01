@@ -42,7 +42,7 @@ const empty: Party = {
 function PartiesAdmin() {
   const [rows, setRows] = useState<Party[]>([]);
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<Party | null>(null);
+  const [editing, setEditing, clearEditing] = usePersistentEditor<Party>("admin:editor:parties");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
