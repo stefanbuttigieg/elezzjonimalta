@@ -29,78 +29,45 @@ interface Msg {
 
 const LOVABLE_AI_BASE = "https://ai.gateway.lovable.dev/v1";
 
-async function embedQuery(text: string, model: string): Promise<number[] | null> {
-  const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) return null;
-  try {
-    const res = await fetch(`${LOVABLE_AI_BASE}/embeddings`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model, input: text }),
-    });
-    if (!res.ok) {
-      console.error("embed query failed", res.status, await res.text());
-      return null;
-    }
-    const body = await res.json();
-    return body?.data?.[0]?.embedding ?? null;
-  } catch (e) {
-    console.error("embed query error", e);
-    return null;
-  }
-}
-
 interface Settings {
   system_prompt: string;
   model: string;
-  embedding_model: string;
   max_context_chunks: number;
-  similarity_threshold: number;
 }
 
 async function loadSettings(supabase: ReturnType<typeof createClient>): Promise<Settings> {
   const { data } = await supabase
     .from("assistant_settings")
-    .select("system_prompt, model, embedding_model, max_context_chunks, similarity_threshold")
+    .select("system_prompt, model, max_context_chunks")
     .eq("singleton", true)
     .maybeSingle();
   return {
     system_prompt: data?.system_prompt ?? FALLBACK_SYSTEM_PROMPT,
     model: data?.model ?? "google/gemini-3-flash-preview",
-    embedding_model: data?.embedding_model ?? "google/text-embedding-004",
     max_context_chunks: data?.max_context_chunks ?? 18,
-    similarity_threshold: Number(data?.similarity_threshold ?? 0.3),
   };
 }
 
-async function buildSemanticContext(
+async function buildKeywordContext(
   supabase: ReturnType<typeof createClient>,
   query: string,
   settings: Settings,
-): Promise<{ context: string; usedSemantic: boolean }> {
-  // Get enabled sources
+): Promise<{ context: string; usedIndex: boolean }> {
   const { data: sources } = await supabase
     .from("assistant_sources")
     .select("key, enabled")
     .eq("enabled", true);
   const enabledKeys = (sources ?? []).map((s: { key: string }) => s.key);
-  if (enabledKeys.length === 0) return { context: "", usedSemantic: false };
+  if (enabledKeys.length === 0) return { context: "", usedIndex: false };
 
-  const embedding = await embedQuery(query, settings.embedding_model);
-  if (!embedding) return { context: "", usedSemantic: false };
-
-  const { data: matches, error } = await supabase.rpc("match_knowledge_chunks", {
-    query_embedding: embedding,
+  const { data: matches, error } = await supabase.rpc("search_knowledge_chunks", {
+    query_text: query,
     match_count: settings.max_context_chunks,
-    similarity_threshold: settings.similarity_threshold,
     source_filter: enabledKeys,
   });
   if (error) {
-    console.error("match_knowledge_chunks error", error);
-    return { context: "", usedSemantic: false };
+    console.error("search_knowledge_chunks error", error);
+    return { context: "", usedIndex: false };
   }
 
   const rows = (matches ?? []) as Array<{
@@ -110,9 +77,8 @@ async function buildSemanticContext(
     url: string | null;
     similarity: number;
   }>;
-  if (rows.length === 0) return { context: "", usedSemantic: true };
+  if (rows.length === 0) return { context: "", usedIndex: true };
 
-  // Group by source for readability
   const bySource = new Map<string, typeof rows>();
   for (const r of rows) {
     const arr = bySource.get(r.source_key) ?? [];
@@ -129,7 +95,7 @@ async function buildSemanticContext(
     }
     lines.push("");
   }
-  return { context: lines.join("\n"), usedSemantic: true };
+  return { context: lines.join("\n"), usedIndex: true };
 }
 
 // Fallback ILIKE retrieval (only used if the index is empty)
