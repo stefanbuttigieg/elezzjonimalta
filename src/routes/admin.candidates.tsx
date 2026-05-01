@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
@@ -13,8 +13,14 @@ import {
   Textarea,
 } from "./admin.parties";
 
+type CandidatesSearch = { edit?: string };
+
 export const Route = createFileRoute("/admin/candidates")({
   component: CandidatesAdmin,
+  validateSearch: (search: Record<string, unknown>): CandidatesSearch => {
+    const edit = typeof search.edit === "string" ? search.edit : undefined;
+    return edit ? { edit } : {};
+  },
 });
 
 interface Candidate {
@@ -88,6 +94,8 @@ function CandidatesAdmin() {
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
+  const { edit: editIdFromUrl } = Route.useSearch();
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -106,6 +114,17 @@ function CandidatesAdmin() {
   useEffect(() => {
     void load();
   }, []);
+
+  // If we arrived with ?edit=<id>, open that candidate in the editor as soon
+  // as rows are loaded, then clear the param so refreshes don't override
+  // unrelated persisted edits.
+  useEffect(() => {
+    if (!editIdFromUrl || rows.length === 0) return;
+    const target = rows.find((r) => r.id === editIdFromUrl);
+    if (target) setEditing(target);
+    void navigate({ to: "/admin/candidates", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editIdFromUrl, rows]);
 
   const partyMap = useMemo(() => Object.fromEntries(parties.map((x) => [x.id, x.name_en])), [parties]);
   const districtMap = useMemo(

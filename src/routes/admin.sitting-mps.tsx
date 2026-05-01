@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, type ReviewStatus } from "@/lib/admin";
-import { CheckCircle2, Search, Rocket, XCircle, Users } from "lucide-react";
+import { CheckCircle2, Search, Rocket, XCircle, Users, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/sitting-mps")({
@@ -149,6 +149,7 @@ function SittingMpsAdmin() {
         </div>
         <Link
           to="/admin/candidates"
+          search={{}}
           className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent"
         >
           <Users className="h-3.5 w-3.5" /> All candidates
@@ -244,6 +245,7 @@ function SittingMpsAdmin() {
                       <div className="font-medium text-foreground">{r.full_name}</div>
                       <Link
                         to="/admin/candidates"
+                        search={{ edit: r.id }}
                         className="text-xs text-muted-foreground hover:underline"
                       >
                         Open in editor
