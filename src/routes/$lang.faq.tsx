@@ -190,7 +190,9 @@ function FaqPage() {
                 </div>
                 <ul className="space-y-2">
                   {group.items.map((r) => {
-                    const { question, answer } = get(r);
+                    const got = get(r);
+                    if (!got) return null;
+                    const { question, answer } = got;
                     const isOpen = openId === r.id;
                     return (
                       <li key={r.id}>
