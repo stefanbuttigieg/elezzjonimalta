@@ -470,6 +470,21 @@ function VotingFaqsAdmin() {
                 onChange={(v) => setEditing({ ...editing, source_url: v })}
               />
             </Field>
+            {editing.id && editing.question_mt && !editing.question_en ? (
+              <button
+                type="button"
+                onClick={() => void handleTranslate(editing.id)}
+                disabled={translatingId === editing.id}
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
+              >
+                <Languages
+                  className={`h-4 w-4 ${translatingId === editing.id ? "animate-pulse" : ""}`}
+                />
+                {translatingId === editing.id
+                  ? "Translating from Maltese…"
+                  : "Translate from Maltese to English"}
+              </button>
+            ) : null}
             <Field label="Question (English)">
               <Input
                 value={editing.question_en ?? ""}
