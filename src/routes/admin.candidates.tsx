@@ -32,6 +32,7 @@ interface Candidate {
   is_incumbent: boolean;
   electoral_confirmed: boolean;
   commission_confirmed: boolean;
+  leadership_role: "leader" | "deputy_leader" | null;
   bio_en: string | null;
   bio_mt: string | null;
   photo_url: string | null;
@@ -65,6 +66,7 @@ const empty: Candidate = {
   is_incumbent: false,
   electoral_confirmed: false,
   commission_confirmed: false,
+  leadership_role: null,
   bio_en: "",
   bio_mt: "",
   photo_url: "",
