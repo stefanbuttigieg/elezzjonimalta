@@ -82,6 +82,9 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
       setLanguage("en");
       setImportId(null);
       setDecisions([]);
+      setPdfUrl(null);
+      setPdfError(null);
+      setSelectedIdx(null);
     }
   }, [open]);
 
