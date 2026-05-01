@@ -64,6 +64,10 @@ const empty: Proposal = {
   status: "pending_review",
   source_url: "",
   custom_fields: {},
+  notes: null,
+  merged_into_id: null,
+  merged_at: null,
+  merge_note: null,
 };
 
 function ProposalsAdmin() {
