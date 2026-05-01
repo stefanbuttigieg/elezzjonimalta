@@ -1075,6 +1075,9 @@ export type Database = {
           description_en: string | null
           description_mt: string | null
           id: string
+          merge_note: string | null
+          merged_at: string | null
+          merged_into_id: string | null
           party_id: string | null
           source_url: string | null
           status: Database["public"]["Enums"]["review_status"]
@@ -1090,6 +1093,9 @@ export type Database = {
           description_en?: string | null
           description_mt?: string | null
           id?: string
+          merge_note?: string | null
+          merged_at?: string | null
+          merged_into_id?: string | null
           party_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
@@ -1105,6 +1111,9 @@ export type Database = {
           description_en?: string | null
           description_mt?: string | null
           id?: string
+          merge_note?: string | null
+          merged_at?: string | null
+          merged_into_id?: string | null
           party_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
@@ -1118,6 +1127,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
           {
