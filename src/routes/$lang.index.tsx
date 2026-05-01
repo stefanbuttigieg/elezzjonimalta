@@ -335,7 +335,7 @@ function StatsSection({
   );
 }
 
-
+function DistrictsMapSection({
   lang,
   t,
 }: {
