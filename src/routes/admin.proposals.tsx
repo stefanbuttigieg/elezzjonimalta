@@ -13,7 +13,8 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
 import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
-import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp } from "lucide-react";
+import { ManifestoImportDrawer } from "@/components/admin/ManifestoImportDrawer";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
 import { mergeProposals } from "@/lib/proposal-merge";
@@ -81,6 +82,7 @@ function ProposalsAdmin() {
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
   const [showMerged, setShowMerged] = useState(false);
+  const [manifestoOpen, setManifestoOpen] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
 
@@ -150,13 +152,28 @@ function ProposalsAdmin() {
             Policy proposals linked to a party, a candidate, or both.
           </p>
         </div>
-        <button
-          onClick={() => setEditing({ ...empty })}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> New proposal
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setManifestoOpen(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+          >
+            <BookUp className="h-4 w-4" /> Import manifesto
+          </button>
+          <button
+            onClick={() => setEditing({ ...empty })}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> New proposal
+          </button>
+        </div>
       </header>
+
+      <ManifestoImportDrawer
+        open={manifestoOpen}
+        onOpenChange={setManifestoOpen}
+        parties={parties.map((p) => ({ id: p.id, name_en: p.name_en }))}
+        onApplied={() => void load()}
+      />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
