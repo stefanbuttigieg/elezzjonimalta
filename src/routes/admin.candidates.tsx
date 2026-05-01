@@ -25,6 +25,7 @@ interface Candidate {
   primary_district_id: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  commission_confirmed: boolean;
   bio_en: string | null;
   bio_mt: string | null;
   photo_url: string | null;
@@ -57,6 +58,7 @@ const empty: Candidate = {
   primary_district_id: null,
   is_incumbent: false,
   electoral_confirmed: false,
+  commission_confirmed: false,
   bio_en: "",
   bio_mt: "",
   photo_url: "",
@@ -197,7 +199,14 @@ function CandidatesAdmin() {
                         </span>
                       ) : null}
                       {r.electoral_confirmed ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                        <span title="Confirmed via news sources" className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+                          <CheckCircle2 className="h-3 w-3" /> News
+                        </span>
+                      ) : null}
+                      {r.commission_confirmed ? (
+                        <span title="Confirmed by Electoral Commission" className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
+                          <CheckCircle2 className="h-3 w-3" /> Commission
+                        </span>
                       ) : null}
                     </div>
                     {r.imported_from ? (
@@ -335,6 +344,7 @@ function CandidateEditor({
         primary_district_id: primaryDistrict,
         is_incumbent: v.is_incumbent,
         electoral_confirmed: v.electoral_confirmed,
+        commission_confirmed: v.commission_confirmed,
         bio_en: v.bio_en || null,
         bio_mt: v.bio_mt || null,
         photo_url: v.photo_url || null,
@@ -548,7 +558,15 @@ function CandidateEditor({
                 checked={v.electoral_confirmed}
                 onChange={(e) => setV({ ...v, electoral_confirmed: e.target.checked })}
               />
-              Confirmed on electoral.gov.mt
+              Confirmed via news sources
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={v.commission_confirmed}
+                onChange={(e) => setV({ ...v, commission_confirmed: e.target.checked })}
+              />
+              Confirmed on electoral commission
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input
