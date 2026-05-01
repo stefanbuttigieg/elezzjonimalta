@@ -261,9 +261,10 @@ function CandidatesAdmin() {
           value={editing}
           parties={parties}
           districts={districts}
-          onClose={() => setEditing(null)}
+          onChange={setEditing}
+          onClose={clearEditing}
           onSaved={() => {
-            setEditing(null);
+            clearEditing();
             void load();
           }}
         />
