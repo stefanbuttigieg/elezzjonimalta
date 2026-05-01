@@ -1311,6 +1311,45 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_category_assignments: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          proposal_id: string
+          sort_order: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          proposal_id: string
+          sort_order?: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          proposal_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_category_assignments_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposal_sources: {
         Row: {
           added_by: string | null
