@@ -841,6 +841,37 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     bio_en: finding.summary_en ?? "",
     notes: finding.summary_en ?? "",
   });
+  // Multiple proposals can be created from a single finding (an article often
+  // contains several pledges). The first row mirrors the legacy single-form
+  // fields so existing autofill behaviour keeps working.
+  type ProposalRow = {
+    title_en: string;
+    description_en: string;
+    category: string;
+    party_id: string;
+    candidate_id: string;
+  };
+  const emptyProposal = (): ProposalRow => ({
+    title_en: "",
+    description_en: "",
+    category: "",
+    party_id: "",
+    candidate_id: "",
+  });
+  const [proposals, setProposals] = useState<ProposalRow[]>([
+    {
+      title_en: finding.title ?? "",
+      description_en: finding.summary_en ?? "",
+      category: "",
+      party_id: "",
+      candidate_id: "",
+    },
+  ]);
+  const updateProposal = (i: number, k: keyof ProposalRow, v: string) =>
+    setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const addProposal = () => setProposals((rows) => [...rows, emptyProposal()]);
+  const removeProposal = (i: number) =>
+    setProposals((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
   const autofillFn = useServerFn(autofillFindingForm);
 
