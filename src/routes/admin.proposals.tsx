@@ -273,6 +273,7 @@ function ProposalsAdmin() {
           parties={parties}
           candidates={candidates}
           categories={categories}
+          dupePool={dupePool}
           onChange={setEditing}
           onClose={clearEditing}
           onSaved={() => {
