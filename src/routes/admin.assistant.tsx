@@ -264,25 +264,13 @@ function AssistantAdmin() {
 
       <section className="mt-6 rounded-xl border border-border bg-surface p-4">
         <h2 className="font-semibold text-foreground">Assistant settings</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
           <label className="block">
             <span className="text-xs font-medium text-muted-foreground">Model</span>
             <input
               value={modelDraft}
               onChange={(e) => setModelDraft(e.target.value)}
               className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm font-mono"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">Similarity threshold (0-1)</span>
-            <input
-              type="number"
-              step="0.05"
-              min={0}
-              max={1}
-              value={thresholdDraft}
-              onChange={(e) => setThresholdDraft(Number(e.target.value))}
-              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm"
             />
           </label>
           <label className="block">
