@@ -113,28 +113,9 @@ Rules:
 - Skip generic site sections that aren't questions.
 - If no FAQs found, return { "faqs": [] }.`;
 
-const TRANSLATE_PROMPT = `You translate Maltese election FAQ entries into clear, neutral English.
-Return ONLY valid JSON with this exact shape:
-{ "faqs": [ { "question_en": "string", "answer_en": "string" } ] }
-The output array must have the same length and order as the input. Do not summarise — translate fully and accurately.`;
-
-async function extractFaqs(markdown: string): Promise<ExtractedFaq[]> {
-  // Truncate to keep token usage reasonable
-  const trimmed = markdown.slice(0, 18000);
-  const result = (await callAi(EXTRACT_PROMPT, trimmed)) as { faqs?: ExtractedFaq[] };
-  return Array.isArray(result.faqs) ? result.faqs.filter((f) => f.question && f.answer) : [];
-}
-
-async function translateMtToEn(faqs: ExtractedFaq[]): Promise<Array<{ question_en: string; answer_en: string }>> {
-  if (faqs.length === 0) return [];
-  const result = (await callAi(
-    TRANSLATE_PROMPT,
-    JSON.stringify({ faqs }),
-  )) as { faqs?: Array<{ question_en: string; answer_en: string }> };
-  const out = Array.isArray(result.faqs) ? result.faqs : [];
-  // Ensure length matches; fall back to source if not
-  return faqs.map((f, i) => out[i] ?? { question_en: f.question, answer_en: f.answer });
-}
+// NOTE: Auto-translation during sync was removed. Maltese-only sources are stored
+// with `question_en`/`answer_en` left null; staff translate them on demand from the
+// admin UI via the `translateFaqToEnglish` server function.
 
 function hashItem(question: string): string {
   // Deterministic short hash based on normalized question text
