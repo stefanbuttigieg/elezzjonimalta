@@ -139,6 +139,32 @@ function CandidatesAdmin() {
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_COLUMNS;
+    try {
+      const stored = window.localStorage.getItem(COLUMNS_STORAGE_KEY);
+      if (!stored) return DEFAULT_COLUMNS;
+      const parsed = JSON.parse(stored) as ColumnKey[];
+      const valid = new Set(ALL_COLUMNS.map((c) => c.key));
+      const filtered = parsed.filter((k) => valid.has(k));
+      return filtered.length > 0 ? filtered : DEFAULT_COLUMNS;
+    } catch {
+      return DEFAULT_COLUMNS;
+    }
+  });
+  const [columnsOpen, setColumnsOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
+  const toggleColumn = (key: ColumnKey) => {
+    setVisibleColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+  const showCol = (k: ColumnKey) => visibleColumns.includes(k);
   const { edit: editIdFromUrl } = Route.useSearch();
   const navigate = useNavigate();
 
