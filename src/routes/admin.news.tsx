@@ -791,7 +791,15 @@ function NewsMonitor() {
           onSubmit={async (target, payload) => {
             const result = await convertFn({ data: { findingId: convertFor.id, target, payload } });
             if (result.ok) {
-              toast.success(`Created ${result.entity?.type ?? "entity"}`);
+              const count =
+                target === "new_proposal" && Array.isArray((payload as { proposals?: unknown[] }).proposals)
+                  ? (payload as { proposals: unknown[] }).proposals.length
+                  : 1;
+              toast.success(
+                count > 1
+                  ? `Created ${count} proposals`
+                  : `Created ${result.entity?.type ?? "entity"}`
+              );
               setConvertFor(null);
               await load();
             } else {
