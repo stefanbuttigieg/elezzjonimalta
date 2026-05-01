@@ -31,6 +31,10 @@ interface Candidate {
   website: string | null;
   facebook: string | null;
   twitter: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  email: string | null;
+  phone: string | null;
   parlament_mt_url: string | null;
   status: ReviewStatus;
   source_url: string | null;
@@ -59,6 +63,10 @@ const empty: Candidate = {
   website: "",
   facebook: "",
   twitter: "",
+  instagram: "",
+  tiktok: "",
+  email: "",
+  phone: "",
   parlament_mt_url: "",
   status: "pending_review",
   source_url: "",
@@ -333,6 +341,10 @@ function CandidateEditor({
         website: v.website || null,
         facebook: v.facebook || null,
         twitter: v.twitter || null,
+        instagram: v.instagram || null,
+        tiktok: v.tiktok || null,
+        email: v.email || null,
+        phone: v.phone || null,
         parlament_mt_url: v.parlament_mt_url || null,
         status: v.status,
         source_url: v.source_url || null,
@@ -486,6 +498,18 @@ function CandidateEditor({
         </Field>
         <Field label="X / Twitter">
           <Input value={v.twitter ?? ""} onChange={(x) => setV({ ...v, twitter: x })} />
+        </Field>
+        <Field label="Instagram">
+          <Input value={v.instagram ?? ""} onChange={(x) => setV({ ...v, instagram: x })} />
+        </Field>
+        <Field label="TikTok">
+          <Input value={v.tiktok ?? ""} onChange={(x) => setV({ ...v, tiktok: x })} />
+        </Field>
+        <Field label="Email">
+          <Input value={v.email ?? ""} onChange={(x) => setV({ ...v, email: x })} placeholder="name@example.com" />
+        </Field>
+        <Field label="Contact number">
+          <Input value={v.phone ?? ""} onChange={(x) => setV({ ...v, phone: x })} placeholder="+356 …" />
         </Field>
         <Field label="parlament.mt URL" full>
           <Input
