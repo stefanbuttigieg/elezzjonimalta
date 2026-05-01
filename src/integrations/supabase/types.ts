@@ -92,6 +92,135 @@ export type Database = {
         }
         Relationships: []
       }
+      assistant_reindex_runs: {
+        Row: {
+          chunks_deleted: number
+          chunks_inserted: number
+          chunks_total: number
+          chunks_unchanged: number
+          chunks_updated: number
+          error: string | null
+          finished_at: string | null
+          id: string
+          source_keys: string[]
+          started_at: string
+          trigger: string
+          triggered_by: string | null
+        }
+        Insert: {
+          chunks_deleted?: number
+          chunks_inserted?: number
+          chunks_total?: number
+          chunks_unchanged?: number
+          chunks_updated?: number
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          source_keys?: string[]
+          started_at?: string
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          chunks_deleted?: number
+          chunks_inserted?: number
+          chunks_total?: number
+          chunks_unchanged?: number
+          chunks_updated?: number
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          source_keys?: string[]
+          started_at?: string
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      assistant_settings: {
+        Row: {
+          embedding_model: string
+          id: string
+          max_context_chunks: number
+          model: string
+          similarity_threshold: number
+          singleton: boolean
+          system_prompt: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          embedding_model?: string
+          id?: string
+          max_context_chunks?: number
+          model?: string
+          similarity_threshold?: number
+          singleton?: boolean
+          system_prompt: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          embedding_model?: string
+          id?: string
+          max_context_chunks?: number
+          model?: string
+          similarity_threshold?: number
+          singleton?: boolean
+          system_prompt?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      assistant_sources: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          key: string
+          label: string
+          last_chunk_count: number
+          last_error: string | null
+          last_indexed_at: string | null
+          max_items: number
+          top_k: number
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          key: string
+          label: string
+          last_chunk_count?: number
+          last_error?: string | null
+          last_indexed_at?: string | null
+          max_items?: number
+          top_k?: number
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          key?: string
+          label?: string
+          last_chunk_count?: number
+          last_error?: string | null
+          last_indexed_at?: string | null
+          max_items?: number
+          top_k?: number
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       candidate_contributions: {
         Row: {
           attendance_pct: number | null
@@ -645,6 +774,54 @@ export type Database = {
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      knowledge_chunks: {
+        Row: {
+          content: string
+          content_hash: string
+          created_at: string
+          embedding: string | null
+          entity_id: string | null
+          entity_type: string
+          external_ref: string | null
+          id: string
+          metadata: Json
+          source_key: string
+          title: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          content: string
+          content_hash: string
+          created_at?: string
+          embedding?: string | null
+          entity_id?: string | null
+          entity_type: string
+          external_ref?: string | null
+          id?: string
+          metadata?: Json
+          source_key: string
+          title?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          content?: string
+          content_hash?: string
+          created_at?: string
+          embedding?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          external_ref?: string | null
+          id?: string
+          metadata?: Json
+          source_key?: string
+          title?: string | null
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -1317,6 +1494,25 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      match_knowledge_chunks: {
+        Args: {
+          match_count?: number
+          query_embedding: string
+          similarity_threshold?: number
+          source_filter?: string[]
+        }
+        Returns: {
+          content: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json
+          similarity: number
+          source_key: string
+          title: string
+          url: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"

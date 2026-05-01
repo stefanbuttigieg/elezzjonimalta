@@ -28,6 +28,7 @@ import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fie
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
@@ -148,6 +149,11 @@ const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAssistantRoute = AdminAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -395,6 +403,7 @@ export interface FileRoutesById {
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
+  '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/assistant'
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
@@ -489,6 +499,7 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/assistant'
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
@@ -536,6 +547,7 @@ export interface FileRouteTypes {
     | '/$lang/sitting-mps'
     | '/$lang/terms'
     | '/admin/api-logs'
+    | '/admin/assistant'
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
@@ -707,6 +719,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/assistant': {
+      id: '/admin/assistant'
+      path: '/assistant'
+      fullPath: '/admin/assistant'
+      preLoaderRoute: typeof AdminAssistantRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/api-logs': {
@@ -948,6 +967,7 @@ const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
+  AdminAssistantRoute: typeof AdminAssistantRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
@@ -966,6 +986,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
+  AdminAssistantRoute: AdminAssistantRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,

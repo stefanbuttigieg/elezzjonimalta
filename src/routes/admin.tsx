@@ -27,6 +27,7 @@ import {
   Newspaper,
   History,
   Tag,
+  Sparkles,
 } from "lucide-react";
 import {
   Sheet,
@@ -59,6 +60,7 @@ const items: NavItem[] = [
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
   { to: "/admin/duplicates", label: "Duplicates", icon: FileText },
   { to: "/admin/voting-faqs", label: "Voting FAQs", icon: FileText },
+  { to: "/admin/assistant", label: "AI Assistant", icon: Sparkles },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/custom-fields", label: "Custom fields", icon: FileText },
   { to: "/admin/audit", label: "Audit log", icon: History },
