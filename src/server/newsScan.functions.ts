@@ -2,7 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runNewsScan } from "./newsScan.server";
+import { runNewsScan, scanSingleUrl } from "./newsScan.server";
 import { writeAudit } from "./auditLog.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -38,6 +38,35 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("triggerNewsScan failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
+const ScanUrlInput = z.object({
+  url: z.string().trim().url().max(2000),
+  sourceId: z.string().uuid().nullable().optional(),
+  force: z.boolean().optional(),
+});
+
+export const scanUrlNow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => ScanUrlInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+      const email = (claims as { email?: string }).email ?? null;
+      const result = await scanSingleUrl({
+        url: data.url,
+        sourceId: data.sourceId ?? null,
+        force: data.force ?? false,
+        triggeredBy: userId,
+        triggeredByEmail: email,
+      });
+      return { ...result, ok: true as const };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("scanUrlNow failed:", message);
       return { ok: false as const, error: message };
     }
   });

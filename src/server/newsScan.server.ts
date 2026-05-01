@@ -214,6 +214,167 @@ async function classifyArticle(url: string, title: string | undefined, content: 
   }
 }
 
+interface SingleUrlOptions {
+  url: string;
+  sourceId?: string | null;
+  triggeredBy?: string | null;
+  triggeredByEmail?: string | null;
+  force?: boolean; // re-scan even if URL was seen before
+}
+
+interface SingleUrlResult {
+  ok: true;
+  findingId: string | null;
+  articleId: string;
+  status: "classified" | "skipped_old" | "scrape_failed" | "classify_failed" | "duplicate";
+  kind?: AIFinding["kind"];
+  confidence?: number;
+  belowThreshold?: boolean;
+  reused?: boolean;
+}
+
+// Resolve which configured news source this URL belongs to (by hostname match
+// against base_url). Falls back to an explicit sourceId, then to any enabled
+// source, since news_findings.source_id is NOT NULL.
+async function resolveSourceForUrl(url: string, explicitId?: string | null): Promise<SourceRow | null> {
+  if (explicitId) {
+    const { data } = await supabaseAdmin.from("news_sources").select("*").eq("id", explicitId).maybeSingle();
+    if (data) return data as SourceRow;
+  }
+  let host: string;
+  try { host = new URL(url).hostname.replace(/^www\./, ""); } catch { return null; }
+  const { data: all } = await supabaseAdmin.from("news_sources").select("*");
+  const list = (all ?? []) as SourceRow[];
+  const byHost = list.find((s) => {
+    try { return new URL(s.base_url).hostname.replace(/^www\./, "") === host; } catch { return false; }
+  });
+  if (byHost) return byHost;
+  return list.find((s) => (s as unknown as { enabled: boolean }).enabled) ?? list[0] ?? null;
+}
+
+export async function scanSingleUrl(opts: SingleUrlOptions): Promise<SingleUrlResult> {
+  const url = opts.url.trim();
+  if (!/^https?:\/\//i.test(url)) throw new Error("URL must start with http(s)://");
+
+  const source = await resolveSourceForUrl(url, opts.sourceId ?? null);
+  if (!source) throw new Error("No news source configured — add one first");
+
+  // Look up existing article row for this URL
+  const { data: existing } = await supabaseAdmin
+    .from("news_articles")
+    .select("id, scan_status")
+    .eq("url", url)
+    .maybeSingle();
+
+  let articleId: string;
+  if (existing && !opts.force) {
+    // Reuse: if a finding already exists, return it; otherwise re-classify.
+    articleId = existing.id;
+    const { data: existingFinding } = await supabaseAdmin
+      .from("news_findings")
+      .select("id, kind, confidence")
+      .eq("article_id", articleId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingFinding) {
+      return {
+        ok: true,
+        findingId: existingFinding.id,
+        articleId,
+        status: "duplicate",
+        kind: existingFinding.kind as AIFinding["kind"],
+        confidence: Number(existingFinding.confidence),
+        reused: true,
+      };
+    }
+  } else if (existing && opts.force) {
+    articleId = existing.id;
+    await supabaseAdmin.from("news_articles").update({ scan_status: "fetching" }).eq("id", articleId);
+  } else {
+    const { data: art, error: artErr } = await supabaseAdmin
+      .from("news_articles")
+      .insert({ source_id: source.id, url, scan_status: "fetching" })
+      .select("id")
+      .single();
+    if (artErr || !art) throw new Error(`failed to record article: ${artErr?.message}`);
+    articleId = art.id;
+  }
+
+  const scraped = await scrapeArticle(url);
+  if (!scraped) {
+    await supabaseAdmin.from("news_articles").update({ scan_status: "scrape_failed" }).eq("id", articleId);
+    return { ok: true, findingId: null, articleId, status: "scrape_failed" };
+  }
+
+  // Manual paste bypasses the freshness gate — staff explicitly chose this URL.
+  const finding = await classifyArticle(url, scraped.title, scraped.markdown);
+  if (!finding) {
+    await supabaseAdmin
+      .from("news_articles")
+      .update({
+        scan_status: "classify_failed",
+        title: scraped.title ?? null,
+        published_at: scraped.published ?? null,
+      })
+      .eq("id", articleId);
+    return { ok: true, findingId: null, articleId, status: "classify_failed" };
+  }
+
+  await supabaseAdmin
+    .from("news_articles")
+    .update({
+      scan_status: "classified",
+      title: scraped.title ?? finding.title ?? null,
+      published_at: scraped.published ?? null,
+    })
+    .eq("id", articleId);
+
+  // For manual pastes we always create a finding (even low-confidence /
+  // not_relevant) so the staff member sees what the AI thought of their URL.
+  const { data: inserted, error: findErr } = await supabaseAdmin
+    .from("news_findings")
+    .insert({
+      article_id: articleId,
+      source_id: source.id,
+      kind: finding.kind,
+      confidence: Math.max(0, Math.min(1, finding.confidence)),
+      title: finding.title ?? scraped.title ?? null,
+      summary_en: finding.summary_en ?? null,
+      summary_mt: finding.summary_mt ?? null,
+      extracted: {
+        candidate_name: finding.candidate_name ?? "",
+        party_hint: finding.party_hint ?? "",
+        district_hint: finding.district_hint ?? "",
+        proposal_category: finding.proposal_category ?? "",
+        source_url: url,
+        manual_paste: "true",
+      } as never,
+    })
+    .select("id")
+    .single();
+  if (findErr || !inserted) throw new Error(`failed to create finding: ${findErr?.message}`);
+
+  await writeAudit(supabaseAdmin, {
+    entityType: "news_finding",
+    entityId: inserted.id,
+    action: "manual_url_scanned",
+    actorId: opts.triggeredBy ?? null,
+    actorEmail: opts.triggeredByEmail ?? null,
+    metadata: { url, kind: finding.kind, confidence: finding.confidence, source: source.slug },
+  });
+
+  return {
+    ok: true,
+    findingId: inserted.id,
+    articleId,
+    status: "classified",
+    kind: finding.kind,
+    confidence: finding.confidence,
+    belowThreshold: finding.kind === "not_relevant" || finding.confidence < 0.45,
+  };
+}
+
 export async function runNewsScan(opts: ScanOptions): Promise<ScanResult> {
   const errors: string[] = [];
   let articlesDiscovered = 0;
