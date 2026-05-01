@@ -430,6 +430,52 @@ function ProposalEditor({
   const [saving, setSaving] = useState(false);
   const [merging, setMerging] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [categorySuggestions, setCategorySuggestions] = useState<
+    Array<{
+      id: string;
+      name_en: string;
+      name_mt: string | null;
+      confidence: "high" | "medium" | "low";
+      reason: string;
+    }>
+  >([]);
+
+  const suggestCategories = async () => {
+    if (suggesting) return;
+    if (!v.title_en?.trim() && !v.description_en?.trim() && !v.title_mt?.trim()) {
+      toast.error("Add a title or description first");
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const res = await suggestProposalCategories({
+        data: {
+          title_en: v.title_en,
+          title_mt: v.title_mt,
+          description_en: v.description_en,
+          description_mt: v.description_mt,
+          max: 3,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      setCategorySuggestions(res.suggestions);
+      if (res.suggestions.length === 0) {
+        toast.info("No matching categories — pick manually");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Suggestion failed");
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const toggleCategory = (id: string) => {
+    const next = v.category_ids.includes(id)
+      ? v.category_ids.filter((x) => x !== id)
+      : [...v.category_ids, id];
+    setV({ ...v, category_ids: next });
+  };
   const isNew = !v.id;
 
   const hasTitleGap =
