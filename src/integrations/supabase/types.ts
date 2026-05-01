@@ -1210,6 +1210,96 @@ export type Database = {
         }
         Relationships: []
       }
+      voting_faq_sync_runs: {
+        Row: {
+          created_at: string
+          error: string | null
+          finished_at: string | null
+          id: string
+          items_added: number
+          items_found: number
+          items_updated: number
+          source_key: string
+          started_at: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_added?: number
+          items_found?: number
+          items_updated?: number
+          source_key: string
+          started_at?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_added?: number
+          items_found?: number
+          items_updated?: number
+          source_key?: string
+          started_at?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      voting_faqs: {
+        Row: {
+          answer_en: string
+          answer_mt: string | null
+          created_at: string
+          external_hash: string | null
+          id: string
+          last_synced_at: string | null
+          question_en: string
+          question_mt: string | null
+          sort_order: number
+          source_key: string
+          source_label: string
+          source_url: string
+          status: Database["public"]["Enums"]["review_status"]
+          updated_at: string
+        }
+        Insert: {
+          answer_en: string
+          answer_mt?: string | null
+          created_at?: string
+          external_hash?: string | null
+          id?: string
+          last_synced_at?: string | null
+          question_en: string
+          question_mt?: string | null
+          sort_order?: number
+          source_key: string
+          source_label: string
+          source_url: string
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+        }
+        Update: {
+          answer_en?: string
+          answer_mt?: string | null
+          created_at?: string
+          external_hash?: string | null
+          id?: string
+          last_synced_at?: string | null
+          question_en?: string
+          question_mt?: string | null
+          sort_order?: number
+          source_key?: string
+          source_label?: string
+          source_url?: string
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

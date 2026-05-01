@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
 import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
@@ -34,6 +35,7 @@ import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangFaqRouteImport } from './routes/$lang.faq'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
@@ -82,6 +84,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVotingFaqsRoute = AdminVotingFaqsRouteImport.update({
+  id: '/voting-faqs',
+  path: '/voting-faqs',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminSittingMpsRoute = AdminSittingMpsRouteImport.update({
   id: '/sitting-mps',
@@ -176,6 +183,11 @@ const LangProposalsRoute = LangProposalsRouteImport.update({
 const LangPrivacyRoute = LangPrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangFaqRoute = LangFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => LangRoute,
 } as any)
 const LangDistrictsRoute = LangDistrictsRouteImport.update({
@@ -282,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -301,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -325,6 +339,7 @@ export interface FileRoutesByTo {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -344,6 +359,7 @@ export interface FileRoutesByTo {
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -371,6 +387,7 @@ export interface FileRoutesById {
   '/$lang/cookies': typeof LangCookiesRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/faq': typeof LangFaqRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -390,6 +407,7 @@ export interface FileRoutesById {
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -418,6 +436,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -437,6 +456,7 @@ export interface FileRouteTypes {
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
+    | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
@@ -461,6 +481,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -480,6 +501,7 @@ export interface FileRouteTypes {
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
+    | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang'
     | '/admin'
@@ -506,6 +528,7 @@ export interface FileRouteTypes {
     | '/$lang/cookies'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/faq'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -525,6 +548,7 @@ export interface FileRouteTypes {
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
+    | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang/'
     | '/admin/'
@@ -593,6 +617,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/voting-faqs': {
+      id: '/admin/voting-faqs'
+      path: '/voting-faqs'
+      fullPath: '/admin/voting-faqs'
+      preLoaderRoute: typeof AdminVotingFaqsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/sitting-mps': {
       id: '/admin/sitting-mps'
@@ -725,6 +756,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/$lang/privacy'
       preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/faq': {
+      id: '/$lang/faq'
+      path: '/faq'
+      fullPath: '/$lang/faq'
+      preLoaderRoute: typeof LangFaqRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/districts': {
@@ -866,6 +904,7 @@ interface LangRouteChildren {
   LangCookiesRoute: typeof LangCookiesRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
+  LangFaqRoute: typeof LangFaqRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
   LangResourcesRoute: typeof LangResourcesRoute
@@ -890,6 +929,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangCookiesRoute: LangCookiesRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
+  LangFaqRoute: LangFaqRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
   LangResourcesRoute: LangResourcesRoute,
@@ -920,6 +960,7 @@ interface AdminRouteChildren {
   AdminReviewRoute: typeof AdminReviewRoute
   AdminRolesRoute: typeof AdminRolesRoute
   AdminSittingMpsRoute: typeof AdminSittingMpsRoute
+  AdminVotingFaqsRoute: typeof AdminVotingFaqsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -937,6 +978,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReviewRoute: AdminReviewRoute,
   AdminRolesRoute: AdminRolesRoute,
   AdminSittingMpsRoute: AdminSittingMpsRoute,
+  AdminVotingFaqsRoute: AdminVotingFaqsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
