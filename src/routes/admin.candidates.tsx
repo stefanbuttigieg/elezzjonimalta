@@ -220,7 +220,11 @@ function CandidatesAdmin() {
                     {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={r.status} />
+                    <CandidateStatusBadge
+                      status={r.status}
+                      isIncumbent={r.is_incumbent}
+                      electoralConfirmed={r.electoral_confirmed}
+                    />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
