@@ -1,92 +1,135 @@
-# News Ingestion & Detection Pipeline
+# Manifesto ingestion for Proposals admin
 
-A scheduled + on-demand process that scans 5 Maltese news sites, uses AI to detect election-relevant content (proposals, new candidates, electoral developments), and queues findings for staff review in the admin portal.
+Build a dedicated **Manifesto Import** workflow in `/admin/proposals` designed for the moment each party publishes its full manifesto (PDF or web page) containing every proposal — including ones already in our database. The flow must extract dozens to hundreds of proposals at once, deduplicate against existing records, and let staff confirm/merge in bulk rather than create blind duplicates.
 
-## Sources monitored
-- timesofmalta.com
-- independent.com.mt
-- maltatoday.com.mt
-- lovinmalta.com
-- newsbook.com.mt
+## User-facing flow
 
-## How it works (user view)
+New **"Import manifesto"** button in `/admin/proposals` toolbar opens a full-screen drawer with four steps:
 
-1. **Automatic runs**: 4×/day (06:00, 11:00, 16:00, 21:00 Malta time) via `pg_cron`.
-2. **Manual run**: a new admin page **"News monitor"** with a **"Run scan now"** button (admin-only, with optional per-source toggle).
-3. Each run:
-   - Discovers recent article URLs per source (sitemap / listing pages).
-   - Skips URLs already seen (dedup table).
-   - Fetches the article, extracts clean text (Firecrawl `scrape` → markdown).
-   - Asks Lovable AI (`google/gemini-2.5-flash`) to classify and extract:
-     - `kind`: `proposal` | `new_candidate` | `election_development` | `not_relevant`
-     - structured fields (title, summary EN/MT, candidate name, party hint, district hint, proposal category, etc.)
-     - `confidence` 0–1
-   - Saves the finding to a `news_findings` table with status `pending`.
-4. Admin reviews findings in **News monitor**:
-   - Filter by source / kind / status / confidence.
-   - For each finding: **Create proposal**, **Create candidate**, **Link to existing**, **Dismiss**, or **Mark reviewed**.
-   - "Create…" pre-fills the existing proposal/candidate dialog with the AI-extracted fields and source URL.
+### 1. Source
+- **Party selector** (required) — every proposal in this batch will be tagged to this party.
+- **Source input** — either:
+  - paste a URL (PDF link or HTML manifesto page), OR
+  - upload a PDF file from disk (handles the very common case of a PDF that isn't publicly hosted yet, or is behind a download gate).
+- Optional **language** toggle (English / Maltese / both) — manifestos often ship bilingually; this drives which title/description fields the AI fills.
+- "Extract proposals" button.
 
-## Database changes
+### 2. Extraction progress
+- Streamed status: "Downloading… Parsing 47 pages… Detecting proposals… Matching against existing…"
+- For 50+ page documents this typically takes 60–120s, so we show per-stage progress and let the user cancel.
 
-New tables (RLS: staff read/write; no public access):
+### 3. Review table
+A scrollable table with one row per detected proposal. Columns:
 
-- `news_sources` — seeded with the 5 outlets (`id, slug, name, base_url, sitemap_url, enabled, last_scanned_at`).
-- `news_articles` — dedup of fetched URLs (`id, source_id, url UNIQUE, title, published_at, fetched_at, content_hash, scan_status`).
-- `news_findings` — AI output (`id, article_id, kind, confidence, title, summary_en, summary_mt, extracted jsonb, candidate_id nullable, proposal_id nullable, status: pending|accepted|dismissed|reviewed, created_at, reviewed_by, reviewed_at`).
-- `news_scan_runs` — audit log (`id, started_at, finished_at, trigger: cron|manual, source_id nullable, articles_scanned, findings_created, error`).
+| ✓ | Action | Title | Description (excerpt) | Category | Page | Matches existing |
+|---|--------|-------|-----------------------|----------|------|------------------|
 
-## Server endpoints
+- **Action column** is a dropdown auto-set per row:
+  - `Create new` — no similar existing proposal found
+  - `Update existing` — high-confidence match; choosing this updates the matched proposal's description, marks it `confirmed_in_manifesto = true`, and appends the manifesto as a new `proposal_sources` row instead of inserting a duplicate
+  - `Skip` — ignore
+- **Matches existing** shows up to 3 candidate matches (title + similarity score) with a "View" link. Clicking a match swaps the action to `Update existing` and links to that ID.
+- Title/description/category cells are inline-editable.
+- **Page** links back to that page in a side-by-side PDF preview pane (only when source is a PDF), so staff can verify the AI didn't hallucinate.
+- Bulk controls: "Select all new", "Select all updates", "Mark all as Skip", "Re-run AI on selected".
 
-- `src/routes/api/public/hooks/scan-news.ts` (POST) — triggered by `pg_cron`. Validates an internal `X-Cron-Secret` header (new `NEWS_CRON_SECRET`). Iterates enabled sources, calls Firecrawl, calls Lovable AI, writes rows. Caps per-run cost (e.g., 15 new articles per source per run).
-- `src/server/newsScan.functions.ts` — `runNewsScan({ sourceIds? })` server function for the manual button (admin-only via `requireSupabaseAuth` + role check).
-- Shared logic in `src/server/newsScan.server.ts` (Firecrawl client, AI prompt, Supabase admin writes).
+### 4. Save
+- "Apply N changes" button summarising: "Will create X new proposals, update Y existing, skip Z."
+- Single transactional save: inserts/updates `proposals`, inserts `proposal_sources` for every affected proposal pointing to the manifesto URL with `kind = "manifesto"` and the page number, and writes one audit log entry summarising the batch.
+- Toast confirms counts; drawer closes; list reloads with a filter pre-applied to `source = "manifesto:<party>"` so staff can sanity-check the batch.
 
-## Admin UI
+## Deduplication strategy (the new core piece)
 
-- New route `src/routes/admin.news.tsx` ("News monitor") + sidebar item in `src/routes/admin.tsx`.
-  - Header: last run time, next scheduled run, **Run scan now** button (with per-source checkboxes).
-  - Tabs: **Pending** / **Reviewed** / **Dismissed** / **All runs**.
-  - Findings table: source · kind · confidence · title · published date · actions.
-  - Row actions open existing Proposal/Candidate drawers prefilled from `extracted` jsonb.
-- Dashboard card on `admin.index.tsx`: "Pending findings: N".
+Manifestos will overlap heavily with proposals already entered from news scans. We must avoid blowing up the table with near-duplicates.
 
-## AI & scraping
+For each AI-extracted proposal we run a similarity check against all existing proposals **for the same party** before showing the review table:
 
-- **Firecrawl** (already connected — `FIRECRAWL_API_KEY` present): `scrape` with `formats: ['markdown']`, `onlyMainContent: true`. Sitemap discovery via `map` filtered to recent paths.
-- **Lovable AI** via `LOVABLE_API_KEY`: `google/gemini-2.5-flash` (cheap, sufficient). Structured JSON output with a strict schema; reject non-JSON.
-- Neutrality preserved: AI extracts facts only, never opinions; everything is staff-reviewed before publishing.
+1. **Exact normalised title match** → high confidence (auto-set to `Update existing`, pre-checked).
+2. **Trigram similarity** on titles using Postgres `pg_trgm` (`similarity(a, b) > 0.55`) → suggested match shown in the "Matches existing" cell.
+3. **Embedding-style fallback**: short token overlap on description keywords for the borderline cases where titles diverge but content matches.
 
-## Cron setup
+We require the `pg_trgm` extension and a GIN index on `proposals.title_en` and `proposals.title_mt`. Migration adds both. The dedupe runs server-side in the extract function so the review table arrives with matches pre-attached.
 
-`pg_cron` + `pg_net` job calling `https://elezzjonimalta.lovable.app/api/public/hooks/scan-news` 4×/day with the `X-Cron-Secret` header.
+## Technical implementation
 
-## Cost & safety controls
+### Database changes (one migration)
 
-- Per-run hard caps: max 15 new articles/source, max 75 total.
-- Skip URLs already in `news_articles`.
-- Truncate scraped content to ~6k chars before sending to AI.
-- All Firecrawl/AI errors logged to `news_scan_runs.error`, never throw mid-run.
-- Manual run rate-limited to once per 60s per admin.
+- `CREATE EXTENSION IF NOT EXISTS pg_trgm;`
+- GIN trigram indexes on `proposals.title_en`, `proposals.title_mt`.
+- Add columns to `proposals`: `confirmed_in_manifesto boolean default false`, `manifesto_source_id uuid null` (FK to a new `manifesto_imports` table).
+- New table `manifesto_imports` (`id`, `party_id`, `source_url`, `source_kind` ('pdf'|'html'|'upload'), `file_path` nullable, `page_count`, `imported_by`, `created_at`, `summary jsonb` storing `{created, updated, skipped}`). Lets us audit which manifesto a proposal came from and re-open a past import.
+- RLS: staff-only read/write on `manifesto_imports`.
 
-## Files to add / edit
+### File handling for direct PDF uploads
 
-Add:
-- `supabase` migration: 4 new tables + RLS + seed `news_sources`.
-- `src/server/newsScan.server.ts`
-- `src/server/newsScan.functions.ts`
-- `src/routes/api/public/hooks/scan-news.ts`
-- `src/routes/admin.news.tsx`
+- New Supabase Storage bucket `manifestos` (private, staff-only). Uploaded PDFs are stored here so we can re-process or display the page preview later.
+- For URL-based sources, the file is downloaded server-side and also archived to the same bucket (parties sometimes replace or remove the PDF within days).
 
-Edit:
-- `src/routes/admin.tsx` — add "News monitor" sidebar entry.
-- `src/routes/admin.index.tsx` — add pending findings card.
-- `CHANGELOG.md`, `README.md`.
+### Extraction pipeline (`src/server/manifestoImport.server.ts`)
 
-Secret to add: `NEWS_CRON_SECRET` (random string, used by pg_cron call).
+For PDFs (the dominant case):
+- **Do not rely on Firecrawl alone** for a 50–100 page PDF. Firecrawl works for short PDFs but loses structure on long ones and the credit cost scales badly.
+- Primary path: download the PDF server-side, then use `pdfjs-dist` (works in the Worker runtime — pure JS, no native deps) to extract text per page. We get `{ pageNumber, text }[]`, which lets us preserve page numbers for the review UI.
+- Fallback: if `pdfjs-dist` extraction yields almost no text (scanned/image PDF), call Firecrawl `/v2/scrape` with `parsers: ["pdf"]` and `formats: ["markdown"]` — Firecrawl's pipeline includes OCR. Page numbers are lost in this fallback; we mark those proposals with `page = null`.
 
-## Out of scope (can follow later)
+For HTML manifesto pages:
+- Firecrawl scrape with `formats: ["markdown"]`, `onlyMainContent: true`. Section headings become our chunk boundaries.
 
-- Auto-publishing without review.
-- Sentiment analysis or partisan tone scoring (intentionally avoided — neutrality).
-- Social media monitoring (Facebook/Twitter) — requires separate APIs.
+### AI extraction
+
+- Chunk the document into ~15k-token segments along section/heading boundaries (manifestos are heavily structured).
+- For each chunk, call Lovable AI Gateway with `google/gemini-2.5-pro` (long context + better structure recall than Flash for this) using JSON-mode and a strict schema:
+  ```
+  { proposals: [{ title_en, title_mt?, description_en, description_mt?, category, page_number?, verbatim_quote }] }
+  ```
+- `verbatim_quote` is required — a short snippet copied directly from the manifesto. We display it on hover in the review table so staff can spot AI hallucinations instantly.
+- Concatenate, then run dedupe against the DB.
+- Hard cap: 500 proposals per import to prevent runaway batches.
+
+### Server functions (`src/server/manifestoImport.functions.ts`)
+
+- `startManifestoImport` — accepts `{ partyId, sourceUrl?, uploadedFilePath?, language }`, inserts a `manifesto_imports` row in status `processing`, returns its id immediately.
+- `getManifestoImportStatus` — polled by the UI to drive the progress indicator and return extracted proposals + match suggestions when ready.
+- `applyManifestoImport` — accepts `{ importId, decisions: [{ extractedIndex, action: 'create'|'update'|'skip', targetId?, fields }] }`. Runs all inserts/updates in a single transaction, writes `proposal_sources` rows (kind `manifesto`, with page number in metadata), updates `manifesto_imports.summary`.
+
+Heavy extraction runs inside `startManifestoImport` and writes intermediate state to the `manifesto_imports` row so the UI can poll without holding a long HTTP connection.
+
+### Admin UI (`src/routes/admin.proposals.tsx` + new `ManifestoImportDrawer.tsx`)
+
+- New drawer component (extracted to its own file because it's substantial).
+- Polling hook `useManifestoImport(importId)` hits `getManifestoImportStatus` every 2s until done.
+- Inline PDF preview pane uses `pdfjs-dist`'s viewer for the page-number jump.
+- Reuses existing `findDuplicates` helper concepts but the heavy lifting moves server-side because the dataset is now too big to dedupe in the browser.
+
+### Edge cases handled
+
+- **Same proposal in EN and MT sections of the manifesto** → dedupe within the batch before showing the table; merge into a single row with both languages populated.
+- **Manifesto re-uploaded after a typo fix** → `manifesto_imports.source_url` + content hash detects re-imports; UI warns "This manifesto was already imported on <date> — continue?" and offers to reopen the previous import instead.
+- **Party not yet in DB** → blocked with a clear message; staff must create the party first (rare since parties are seeded).
+- **PDF behind a paywall or 403** → URL fetch fails fast with a clear message; user can fall back to file upload.
+- **AI returns a `targetId` that doesn't exist** → server-side validation strips it; row falls back to `Create new` with a warning badge.
+- **Cost guard** — hard cap on tokens per import; warn at 80% of cap; halt at 100% with a "Continue with next chunk?" prompt.
+
+### What's NOT in this change (explicit deferrals)
+
+- **Real-time collaborative review** — the review table is single-user per import session.
+- **Translation generation** — if only EN is present, we don't auto-translate to MT in this pass; staff fills it or runs a future translate action.
+- **Diff view** for `Update existing` — we just overwrite the description and append the source. A proper diff modal can come later if staff request it.
+- **Auto-publish** — every imported proposal lands as `pending_review`. Nothing goes live without a human flipping status.
+
+## Files
+
+**New**
+- `src/server/manifestoImport.server.ts` — PDF download/extract, Firecrawl fallback, AI chunked extraction, dedupe.
+- `src/server/manifestoImport.functions.ts` — `startManifestoImport`, `getManifestoImportStatus`, `applyManifestoImport`.
+- `src/components/admin/ManifestoImportDrawer.tsx` — the multi-step drawer UI.
+- `src/hooks/useManifestoImport.ts` — polling hook.
+- `supabase/migrations/<timestamp>_manifesto_imports.sql` — extension, indexes, table, columns, RLS, storage bucket.
+
+**Edited**
+- `src/routes/admin.proposals.tsx` — add "Import manifesto" button + mount the drawer.
+
+**Dependencies to add**
+- `pdfjs-dist` (pure JS, Worker-compatible).
+
+Reuses existing `FIRECRAWL_API_KEY` and `LOVABLE_API_KEY` secrets — no new secrets needed.
