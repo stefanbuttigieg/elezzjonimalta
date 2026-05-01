@@ -71,7 +71,7 @@ async function loadLandingStats(): Promise<LandingStats> {
   }
   const districtCandidateCounts: Record<number, number> = {};
   for (const row of (candDistricts.data ?? []) as Array<{ district_id: string }>) {
-    const num = numberById.get(row.district_id);
+    const num = numberById[row.district_id];
     if (num == null) continue;
     districtCandidateCounts[num] = (districtCandidateCounts[num] ?? 0) + 1;
   }
