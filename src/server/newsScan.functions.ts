@@ -207,22 +207,51 @@ export const convertFinding = createServerFn({ method: "POST" })
         if (error) throw new Error(error.message);
         createdEntity = { type: "candidate", id: p.candidate_id };
       } else if (data.target === "new_proposal") {
-        if (!p.title_en) throw new Error("title_en required");
-        const { data: row, error } = await supabaseAdmin
+        // Support either a single proposal (legacy fields on payload) or
+        // a batch via payload.proposals = [{ title_en, description_en, ... }].
+        type ProposalRow = {
+          title_en?: string;
+          description_en?: string;
+          category?: string;
+          party_id?: string;
+          candidate_id?: string;
+        };
+        const batch: ProposalRow[] = Array.isArray(
+          (data.payload as { proposals?: unknown }).proposals
+        )
+          ? ((data.payload as { proposals: ProposalRow[] }).proposals)
+          : [
+              {
+                title_en: p.title_en,
+                description_en: p.description_en,
+                category: p.category,
+                party_id: p.party_id,
+                candidate_id: p.candidate_id,
+              },
+            ];
+
+        const valid = batch.filter((r) => r.title_en && r.title_en.trim().length > 0);
+        if (valid.length === 0) throw new Error("at least one proposal title is required");
+
+        const rows = valid.map((r) => ({
+          title_en: r.title_en!.trim(),
+          description_en: r.description_en?.trim() || null,
+          category: r.category?.trim() || null,
+          party_id: r.party_id || null,
+          candidate_id: r.candidate_id || null,
+          source_url: sourceUrl,
+          status: "pending_review" as const,
+        }));
+
+        const { data: inserted, error } = await supabaseAdmin
           .from("proposals")
-          .insert({
-            title_en: p.title_en,
-            description_en: p.description_en || null,
-            category: p.category || null,
-            party_id: p.party_id || null,
-            candidate_id: p.candidate_id || null,
-            source_url: sourceUrl,
-            status: "pending_review",
-          })
-          .select("id")
-          .single();
+          .insert(rows)
+          .select("id");
         if (error) throw new Error(error.message);
-        createdEntity = { type: "proposal", id: row.id };
+        const ids = (inserted ?? []).map((r) => r.id);
+        // Link the finding to the first proposal; report all created IDs.
+        createdEntity = { type: "proposal", id: ids[0] };
+        (createdEntity as { ids?: string[] }).ids = ids;
       } else if (data.target === "new_party") {
         if (!p.name_en) throw new Error("name_en required");
         const slug = p.slug || slugify(p.name_en);
