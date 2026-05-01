@@ -44,6 +44,10 @@ interface Proposal {
   status: ReviewStatus;
   source_url: string | null;
   custom_fields: Record<string, unknown>;
+  notes: string | null;
+  merged_into_id: string | null;
+  merged_at: string | null;
+  merge_note: string | null;
   party?: PartyLite | null;
   candidate?: CandidateLite | null;
 }
