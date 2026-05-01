@@ -7,9 +7,16 @@ import { writeAudit } from "./auditLog.server";
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-const PER_SOURCE_LIMIT = 3;
-const TOTAL_LIMIT = 10;
+// Per-source / total caps for a single scan run.
+const PER_SOURCE_LIMIT = 5;
+const TOTAL_LIMIT = 20;
 const ARTICLE_CONTENT_LIMIT = 6000;
+// Skip articles older than this when we can detect the published date.
+const MAX_ARTICLE_AGE_DAYS = 21;
+// Election-focused search query used to bias discovery toward relevant, recent
+// coverage instead of pulling whatever the sitemap returns first.
+const SEARCH_QUERY =
+  'Malta 2026 election OR candidate OR proposal OR PN OR PL OR ADPD OR "general election"';
 
 type Trigger = "cron" | "manual";
 
