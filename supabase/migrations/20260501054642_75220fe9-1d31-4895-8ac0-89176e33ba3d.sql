@@ -1,0 +1,1 @@
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS commission_confirmed boolean NOT NULL DEFAULT false;

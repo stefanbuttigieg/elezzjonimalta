@@ -422,6 +422,7 @@ export type Database = {
           bio_en: string | null
           bio_mt: string | null
           birthplace: string | null
+          commission_confirmed: boolean
           created_at: string
           date_of_birth: string | null
           education: string | null
@@ -462,6 +463,7 @@ export type Database = {
           bio_en?: string | null
           bio_mt?: string | null
           birthplace?: string | null
+          commission_confirmed?: boolean
           created_at?: string
           date_of_birth?: string | null
           education?: string | null
@@ -502,6 +504,7 @@ export type Database = {
           bio_en?: string | null
           bio_mt?: string | null
           birthplace?: string | null
+          commission_confirmed?: boolean
           created_at?: string
           date_of_birth?: string | null
           education?: string | null
