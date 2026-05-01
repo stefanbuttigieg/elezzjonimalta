@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.match_knowledge_chunks(vector, int, float, text[]) FROM anon, authenticated;
