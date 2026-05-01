@@ -526,9 +526,16 @@ function CandidatesAdmin() {
                     </td>
                   ) : null}
                   <td className="px-4 py-3 text-right">
+                    {!r.photo_url ? (
+                      <FindPhotoRowButton
+                        candidateId={r.id}
+                        fullName={r.full_name}
+                        onSaved={() => void load()}
+                      />
+                    ) : null}
                     <button
                       onClick={() => setEditing(r)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+                      className="ml-2 inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
                     >
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
