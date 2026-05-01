@@ -100,10 +100,54 @@ function HomePage() {
         </div>
       ) : null}
       <Hero lang={locale} t={t} />
+      <EligibilitySection t={t} />
       <DistrictsMapSection lang={locale} t={t} />
       <Principles t={t} />
       <EntryGrid lang={locale} t={t} />
     </>
+  );
+}
+
+function EligibilitySection({
+  t,
+}: {
+  t: (k: string, v?: Record<string, string | number>) => string;
+}) {
+  return (
+    <section className="border-b border-border bg-surface">
+      <div className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <div className="flex flex-col gap-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background p-6 shadow-card md:flex-row md:items-center md:justify-between md:p-8">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                {t("home.eligibility.eyebrow")}
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-bold text-foreground md:text-3xl">
+                {t("home.eligibility.title")}
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+                {t("home.eligibility.desc")}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("home.eligibility.note")}
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://electoral.gov.mt/electoral-registers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            {t("home.eligibility.cta")}
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </div>
+      </div>
+    </section>
   );
 }
 
