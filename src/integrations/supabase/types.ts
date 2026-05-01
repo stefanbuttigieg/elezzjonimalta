@@ -435,6 +435,7 @@ export type Database = {
           instagram: string | null
           is_incumbent: boolean
           languages: string[] | null
+          leadership_role: string | null
           linkedin: string | null
           not_contesting_2026: boolean
           not_contesting_note_en: string | null
@@ -476,6 +477,7 @@ export type Database = {
           instagram?: string | null
           is_incumbent?: boolean
           languages?: string[] | null
+          leadership_role?: string | null
           linkedin?: string | null
           not_contesting_2026?: boolean
           not_contesting_note_en?: string | null
@@ -517,6 +519,7 @@ export type Database = {
           instagram?: string | null
           is_incumbent?: boolean
           languages?: string[] | null
+          leadership_role?: string | null
           linkedin?: string | null
           not_contesting_2026?: boolean
           not_contesting_note_en?: string | null

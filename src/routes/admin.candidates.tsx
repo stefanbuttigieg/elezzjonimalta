@@ -32,6 +32,7 @@ interface Candidate {
   is_incumbent: boolean;
   electoral_confirmed: boolean;
   commission_confirmed: boolean;
+  leadership_role: "leader" | "deputy_leader" | null;
   bio_en: string | null;
   bio_mt: string | null;
   photo_url: string | null;
@@ -65,6 +66,7 @@ const empty: Candidate = {
   is_incumbent: false,
   electoral_confirmed: false,
   commission_confirmed: false,
+  leadership_role: null,
   bio_en: "",
   bio_mt: "",
   photo_url: "",
@@ -212,6 +214,15 @@ function CandidatesAdmin() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
+                      {r.leadership_role === "leader" ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
+                          Leader
+                        </span>
+                      ) : r.leadership_role === "deputy_leader" ? (
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
+                          Deputy Leader
+                        </span>
+                      ) : null}
                       {r.is_incumbent ? (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                           MP
@@ -372,6 +383,7 @@ function CandidateEditor({
         is_incumbent: v.is_incumbent,
         electoral_confirmed: v.electoral_confirmed,
         commission_confirmed: v.commission_confirmed,
+        leadership_role: v.leadership_role,
         bio_en: v.bio_en || null,
         bio_mt: v.bio_mt || null,
         photo_url: v.photo_url || null,
@@ -568,6 +580,25 @@ function CandidateEditor({
         </Field>
         <Field label="Status">
           <StatusSelect value={v.status} onChange={(x) => setV({ ...v, status: x })} />
+        </Field>
+        <Field label="Leadership role">
+          <select
+            value={v.leadership_role ?? ""}
+            onChange={(e) =>
+              setV({
+                ...v,
+                leadership_role:
+                  e.target.value === "leader" || e.target.value === "deputy_leader"
+                    ? e.target.value
+                    : null,
+              })
+            }
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          >
+            <option value="">— None —</option>
+            <option value="leader">Leader</option>
+            <option value="deputy_leader">Deputy Leader</option>
+          </select>
         </Field>
         <Field label="Flags">
           <div className="flex flex-col gap-2 pt-2">
