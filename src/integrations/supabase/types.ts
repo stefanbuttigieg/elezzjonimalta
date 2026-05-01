@@ -1078,6 +1078,7 @@ export type Database = {
           merge_note: string | null
           merged_at: string | null
           merged_into_id: string | null
+          notes: string | null
           party_id: string | null
           source_url: string | null
           status: Database["public"]["Enums"]["review_status"]
@@ -1096,6 +1097,7 @@ export type Database = {
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null
+          notes?: string | null
           party_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
@@ -1114,6 +1116,7 @@ export type Database = {
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null
+          notes?: string | null
           party_id?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
