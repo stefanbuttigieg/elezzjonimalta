@@ -78,6 +78,7 @@ function ProposalsAdmin() {
   const [candidates, setCandidates] = useState<CandidateLite[]>([]);
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
+  const [showMerged, setShowMerged] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
 
