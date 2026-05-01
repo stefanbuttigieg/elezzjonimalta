@@ -334,16 +334,61 @@ function CandidatesAdmin() {
           </button>
         ) : null}
         <span className="text-xs text-muted-foreground">{filtered.length} of {rows.length}</span>
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setColumnsOpen((o) => !o)}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+          >
+            <Columns3 className="h-4 w-4" /> Columns ({visibleColumns.length})
+          </button>
+          {columnsOpen ? (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setColumnsOpen(false)} />
+              <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-md border border-border bg-popover p-2 shadow-lg">
+                <div className="mb-1 flex items-center justify-between px-1 text-xs text-muted-foreground">
+                  <span>Show columns</span>
+                  <button
+                    onClick={() => setVisibleColumns(DEFAULT_COLUMNS)}
+                    className="text-primary hover:underline"
+                  >
+                    Reset
+                  </button>
+                </div>
+                {ALL_COLUMNS.map((col) => (
+                  <label
+                    key={col.key}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns.includes(col.key)}
+                      onChange={() => toggleColumn(col.key)}
+                    />
+                    <span>{col.label}</span>
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Party</th>
-              <th className="px-4 py-3">District</th>
-              <th className="px-4 py-3">Status</th>
+              {showCol("party") ? <th className="px-4 py-3">Party</th> : null}
+              {showCol("district") ? <th className="px-4 py-3">District</th> : null}
+              {showCol("status") ? <th className="px-4 py-3">Status</th> : null}
+              {showCol("leadership") ? <th className="px-4 py-3">Leadership</th> : null}
+              {showCol("flags") ? <th className="px-4 py-3">Flags</th> : null}
+              {showCol("email") ? <th className="px-4 py-3">Email</th> : null}
+              {showCol("phone") ? <th className="px-4 py-3">Phone</th> : null}
+              {showCol("profession") ? <th className="px-4 py-3">Profession</th> : null}
+              {showCol("dob") ? <th className="px-4 py-3">Date of birth</th> : null}
+              {showCol("imported_from") ? <th className="px-4 py-3">Imported from</th> : null}
+              {showCol("created_at") ? <th className="px-4 py-3">Created</th> : null}
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
