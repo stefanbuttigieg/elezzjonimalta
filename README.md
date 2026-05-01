@@ -135,10 +135,39 @@ A public `/faq` page presents voter-facing questions and answers in both
 English and Maltese, sourced from official references (Electoral
 Commission via intmalta.com and PN's election FAQ). An admin-triggered
 re-sync uses Firecrawl to scrape the source pages and Lovable AI to
-extract Q&A pairs and translate Maltese-only sources into English.
-Deduplication is handled via a deterministic question hash, and each
-sync run is recorded with item counts and any errors. Staff can edit
-content and switch entries between Draft / Published / Archived.
+extract Q&A pairs. Maltese-only entries are kept as-is; staff can trigger
+an on-demand AI **Translate** action per row when an English version is
+needed. The public page falls back to the available language when one
+side is missing. Deduplication is handled via a deterministic question
+hash, and each sync run is recorded with item counts and any errors.
+Staff can edit content and switch entries between Draft / Published /
+Archived.
+
+### AI-Generated Proposal Translations
+Proposals can be authored in either English or Maltese; the editor
+exposes a one-click AI translation action (via the Lovable AI Gateway)
+to fill in the missing language on demand.
+
+### Multiple Categories per Proposal with AI Suggestions
+Each proposal can be tagged with multiple categories. The editor also
+surfaces AI-generated category suggestions based on the proposal's
+title and description.
+
+### Manifesto Import with PDF Preview
+The admin manifesto importer extracts proposals from uploaded party
+manifesto PDFs. The Review step shows a split layout — the extracted
+proposals on the left and a live PDF viewer on the right that jumps to
+the source page for the selected row, with the AI's verbatim quote
+displayed above the PDF for side-by-side verification before applying
+changes.
+
+### Automated Candidate Photo Retrieval
+Admins can fill in missing candidate portraits with a bulk "Find missing
+photos" action or a per-row "Find photo" button. The flow uses Firecrawl
++ Gemini to search trusted sources (parlament.mt, gov.mt, Times of Malta,
+etc.), verifies the URL returns a valid image, and writes the result to
+the candidate record with an audit log entry. Social-media CDN URLs are
+filtered out to avoid expiring links.
 
 ### Proposal Duplicate Detection & Merging
 The admin proposals workspace flags potential duplicates (by normalised
