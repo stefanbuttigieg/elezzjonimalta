@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
-import { Plus, Pencil, Trash2, Search, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Drawer,
@@ -54,6 +54,9 @@ interface Candidate {
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
   custom_fields: Record<string, unknown>;
+  profession: string | null;
+  date_of_birth: string | null;
+  created_at: string;
 }
 
 interface PartyOpt { id: string; name_en: string; }
@@ -89,7 +92,40 @@ const empty: Candidate = {
   not_contesting_note_en: "",
   not_contesting_note_mt: "",
   custom_fields: {},
+  profession: "",
+  date_of_birth: null,
+  created_at: "",
 };
+
+type ColumnKey =
+  | "party"
+  | "district"
+  | "status"
+  | "leadership"
+  | "flags"
+  | "email"
+  | "phone"
+  | "profession"
+  | "dob"
+  | "imported_from"
+  | "created_at";
+
+const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "party", label: "Party" },
+  { key: "district", label: "District" },
+  { key: "status", label: "Status" },
+  { key: "leadership", label: "Leadership" },
+  { key: "flags", label: "Flags (MP / News / Commission)" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "profession", label: "Profession" },
+  { key: "dob", label: "Date of birth" },
+  { key: "imported_from", label: "Imported from" },
+  { key: "created_at", label: "Created" },
+];
+
+const DEFAULT_COLUMNS: ColumnKey[] = ["party", "district", "status", "leadership", "flags"];
+const COLUMNS_STORAGE_KEY = "admin:candidates:columns";
 
 function CandidatesAdmin() {
   const [rows, setRows] = useState<Candidate[]>([]);
@@ -103,6 +139,32 @@ function CandidatesAdmin() {
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_COLUMNS;
+    try {
+      const stored = window.localStorage.getItem(COLUMNS_STORAGE_KEY);
+      if (!stored) return DEFAULT_COLUMNS;
+      const parsed = JSON.parse(stored) as ColumnKey[];
+      const valid = new Set(ALL_COLUMNS.map((c) => c.key));
+      const filtered = parsed.filter((k) => valid.has(k));
+      return filtered.length > 0 ? filtered : DEFAULT_COLUMNS;
+    } catch {
+      return DEFAULT_COLUMNS;
+    }
+  });
+  const [columnsOpen, setColumnsOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
+  const toggleColumn = (key: ColumnKey) => {
+    setVisibleColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+  const showCol = (k: ColumnKey) => visibleColumns.includes(k);
   const { edit: editIdFromUrl } = Route.useSearch();
   const navigate = useNavigate();
 
@@ -272,80 +334,189 @@ function CandidatesAdmin() {
           </button>
         ) : null}
         <span className="text-xs text-muted-foreground">{filtered.length} of {rows.length}</span>
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setColumnsOpen((o) => !o)}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+          >
+            <Columns3 className="h-4 w-4" /> Columns ({visibleColumns.length})
+          </button>
+          {columnsOpen ? (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setColumnsOpen(false)} />
+              <div className="absolute right-0 top-full z-20 mt-1 w-64 rounded-md border border-border bg-popover p-2 shadow-lg">
+                <div className="mb-1 flex items-center justify-between px-1 text-xs text-muted-foreground">
+                  <span>Show columns</span>
+                  <button
+                    onClick={() => setVisibleColumns(DEFAULT_COLUMNS)}
+                    className="text-primary hover:underline"
+                  >
+                    Reset
+                  </button>
+                </div>
+                {ALL_COLUMNS.map((col) => (
+                  <label
+                    key={col.key}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns.includes(col.key)}
+                      onChange={() => toggleColumn(col.key)}
+                    />
+                    <span>{col.label}</span>
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Party</th>
-              <th className="px-4 py-3">District</th>
-              <th className="px-4 py-3">Status</th>
+              {showCol("party") ? <th className="px-4 py-3">Party</th> : null}
+              {showCol("district") ? <th className="px-4 py-3">District</th> : null}
+              {showCol("status") ? <th className="px-4 py-3">Status</th> : null}
+              {showCol("leadership") ? <th className="px-4 py-3">Leadership</th> : null}
+              {showCol("flags") ? <th className="px-4 py-3">Flags</th> : null}
+              {showCol("email") ? <th className="px-4 py-3">Email</th> : null}
+              {showCol("phone") ? <th className="px-4 py-3">Phone</th> : null}
+              {showCol("profession") ? <th className="px-4 py-3">Profession</th> : null}
+              {showCol("dob") ? <th className="px-4 py-3">Date of birth</th> : null}
+              {showCol("imported_from") ? <th className="px-4 py-3">Imported from</th> : null}
+              {showCol("created_at") ? <th className="px-4 py-3">Created</th> : null}
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  Loading…
-                </td>
-              </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                  No candidates match.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((r) => (
+            {(() => {
+              const colCount =
+                1 + visibleColumns.length + 1; // name + visible + actions
+              if (loading) {
+                return (
+                  <tr>
+                    <td colSpan={colCount} className="px-4 py-8 text-center text-muted-foreground">
+                      Loading…
+                    </td>
+                  </tr>
+                );
+              }
+              if (filtered.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={colCount} className="px-4 py-8 text-center text-muted-foreground">
+                      No candidates match.
+                    </td>
+                  </tr>
+                );
+              }
+              return filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
-                      {r.leadership_role === "leader" ? (
+                      {!showCol("leadership") && r.leadership_role === "leader" ? (
                         <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
                           Leader
                         </span>
-                      ) : r.leadership_role === "deputy_leader" ? (
+                      ) : !showCol("leadership") && r.leadership_role === "deputy_leader" ? (
                         <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
                           Deputy Leader
                         </span>
                       ) : null}
-                      {r.is_incumbent ? (
+                      {!showCol("flags") && r.is_incumbent ? (
                         <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                           MP
                         </span>
                       ) : null}
-                      {r.electoral_confirmed ? (
+                      {!showCol("flags") && r.electoral_confirmed ? (
                         <span title="Confirmed via news sources" className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                           <CheckCircle2 className="h-3 w-3" /> News
                         </span>
                       ) : null}
-                      {r.commission_confirmed ? (
+                      {!showCol("flags") && r.commission_confirmed ? (
                         <span title="Confirmed by Electoral Commission" className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
                           <CheckCircle2 className="h-3 w-3" /> Commission
                         </span>
                       ) : null}
                     </div>
-                    {r.imported_from ? (
+                    {!showCol("imported_from") && r.imported_from ? (
                       <div className="text-xs text-muted-foreground">imported · {r.imported_from}</div>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <CandidateStatusBadge
-                      status={r.status}
-                      isIncumbent={r.is_incumbent}
-                      electoralConfirmed={r.electoral_confirmed}
-                    />
-                  </td>
+                  {showCol("party") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("district") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.primary_district_id ? districtMap[r.primary_district_id] ?? "—" : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("status") ? (
+                    <td className="px-4 py-3">
+                      <CandidateStatusBadge
+                        status={r.status}
+                        isIncumbent={r.is_incumbent}
+                        electoralConfirmed={r.electoral_confirmed}
+                      />
+                    </td>
+                  ) : null}
+                  {showCol("leadership") ? (
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.leadership_role === "leader"
+                        ? "Leader"
+                        : r.leadership_role === "deputy_leader"
+                        ? "Deputy Leader"
+                        : "—"}
+                    </td>
+                  ) : null}
+                  {showCol("flags") ? (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {r.is_incumbent ? (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">MP</span>
+                        ) : null}
+                        {r.electoral_confirmed ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">News</span>
+                        ) : null}
+                        {r.commission_confirmed ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">Commission</span>
+                        ) : null}
+                        {r.not_contesting_2026 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Not 2026</span>
+                        ) : null}
+                        {!r.is_incumbent && !r.electoral_confirmed && !r.commission_confirmed && !r.not_contesting_2026 ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : null}
+                      </div>
+                    </td>
+                  ) : null}
+                  {showCol("email") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.email || "—"}</td>
+                  ) : null}
+                  {showCol("phone") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.phone || "—"}</td>
+                  ) : null}
+                  {showCol("profession") ? (
+                    <td className="px-4 py-3 text-muted-foreground">{r.profession || "—"}</td>
+                  ) : null}
+                  {showCol("dob") ? (
+                    <td className="px-4 py-3 text-muted-foreground">{r.date_of_birth || "—"}</td>
+                  ) : null}
+                  {showCol("imported_from") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{r.imported_from || "—"}</td>
+                  ) : null}
+                  {showCol("created_at") ? (
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => setEditing(r)}
@@ -370,8 +541,8 @@ function CandidatesAdmin() {
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
+              ));
+            })()}
           </tbody>
         </table>
       </div>
