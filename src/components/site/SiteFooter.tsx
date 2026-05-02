@@ -46,6 +46,22 @@ export function SiteFooter() {
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               {t("footer.sources")}
             </p>
+            <a
+              href="https://t.me/elezzjonibot"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-3.5 w-3.5"
+                fill="currentColor"
+              >
+                <path d="M9.78 15.27 9.6 19a.6.6 0 0 0 1.02.43l2.18-2.09 4.52 3.32c.83.46 1.43.22 1.65-.77l2.99-14.04c.29-1.27-.46-1.77-1.27-1.47L2.4 10.42c-1.24.5-1.22 1.21-.21 1.53l4.74 1.48L17.92 6.7c.52-.31.99-.14.6.18z" />
+              </svg>
+              {t("footer.telegram")}
+            </a>
           </div>
           <FooterColumn title={t("nav.menu")} items={explore} />
           <FooterColumn title={t("nav.about")} items={project} />

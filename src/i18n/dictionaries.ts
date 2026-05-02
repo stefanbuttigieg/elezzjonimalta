@@ -55,6 +55,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Data sourced from electoral.gov.mt, parlament.mt, party websites, and named news outlets.",
     "footer.lastUpdated": "Last updated",
     "footer.rights": "© {year} Elezzjoni. Open data, attribution required.",
+    "footer.telegram": "Telegram bot",
 
     "home.hero.eyebrow": "Malta General Election",
     "home.hero.title": "Make an informed vote",
@@ -501,6 +502,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Data minn electoral.gov.mt, parlament.mt, websajts tal-partiti, u sorsi tal-aħbarijiet imsemmija.",
     "footer.lastUpdated": "L-aħħar aġġornament",
     "footer.rights": "© {year} Elezzjoni. Data miftuħa, attribuzzjoni meħtieġa.",
+    "footer.telegram": "Bot tat-Telegram",
 
     "home.hero.eyebrow": "Elezzjoni Ġenerali Maltija",
     "home.hero.title": "Ivvota b'għarfien",
