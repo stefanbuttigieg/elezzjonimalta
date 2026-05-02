@@ -300,15 +300,17 @@ async function processUpdate(update: TgUpdate): Promise<void> {
   }
 
   await supabaseAdmin.from("telegram_messages").upsert(
-    {
-      update_id: update.update_id,
-      chat_id: chatId,
-      username: msg.from?.username ?? null,
-      text,
-      command,
-      response: response.slice(0, 4000),
-      raw_update: update as unknown as Record<string, unknown>,
-    },
+    [
+      {
+        update_id: update.update_id,
+        chat_id: chatId,
+        username: msg.from?.username ?? null,
+        text,
+        command,
+        response: response.slice(0, 4000),
+        raw_update: update as unknown as Record<string, unknown>,
+      },
+    ],
     { onConflict: "update_id" }
   );
 }
