@@ -38,20 +38,36 @@ function getEnv() {
 
 async function tgCall(path: string, body: Record<string, unknown>) {
   const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getEnv();
-  const resp = await fetch(`${GATEWAY_URL}/${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
-    throw new Error(`Telegram ${path} failed [${resp.status}]: ${JSON.stringify(data)}`);
+  let lastError = "unknown error";
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const resp = await fetch(`${GATEWAY_URL}/${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": TELEGRAM_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const raw = await resp.text();
+    let data: unknown = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      data = { raw };
+    }
+
+    if (resp.ok) return data;
+
+    lastError = `Telegram ${path} failed [${resp.status}]: ${JSON.stringify(data)}`;
+    const retryable = resp.status === 429 || resp.status >= 500;
+    if (!retryable || attempt === 3) break;
+    await new Promise((resolve) => setTimeout(resolve, attempt * 500));
   }
-  return data;
+
+  throw new Error(lastError);
 }
 
 async function sendMessage(
