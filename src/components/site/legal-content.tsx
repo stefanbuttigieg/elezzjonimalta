@@ -105,16 +105,18 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li><strong>AI assistant queries:</strong> the text of your question, stored briefly to improve neutrality and detect abuse. Not linked to your identity.</li>
             <li><strong>API usage:</strong> request metadata (endpoint, timestamp, API key) for rate limiting and abuse prevention.</li>
             <li><strong>Account data (developers and editors only):</strong> email address.</li>
+            <li><strong>Telegram bot interactions:</strong> if you message our official Telegram bot (<strong>Elezzjoni Bot</strong>), we receive your Telegram chat ID, the text of your message, and your optional 👍/👎 feedback. We use this only to reply, to prevent abuse, and to improve answer quality. We do not link this to any other identity. Your interaction with Telegram itself is also governed by Telegram's own privacy policy.</li>
           </ul>
           <h2>Legal basis</h2>
-          <p>Consent (analytics, optional cookies), legitimate interest (security and abuse prevention), and contract (developer accounts).</p>
+          <p>Consent (analytics, optional cookies, voluntarily messaging the Telegram bot), legitimate interest (security and abuse prevention), and contract (developer accounts).</p>
           <h2>Retention</h2>
-          <p>Analytics data is retained for up to 14 months. AI query logs are retained for up to 30 days. API usage logs are retained for up to 12 months.</p>
+          <p>Analytics data is retained for up to 14 months. AI query logs are retained for up to 30 days. API usage logs are retained for up to 12 months. Telegram messages and feedback are retained for up to 90 days, after which they are deleted or fully anonymised.</p>
           <h2>Your rights</h2>
           <p>
             Under GDPR you may request access, correction, deletion, portability, or restriction of
-            your personal data. Contact us using the details on the Contact page. You may also lodge a
-            complaint with the Information and Data Protection Commissioner (IDPC) of Malta.
+            your personal data, including any data held about your Telegram interactions. Contact us
+            using the details on the Contact page. You may also lodge a complaint with the
+            Information and Data Protection Commissioner (IDPC) of Malta.
           </p>
         </>
       ),
