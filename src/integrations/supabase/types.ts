@@ -1537,6 +1537,45 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_feedback: {
+        Row: {
+          answer: string | null
+          chat_id: number
+          command: string | null
+          created_at: string
+          id: string
+          message_id: number
+          question: string | null
+          rating: number
+          user_id: number | null
+          username: string | null
+        }
+        Insert: {
+          answer?: string | null
+          chat_id: number
+          command?: string | null
+          created_at?: string
+          id?: string
+          message_id: number
+          question?: string | null
+          rating: number
+          user_id?: number | null
+          username?: string | null
+        }
+        Update: {
+          answer?: string | null
+          chat_id?: number
+          command?: string | null
+          created_at?: string
+          id?: string
+          message_id?: number
+          question?: string | null
+          rating?: number
+          user_id?: number | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       telegram_messages: {
         Row: {
           chat_id: number
