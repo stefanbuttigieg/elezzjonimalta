@@ -13,10 +13,20 @@ type TgMessage = {
   text?: string;
 };
 
+type TgCallbackQuery = {
+  id: string;
+  from: { id: number; username?: string; first_name?: string };
+  message?: TgMessage;
+  data?: string;
+};
+
 type TgUpdate = {
   update_id: number;
   message?: TgMessage;
+  callback_query?: TgCallbackQuery;
 };
+
+type InlineKeyboard = { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> };
 
 function getEnv() {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
@@ -44,15 +54,35 @@ async function tgCall(path: string, body: Record<string, unknown>) {
   return data;
 }
 
-async function sendMessage(chatId: number, text: string) {
+async function sendMessage(
+  chatId: number,
+  text: string,
+  replyMarkup?: InlineKeyboard
+): Promise<{ message_id: number } | null> {
   // Telegram limit is 4096 chars per message.
   const chunk = text.length > 4000 ? text.slice(0, 3990) + "\n…(truncated)" : text;
-  await tgCall("sendMessage", {
+  const body: Record<string, unknown> = {
     chat_id: chatId,
     text: chunk,
     parse_mode: "HTML",
     disable_web_page_preview: true,
-  });
+  };
+  if (replyMarkup) body.reply_markup = replyMarkup;
+  const data = await tgCall("sendMessage", body);
+  return data?.result ? { message_id: data.result.message_id as number } : null;
+}
+
+// Neutral feedback keyboard. Encoded as `fb:<up|down>` — no per-message ID
+// needed because we key feedback rows on (chat_id, message_id, user_id).
+function feedbackKeyboard(): InlineKeyboard {
+  return {
+    inline_keyboard: [
+      [
+        { text: "👍 Helpful", callback_data: "fb:up" },
+        { text: "👎 Not helpful", callback_data: "fb:down" },
+      ],
+    ],
+  };
 }
 
 const HELP_TEXT = `<b>Vot Malta 2026 — Bot</b>
