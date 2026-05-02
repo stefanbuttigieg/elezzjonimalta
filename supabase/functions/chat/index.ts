@@ -91,6 +91,100 @@ async function buildAuthoritativeFacts(
   return lines.join("\n");
 }
 
+// Detects intent (district number, party mention) in the user's question and
+// pulls authoritative live data so the model never has to guess.
+async function buildIntentBoost(
+  supabase: ReturnType<typeof createClient>,
+  userQuery: string,
+): Promise<string> {
+  const q = userQuery.toLowerCase();
+  const sections: string[] = [];
+
+  // --- District intent: "district 12", "d12", "in district twelve" etc.
+  const districtNums = new Set<number>();
+  const numRegex = /\b(?:district|distrett|d)\s*([1-9]|1[0-3])\b/gi;
+  let m: RegExpExecArray | null;
+  while ((m = numRegex.exec(userQuery)) !== null) {
+    districtNums.add(parseInt(m[1], 10));
+  }
+
+  for (const num of districtNums) {
+    const { data: district } = await supabase
+      .from("districts")
+      .select("id, number, name_en, localities_en")
+      .eq("number", num)
+      .maybeSingle();
+    if (!district) continue;
+
+    const { data: links } = await supabase
+      .from("candidate_districts")
+      .select(
+        "candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
+      )
+      .eq("district_id", district.id)
+      .eq("election_year", 2026);
+
+    const cands: Array<{
+      name: string;
+      party: string;
+      confirmed: boolean;
+      incumbent: boolean;
+      slug: string;
+    }> = [];
+    for (const row of (links ?? []) as Array<{
+      candidate: {
+        full_name: string;
+        slug: string;
+        electoral_confirmed: boolean | null;
+        is_incumbent: boolean | null;
+        status: string | null;
+        party: { name_en?: string; short_name?: string | null } | null;
+      } | null;
+    }>) {
+      const c = row.candidate;
+      if (!c) continue;
+      // Mirror site rule: hide incumbents that aren't confirmed for 2026.
+      if (c.is_incumbent && !c.electoral_confirmed) continue;
+      if (c.status !== "published" && !c.is_incumbent) continue;
+      cands.push({
+        name: c.full_name,
+        party: c.party?.short_name || c.party?.name_en || "Independent",
+        confirmed: !!c.electoral_confirmed,
+        incumbent: !!c.is_incumbent,
+        slug: c.slug,
+      });
+    }
+    cands.sort((a, b) => {
+      if (a.confirmed !== b.confirmed) return a.confirmed ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    const lines: string[] = [];
+    lines.push(
+      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026):`,
+    );
+    if (district.localities_en) {
+      lines.push(`Localities: ${district.localities_en}`);
+    }
+    if (cands.length === 0) {
+      lines.push("No candidates are currently linked to this district in the database.");
+    } else {
+      for (const c of cands) {
+        const flags = [
+          c.confirmed ? "confirmed for 2026" : "not yet confirmed",
+          c.incumbent ? "sitting MP" : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+        lines.push(`• ${c.name} — ${c.party} (${flags}) [/en/candidates/${c.slug}]`);
+      }
+    }
+    sections.push(lines.join("\n"));
+  }
+
+  return sections.join("\n\n");
+}
+
 async function loadSettings(supabase: ReturnType<typeof createClient>): Promise<Settings> {
   const { data } = await supabase
     .from("assistant_settings")
