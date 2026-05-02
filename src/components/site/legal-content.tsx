@@ -69,10 +69,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           </p>
           <h2>Użu aċċettabbli</h2>
           <p>
-            M'għandekx tuża s-sit jew l-API biex tdejjaq lil individwi, tirrappreżenta ħażin id-data,
-            tiġġenera kontenut politiku qarrieqi, jew b'xi mod li jikser il-liġi Maltija jew tal-UE.
-            Aċċess awtomatizzat għas-sit pubbliku (scraping) mingħajr ma tuża l-API dokumentat mhuwiex
-            permess.
+            M'għandekx tuża s-sit, l-API jew il-bot ta' Telegram biex tdejjaq lil individwi,
+            tirrappreżenta ħażin id-data, tiġġenera kontenut politiku qarrieqi, tagħmel spam fuq
+            il-bot, jew b'xi mod li jikser il-liġi Maltija jew tal-UE. Aċċess awtomatizzat
+            għas-sit pubbliku (scraping) mingħajr ma tuża l-API dokumentat mhuwiex permess. Użu
+            awtomatizzat jew skrittjat tal-bot ta' Telegram lil hinn minn użu personali raġonevoli
+            lanqas mhu permess.
           </p>
           <h2>Responsabbiltà</h2>
           <p>
