@@ -91,6 +91,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 <b>Commands</b>
 /candidates [district|name] — list or search candidates
 /party [name|short] — show party info and proposals
+/proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
 /ask <question> — ask the assistant anything
 /help — show this message
@@ -99,6 +100,8 @@ Examples:
 <code>/candidates 5</code>
 <code>/candidates abela</code>
 <code>/party PL</code>
+<code>/proposals housing</code>
+<code>/proposals PL</code>
 <code>/faq id card</code>
 <code>/ask When do polls open?</code>`;
 
