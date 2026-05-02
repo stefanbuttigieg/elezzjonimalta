@@ -193,7 +193,7 @@ async function handleFaq(arg: string): Promise<string> {
   }
   const blocks = faqs.map(
     (f) =>
-      `<b>${escapeHtml(f.question_en)}</b>\n${escapeHtml((f.answer_en ?? "").slice(0, 500))}`
+      `<b>${escapeHtml(f.question_en ?? "(untitled)")}</b>\n${escapeHtml((f.answer_en ?? "").slice(0, 500))}`
   );
   return blocks.join("\n\n");
 }
