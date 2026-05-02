@@ -27,6 +27,7 @@ type TgUpdate = {
 };
 
 type InlineKeyboard = { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> };
+type TelegramGatewayResponse = { ok?: boolean; result?: unknown; [key: string]: unknown };
 
 function getEnv() {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
@@ -36,7 +37,7 @@ function getEnv() {
   return { LOVABLE_API_KEY, TELEGRAM_API_KEY };
 }
 
-async function tgCall(path: string, body: Record<string, unknown>) {
+async function tgCall(path: string, body: Record<string, unknown>): Promise<TelegramGatewayResponse> {
   const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getEnv();
   let lastError = "unknown error";
 
@@ -52,9 +53,10 @@ async function tgCall(path: string, body: Record<string, unknown>) {
     });
 
     const raw = await resp.text();
-    let data: unknown = {};
+    let data: TelegramGatewayResponse = {};
     try {
-      data = raw ? JSON.parse(raw) : {};
+      const parsed = raw ? JSON.parse(raw) : {};
+      data = parsed && typeof parsed === "object" ? (parsed as TelegramGatewayResponse) : { raw: parsed };
     } catch {
       data = { raw };
     }
