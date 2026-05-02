@@ -237,17 +237,20 @@ async function handleParty(arg: string): Promise<string> {
   if (!a) {
     const { data: parties } = await supabaseAdmin
       .from("parties")
-      .select("short_name, name_en")
+      .select("slug, short_name, name_en")
       .eq("status", "published")
       .order("name_en");
     const list = (parties ?? [])
-      .map((p) => `• ${escapeHtml(p.short_name || "")} — ${escapeHtml(p.name_en)}`)
+      .map((p) => {
+        const link = siteLink(`/en/parties/${p.slug}`, p.name_en);
+        return `• ${escapeHtml(p.short_name || "")} — ${link}`;
+      })
       .join("\n");
     return `<b>Parties</b>\n${list}\n\nUse <code>/party &lt;short name&gt;</code> for details.`;
   }
   const { data: party } = await supabaseAdmin
     .from("parties")
-    .select("id, name_en, short_name, description_en, leader_name, website, slogan_en")
+    .select("id, slug, name_en, short_name, description_en, leader_name, website, slogan_en")
     .eq("status", "published")
     .or(`short_name.ilike.${a},name_en.ilike.%${a}%,slug.ilike.%${a}%`)
     .limit(1)
@@ -271,6 +274,9 @@ async function handleParty(arg: string): Promise<string> {
   if (props && props.length > 0) {
     lines.push(`\n<b>Top proposals</b>`);
     for (const p of props) lines.push(`• ${escapeHtml(p.title_en)}`);
+  }
+  if (party.slug) {
+    lines.push(`\n🔗 ${siteLink(`/en/parties/${party.slug}`, `View ${party.name_en} on the site`)}`);
   }
   return lines.join("\n");
 }
