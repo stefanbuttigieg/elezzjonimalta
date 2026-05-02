@@ -35,6 +35,61 @@ interface Settings {
   max_context_chunks: number;
 }
 
+// Builds an authoritative "facts sheet" live from the database so the model
+// can never get core facts (party leaders, deputy leaders, election date)
+// wrong, even if FTS ranks an unrelated chunk higher.
+async function buildAuthoritativeFacts(
+  supabase: ReturnType<typeof createClient>,
+): Promise<string> {
+  const lines: string[] = [];
+  lines.push("AUTHORITATIVE FACTS (these override anything in the retrieved context below):");
+  lines.push("- Maltese General Election date: 30 May 2026.");
+
+  const { data: parties } = await supabase
+    .from("parties")
+    .select("name_en, short_name, leader_name")
+    .eq("status", "published")
+    .order("name_en");
+
+  // Map party -> deputy leader(s) from candidates.leadership_role
+  const { data: leaderRows } = await supabase
+    .from("candidates")
+    .select("full_name, leadership_role, party:parties(name_en)")
+    .not("leadership_role", "is", null);
+
+  const deputyByParty = new Map<string, string[]>();
+  const leaderByParty = new Map<string, string[]>();
+  for (const row of (leaderRows ?? []) as Array<{
+    full_name: string;
+    leadership_role: string;
+    party: { name_en?: string } | null;
+  }>) {
+    const pname = row.party?.name_en;
+    if (!pname) continue;
+    if (row.leadership_role === "deputy_leader") {
+      const arr = deputyByParty.get(pname) ?? [];
+      arr.push(row.full_name);
+      deputyByParty.set(pname, arr);
+    } else if (row.leadership_role === "leader") {
+      const arr = leaderByParty.get(pname) ?? [];
+      arr.push(row.full_name);
+      leaderByParty.set(pname, arr);
+    }
+  }
+
+  lines.push("- Party leaders (current, as of the 2026 election cycle):");
+  for (const p of parties ?? []) {
+    const short = p.short_name ? ` (${p.short_name})` : "";
+    const deputies = deputyByParty.get(p.name_en);
+    const dep = deputies && deputies.length ? `; deputy leader: ${deputies.join(", ")}` : "";
+    lines.push(`  • ${p.name_en}${short}: leader is ${p.leader_name ?? "unknown"}${dep}.`);
+  }
+  lines.push(
+    "- If a person appears in the retrieved context as a candidate of a party, that does NOT make them the party leader. Use this list for leadership questions.",
+  );
+  return lines.join("\n");
+}
+
 async function loadSettings(supabase: ReturnType<typeof createClient>): Promise<Settings> {
   const { data } = await supabase
     .from("assistant_settings")
@@ -182,6 +237,15 @@ Deno.serve(async (req) => {
     }
 
     const systemMessages: Msg[] = [{ role: "system", content: settings.system_prompt }];
+
+    // Always inject live authoritative facts (party leaders, election date)
+    try {
+      const facts = await buildAuthoritativeFacts(supabase);
+      systemMessages.push({ role: "system", content: facts });
+    } catch (e) {
+      console.error("buildAuthoritativeFacts failed", e);
+    }
+
     if (context.trim()) {
       systemMessages.push({
         role: "system",
