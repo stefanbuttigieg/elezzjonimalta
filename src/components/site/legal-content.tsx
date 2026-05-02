@@ -183,6 +183,8 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           <p>Analitika anonimizzata tal-użu biex intejbu s-sit. Mitgħobbija biss wara li taċċetta l-cookies analitiċi fil-banner tal-kunsens.</p>
           <h2>Tmexxi l-cookies</h2>
           <p>Tista' tibdel l-għażla tiegħek f'kull ħin billi tneħħi d-data tas-sit fil-browser, u l-banner tal-kunsens jerġa' jidher fuq iż-żjara li jmiss. Tista' wkoll timblokka l-cookies għal kollox fis-settings tal-browser, iżda s-sit jista' ma jaħdimx kif mistenni.</p>
+          <h2>Bot ta' Telegram</h2>
+          <p>Il-bot uffiċjali ta' Elezzjoni fuq Telegram ma jissettja l-ebda cookie — l-interazzjoni tiegħek issir kollha fl-app ta' Telegram u hija regolata mill-prattiki ta' privatezza u cookies ta' Telegram innifsu.</p>
         </>
       ),
     },
