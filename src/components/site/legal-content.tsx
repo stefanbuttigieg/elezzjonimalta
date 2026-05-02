@@ -136,15 +136,17 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li><strong>Mistoqsijiet tal-assistent AI:</strong> it-test tal-mistoqsija tiegħek, maħżun għal żmien qasir biex titjieb in-newtralità u jiġi identifikat l-abbuż. Mhux marbut mal-identità tiegħek.</li>
             <li><strong>Użu tal-API:</strong> metadata tat-talbiet (endpoint, ħin, ċavetta tal-API) għar-rate limiting u l-prevenzjoni tal-abbuż.</li>
             <li><strong>Data tal-account (żviluppaturi u edituri biss):</strong> indirizz email.</li>
+            <li><strong>Interazzjonijiet mal-bot ta' Telegram:</strong> jekk tibgħat messaġġ lill-bot uffiċjali tagħna fuq Telegram (<strong>Elezzjoni Bot</strong>), aħna nirċievu l-chat ID tiegħek ta' Telegram, it-test tal-messaġġ, u l-feedback opzjonali 👍/👎 tiegħek. Nużaw dan biss biex inwieġbuk, biex nipprevjenu l-abbuż, u biex intejbu l-kwalità tat-tweġibiet. Ma norbtuhx ma' xi identità oħra. L-interazzjoni tiegħek ma' Telegram innifsu hija wkoll regolata mill-politika ta' privatezza ta' Telegram.</li>
           </ul>
           <h2>Bażi legali</h2>
-          <p>Kunsens (analitika, cookies opzjonali), interess leġittimu (sigurtà u prevenzjoni tal-abbuż), u kuntratt (accounts tal-iżviluppaturi).</p>
+          <p>Kunsens (analitika, cookies opzjonali, użu volontarju tal-bot ta' Telegram), interess leġittimu (sigurtà u prevenzjoni tal-abbuż), u kuntratt (accounts tal-iżviluppaturi).</p>
           <h2>Ritenzjoni</h2>
-          <p>Id-data analitika tinżamm sa 14-il xahar. Logs tal-mistoqsijiet AI jinżammu sa 30 ġurnata. Logs tal-użu tal-API jinżammu sa 12-il xahar.</p>
+          <p>Id-data analitika tinżamm sa 14-il xahar. Logs tal-mistoqsijiet AI jinżammu sa 30 ġurnata. Logs tal-użu tal-API jinżammu sa 12-il xahar. Messaġġi u feedback ta' Telegram jinżammu sa 90 ġurnata, u wara jitħassru jew jiġu kompletament anonimizzati.</p>
           <h2>Drittijiet tiegħek</h2>
           <p>
             Skont il-GDPR tista' titlob aċċess, korrezzjoni, tħassir, portabbiltà jew restrizzjoni
-            tad-data personali tiegħek. Ikkuntattjana bid-dettalji fil-paġna ta' Kuntatt. Tista' wkoll
+            tad-data personali tiegħek, inkluża kwalunkwe data miżmuma dwar l-interazzjonijiet
+            tiegħek fuq Telegram. Ikkuntattjana bid-dettalji fil-paġna ta' Kuntatt. Tista' wkoll
             tippreżenta ilment mal-Kummissarju għall-Informazzjoni u l-Protezzjoni tad-Data (IDPC) ta' Malta.
           </p>
         </>
