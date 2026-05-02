@@ -33,10 +33,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           </p>
           <h2>Acceptable use</h2>
           <p>
-            You may not use the site or API to harass individuals, to misrepresent the data, to
-            generate misleading political content, or in any way that violates Maltese or EU law.
-            Automated access to the public site (scraping) without using the documented API is not
-            permitted.
+            You may not use the site, the API, or the Telegram bot to harass individuals, to
+            misrepresent the data, to generate misleading political content, to spam the bot, or in
+            any way that violates Maltese or EU law. Automated access to the public site (scraping)
+            without using the documented API is not permitted. Automated or scripted use of the
+            Telegram bot beyond reasonable personal use is also not permitted.
           </p>
           <h2>Liability</h2>
           <p>
