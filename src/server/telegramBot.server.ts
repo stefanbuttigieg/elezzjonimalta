@@ -13,10 +13,20 @@ type TgMessage = {
   text?: string;
 };
 
+type TgCallbackQuery = {
+  id: string;
+  from: { id: number; username?: string; first_name?: string };
+  message?: TgMessage;
+  data?: string;
+};
+
 type TgUpdate = {
   update_id: number;
   message?: TgMessage;
+  callback_query?: TgCallbackQuery;
 };
+
+type InlineKeyboard = { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> };
 
 function getEnv() {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
@@ -44,15 +54,35 @@ async function tgCall(path: string, body: Record<string, unknown>) {
   return data;
 }
 
-async function sendMessage(chatId: number, text: string) {
+async function sendMessage(
+  chatId: number,
+  text: string,
+  replyMarkup?: InlineKeyboard
+): Promise<{ message_id: number } | null> {
   // Telegram limit is 4096 chars per message.
   const chunk = text.length > 4000 ? text.slice(0, 3990) + "\n…(truncated)" : text;
-  await tgCall("sendMessage", {
+  const body: Record<string, unknown> = {
     chat_id: chatId,
     text: chunk,
     parse_mode: "HTML",
     disable_web_page_preview: true,
-  });
+  };
+  if (replyMarkup) body.reply_markup = replyMarkup;
+  const data = await tgCall("sendMessage", body);
+  return data?.result ? { message_id: data.result.message_id as number } : null;
+}
+
+// Neutral feedback keyboard. Encoded as `fb:<up|down>` — no per-message ID
+// needed because we key feedback rows on (chat_id, message_id, user_id).
+function feedbackKeyboard(): InlineKeyboard {
+  return {
+    inline_keyboard: [
+      [
+        { text: "👍 Helpful", callback_data: "fb:up" },
+        { text: "👎 Not helpful", callback_data: "fb:down" },
+      ],
+    ],
+  };
 }
 
 const HELP_TEXT = `<b>Vot Malta 2026 — Bot</b>
@@ -276,7 +306,11 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
   }
 }
 
-async function processUpdate(update: TgUpdate): Promise<void> {
+// Commands where feedback is meaningful. We skip /help and unknown commands
+// since rating those would just be noise.
+const FEEDBACK_COMMANDS = new Set(["candidates", "party", "faq", "ask"]);
+
+async function processMessage(update: TgUpdate): Promise<void> {
   const msg = update.message;
   if (!msg || !msg.text) return;
   const chatId = msg.chat.id;
@@ -284,6 +318,7 @@ async function processUpdate(update: TgUpdate): Promise<void> {
 
   let command = "unknown";
   let response = "";
+  let ok = true;
   try {
     const r = await routeCommand(text);
     command = r.command;
@@ -291,10 +326,18 @@ async function processUpdate(update: TgUpdate): Promise<void> {
   } catch (e) {
     console.error("telegram routeCommand error", e);
     response = "Something went wrong handling your message. Please try again.";
+    ok = false;
   }
 
+  let sentMessageId: number | null = null;
   try {
-    await sendMessage(chatId, response);
+    const wantsFeedback = ok && FEEDBACK_COMMANDS.has(command);
+    const sent = await sendMessage(
+      chatId,
+      response,
+      wantsFeedback ? feedbackKeyboard() : undefined
+    );
+    sentMessageId = sent?.message_id ?? null;
   } catch (e) {
     console.error("telegram sendMessage error", e);
   }
@@ -313,6 +356,123 @@ async function processUpdate(update: TgUpdate): Promise<void> {
     ],
     { onConflict: "update_id" }
   );
+
+  // Cache the (question, answer) for the bot message so we can attach context
+  // to feedback rows when the user later taps 👍/👎. We piggy-back on the
+  // telegram_messages table by writing a row keyed on the bot's update_id-like
+  // identifier — but simplest is a tiny in-table mapping via raw_update.
+  // To avoid a new table, we store the bot answer reference in raw_update of
+  // a synthetic row. We use negative update_id space derived from message_id.
+  if (sentMessageId !== null && FEEDBACK_COMMANDS.has(command)) {
+    await supabaseAdmin.from("telegram_messages").upsert(
+      [
+        {
+          // Synthetic update_id: negative so it never collides with real
+          // Telegram update IDs (which are positive bigints).
+          update_id: -((BigInt(chatId) * 1000000n + BigInt(sentMessageId)) as unknown as number),
+          chat_id: chatId,
+          username: null,
+          text: null,
+          command: `bot_answer:${command}`,
+          response: response.slice(0, 4000),
+          raw_update: {
+            kind: "bot_answer",
+            chat_id: chatId,
+            message_id: sentMessageId,
+            question: text,
+          },
+        },
+      ],
+      { onConflict: "update_id" }
+    );
+  }
+}
+
+async function processCallbackQuery(update: TgUpdate): Promise<void> {
+  const cq = update.callback_query;
+  if (!cq) return;
+  const data = cq.data ?? "";
+  const msg = cq.message;
+  if (!msg) {
+    await tgCall("answerCallbackQuery", { callback_query_id: cq.id });
+    return;
+  }
+  const chatId = msg.chat.id;
+  const messageId = msg.message_id;
+
+  if (!data.startsWith("fb:")) {
+    await tgCall("answerCallbackQuery", { callback_query_id: cq.id });
+    return;
+  }
+  const verdict = data.slice(3);
+  const rating = verdict === "up" ? 1 : verdict === "down" ? -1 : 0;
+  if (rating === 0) {
+    await tgCall("answerCallbackQuery", { callback_query_id: cq.id });
+    return;
+  }
+
+  // Look up the cached question/answer/command for this bot message.
+  const syntheticId = -((BigInt(chatId) * 1000000n + BigInt(messageId)) as unknown as number);
+  const { data: ctx } = await supabaseAdmin
+    .from("telegram_messages")
+    .select("command, response, raw_update")
+    .eq("update_id", syntheticId)
+    .maybeSingle();
+
+  const rawUpdate = (ctx?.raw_update ?? {}) as { question?: string };
+  const question = rawUpdate.question ?? null;
+  const answer = ctx?.response ?? null;
+  const command = (ctx?.command ?? "").replace(/^bot_answer:/, "") || null;
+
+  // Insert (or update) feedback. ON CONFLICT lets users change their mind.
+  const { error: insErr } = await supabaseAdmin.from("telegram_feedback").upsert(
+    [
+      {
+        chat_id: chatId,
+        message_id: messageId,
+        user_id: cq.from.id,
+        username: cq.from.username ?? null,
+        command,
+        rating,
+        question,
+        answer: answer ? String(answer).slice(0, 4000) : null,
+      },
+    ],
+    { onConflict: "chat_id,message_id,user_id" }
+  );
+  if (insErr) console.error("telegram_feedback upsert error", insErr);
+
+  // Replace the keyboard with a neutral acknowledgement so the same user
+  // doesn't keep tapping. Both choices get the same thank-you so the UI
+  // doesn't reward one direction over the other.
+  try {
+    await tgCall("editMessageReplyMarkup", {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: {
+        inline_keyboard: [[{ text: "✓ Thanks for the feedback", callback_data: "fb:noop" }]],
+      },
+    });
+  } catch (e) {
+    // Editing can fail if the message is too old; ignore.
+    console.warn("editMessageReplyMarkup failed", e);
+  }
+  await tgCall("answerCallbackQuery", {
+    callback_query_id: cq.id,
+    text: "Thanks — recorded.",
+  });
+}
+
+async function processUpdate(update: TgUpdate): Promise<void> {
+  if (update.callback_query) {
+    try {
+      await processCallbackQuery(update);
+    } catch (e) {
+      console.error("telegram processCallbackQuery error", e);
+    }
+    return;
+  }
+  await processMessage(update);
 }
 
 const MAX_RUNTIME_MS = 50_000;
@@ -344,7 +504,7 @@ export async function runTelegramPoll(): Promise<{
     const data = await tgCall("getUpdates", {
       offset: currentOffset,
       timeout,
-      allowed_updates: ["message"],
+      allowed_updates: ["message", "callback_query"],
     });
     const updates = (data.result ?? []) as TgUpdate[];
     if (updates.length === 0) continue;
