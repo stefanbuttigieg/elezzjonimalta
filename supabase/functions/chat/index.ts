@@ -237,6 +237,15 @@ Deno.serve(async (req) => {
     }
 
     const systemMessages: Msg[] = [{ role: "system", content: settings.system_prompt }];
+
+    // Always inject live authoritative facts (party leaders, election date)
+    try {
+      const facts = await buildAuthoritativeFacts(supabase);
+      systemMessages.push({ role: "system", content: facts });
+    } catch (e) {
+      console.error("buildAuthoritativeFacts failed", e);
+    }
+
     if (context.trim()) {
       systemMessages.push({
         role: "system",
