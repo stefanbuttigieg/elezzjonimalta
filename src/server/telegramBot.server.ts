@@ -1,0 +1,365 @@
+// Telegram bot logic for Vot Malta 2026.
+// Handles incoming Telegram updates with slash commands routing to the
+// existing knowledge base (parties, candidates, proposals, FAQs).
+
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
+
+type TgMessage = {
+  message_id: number;
+  chat: { id: number; type: string };
+  from?: { id: number; username?: string; first_name?: string };
+  text?: string;
+};
+
+type TgUpdate = {
+  update_id: number;
+  message?: TgMessage;
+};
+
+function getEnv() {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+  const TELEGRAM_API_KEY = process.env.TELEGRAM_API_KEY;
+  if (!TELEGRAM_API_KEY) throw new Error("TELEGRAM_API_KEY is not configured");
+  return { LOVABLE_API_KEY, TELEGRAM_API_KEY };
+}
+
+async function tgCall(path: string, body: Record<string, unknown>) {
+  const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getEnv();
+  const resp = await fetch(`${GATEWAY_URL}/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "X-Connection-Api-Key": TELEGRAM_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(`Telegram ${path} failed [${resp.status}]: ${JSON.stringify(data)}`);
+  }
+  return data;
+}
+
+async function sendMessage(chatId: number, text: string) {
+  // Telegram limit is 4096 chars per message.
+  const chunk = text.length > 4000 ? text.slice(0, 3990) + "\n…(truncated)" : text;
+  await tgCall("sendMessage", {
+    chat_id: chatId,
+    text: chunk,
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  });
+}
+
+const HELP_TEXT = `<b>Vot Malta 2026 — Bot</b>
+Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
+
+<b>Commands</b>
+/candidates [district|name] — list or search candidates
+/party [name|short] — show party info and proposals
+/faq [keyword] — search voting FAQs
+/ask <question> — ask the assistant anything
+/help — show this message
+
+Examples:
+<code>/candidates 5</code>
+<code>/candidates abela</code>
+<code>/party PL</code>
+<code>/faq id card</code>
+<code>/ask When do polls open?</code>`;
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+async function handleCandidates(arg: string): Promise<string> {
+  const a = arg.trim();
+  if (!a) {
+    return "Usage: <code>/candidates &lt;district number&gt;</code> or <code>/candidates &lt;name&gt;</code>";
+  }
+
+  // District number (1-13)?
+  const n = Number(a);
+  if (Number.isInteger(n) && n >= 1 && n <= 13) {
+    const { data: d } = await supabaseAdmin
+      .from("districts")
+      .select("id, number, name_en")
+      .eq("number", n)
+      .eq("status", "published")
+      .maybeSingle();
+    if (!d) return `No published district found for number ${n}.`;
+    const { data: cands } = await supabaseAdmin
+      .from("candidates")
+      .select("full_name, party:parties(short_name, name_en)")
+      .eq("status", "published")
+      .eq("primary_district_id", d.id)
+      .order("full_name", { ascending: true })
+      .limit(50);
+    if (!cands || cands.length === 0) {
+      return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.`;
+    }
+    const lines = cands.map((c) => {
+      const p = (c.party as { short_name?: string; name_en?: string } | null);
+      const party = p?.short_name || p?.name_en || "Independent";
+      return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>`;
+    });
+    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}`;
+  }
+
+  // Name search
+  const { data: cands } = await supabaseAdmin
+    .from("candidates")
+    .select("full_name, slug, party:parties(short_name, name_en), primary_district:districts!candidates_primary_district_id_fkey(number)")
+    .eq("status", "published")
+    .ilike("full_name", `%${a}%`)
+    .order("full_name", { ascending: true })
+    .limit(15);
+  if (!cands || cands.length === 0) {
+    return `No candidates found matching "${escapeHtml(a)}".`;
+  }
+  const lines = cands.map((c) => {
+    const p = c.party as { short_name?: string; name_en?: string } | null;
+    const party = p?.short_name || p?.name_en || "Independent";
+    const dist = (c.primary_district as { number?: number } | null)?.number;
+    return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>${dist ? ` (D${dist})` : ""}`;
+  });
+  return `<b>Candidates matching "${escapeHtml(a)}"</b>\n${lines.join("\n")}`;
+}
+
+async function handleParty(arg: string): Promise<string> {
+  const a = arg.trim();
+  if (!a) {
+    const { data: parties } = await supabaseAdmin
+      .from("parties")
+      .select("short_name, name_en")
+      .eq("status", "published")
+      .order("name_en");
+    const list = (parties ?? [])
+      .map((p) => `• ${escapeHtml(p.short_name || "")} — ${escapeHtml(p.name_en)}`)
+      .join("\n");
+    return `<b>Parties</b>\n${list}\n\nUse <code>/party &lt;short name&gt;</code> for details.`;
+  }
+  const { data: party } = await supabaseAdmin
+    .from("parties")
+    .select("id, name_en, short_name, description_en, leader_name, website, slogan_en")
+    .eq("status", "published")
+    .or(`short_name.ilike.${a},name_en.ilike.%${a}%,slug.ilike.%${a}%`)
+    .limit(1)
+    .maybeSingle();
+  if (!party) return `No party found matching "${escapeHtml(a)}".`;
+
+  const { data: props } = await supabaseAdmin
+    .from("proposals")
+    .select("title_en")
+    .eq("status", "published")
+    .eq("party_id", party.id)
+    .limit(8);
+
+  const lines = [
+    `<b>${escapeHtml(party.name_en)}${party.short_name ? ` (${escapeHtml(party.short_name)})` : ""}</b>`,
+  ];
+  if (party.slogan_en) lines.push(`<i>${escapeHtml(party.slogan_en)}</i>`);
+  if (party.leader_name) lines.push(`Leader: ${escapeHtml(party.leader_name)}`);
+  if (party.website) lines.push(`Website: ${escapeHtml(party.website)}`);
+  if (party.description_en) lines.push(`\n${escapeHtml(party.description_en.slice(0, 500))}`);
+  if (props && props.length > 0) {
+    lines.push(`\n<b>Top proposals</b>`);
+    for (const p of props) lines.push(`• ${escapeHtml(p.title_en)}`);
+  }
+  return lines.join("\n");
+}
+
+async function handleFaq(arg: string): Promise<string> {
+  const a = arg.trim();
+  let query = supabaseAdmin
+    .from("voting_faqs")
+    .select("question_en, answer_en")
+    .eq("status", "published")
+    .order("sort_order", { ascending: true })
+    .limit(8);
+  if (a) {
+    query = query.or(`question_en.ilike.%${a}%,answer_en.ilike.%${a}%`);
+  }
+  const { data: faqs } = await query;
+  if (!faqs || faqs.length === 0) {
+    return a ? `No FAQs found matching "${escapeHtml(a)}".` : `No FAQs published yet.`;
+  }
+  const blocks = faqs.map(
+    (f) =>
+      `<b>${escapeHtml(f.question_en)}</b>\n${escapeHtml((f.answer_en ?? "").slice(0, 500))}`
+  );
+  return blocks.join("\n\n");
+}
+
+async function handleAsk(arg: string): Promise<string> {
+  const q = arg.trim();
+  if (!q) return "Usage: <code>/ask &lt;your question&gt;</code>";
+
+  const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const ANON = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!SUPABASE_URL || !ANON) return "Assistant is unavailable right now.";
+
+  const resp = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ANON}` },
+    body: JSON.stringify({ messages: [{ role: "user", content: q }] }),
+  });
+  if (!resp.ok || !resp.body) {
+    return "Sorry, the assistant could not answer right now.";
+  }
+  // Read the streamed SSE response and concatenate the text deltas.
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let out = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith("data:")) continue;
+      const payload = t.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const j = JSON.parse(payload);
+        const delta = j.choices?.[0]?.delta?.content;
+        if (typeof delta === "string") out += delta;
+      } catch {
+        // ignore malformed chunks
+      }
+    }
+  }
+  return out.trim() ? escapeHtml(out.trim()) : "I couldn't compose an answer.";
+}
+
+async function routeCommand(text: string): Promise<{ command: string; response: string }> {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("/")) {
+    return {
+      command: "ask",
+      response: await handleAsk(trimmed),
+    };
+  }
+  // strip @botname suffix and extract args
+  const match = trimmed.match(/^\/([a-zA-Z_]+)(?:@\S+)?\s*(.*)$/s);
+  if (!match) return { command: "unknown", response: HELP_TEXT };
+  const cmd = match[1].toLowerCase();
+  const arg = match[2] ?? "";
+
+  switch (cmd) {
+    case "start":
+    case "help":
+      return { command: cmd, response: HELP_TEXT };
+    case "candidates":
+    case "candidate":
+      return { command: "candidates", response: await handleCandidates(arg) };
+    case "party":
+    case "parties":
+      return { command: "party", response: await handleParty(arg) };
+    case "faq":
+    case "faqs":
+      return { command: "faq", response: await handleFaq(arg) };
+    case "ask":
+      return { command: "ask", response: await handleAsk(arg) };
+    default:
+      return { command: cmd, response: `Unknown command: <code>/${escapeHtml(cmd)}</code>\n\n${HELP_TEXT}` };
+  }
+}
+
+async function processUpdate(update: TgUpdate): Promise<void> {
+  const msg = update.message;
+  if (!msg || !msg.text) return;
+  const chatId = msg.chat.id;
+  const text = msg.text;
+
+  let command = "unknown";
+  let response = "";
+  try {
+    const r = await routeCommand(text);
+    command = r.command;
+    response = r.response;
+  } catch (e) {
+    console.error("telegram routeCommand error", e);
+    response = "Something went wrong handling your message. Please try again.";
+  }
+
+  try {
+    await sendMessage(chatId, response);
+  } catch (e) {
+    console.error("telegram sendMessage error", e);
+  }
+
+  await supabaseAdmin.from("telegram_messages").upsert(
+    {
+      update_id: update.update_id,
+      chat_id: chatId,
+      username: msg.from?.username ?? null,
+      text,
+      command,
+      response: response.slice(0, 4000),
+      raw_update: update as unknown as Record<string, unknown>,
+    },
+    { onConflict: "update_id" }
+  );
+}
+
+const MAX_RUNTIME_MS = 50_000;
+const MIN_REMAINING_MS = 5_000;
+
+export async function runTelegramPoll(): Promise<{
+  ok: boolean;
+  processed: number;
+  finalOffset: number;
+}> {
+  const { data: state, error: stateErr } = await supabaseAdmin
+    .from("telegram_bot_state")
+    .select("update_offset")
+    .eq("id", 1)
+    .single();
+  if (stateErr) throw new Error(stateErr.message);
+
+  let currentOffset = Number(state.update_offset);
+  let totalProcessed = 0;
+  const startTime = Date.now();
+
+  while (true) {
+    const elapsed = Date.now() - startTime;
+    const remainingMs = MAX_RUNTIME_MS - elapsed;
+    if (remainingMs < MIN_REMAINING_MS) break;
+    const timeout = Math.min(45, Math.floor(remainingMs / 1000) - 5);
+    if (timeout < 1) break;
+
+    const data = await tgCall("getUpdates", {
+      offset: currentOffset,
+      timeout,
+      allowed_updates: ["message"],
+    });
+    const updates = (data.result ?? []) as TgUpdate[];
+    if (updates.length === 0) continue;
+
+    for (const u of updates) {
+      await processUpdate(u);
+      totalProcessed += 1;
+    }
+
+    const newOffset = Math.max(...updates.map((u) => u.update_id)) + 1;
+    const { error: offsetErr } = await supabaseAdmin
+      .from("telegram_bot_state")
+      .update({ update_offset: newOffset, updated_at: new Date().toISOString() })
+      .eq("id", 1);
+    if (offsetErr) throw new Error(offsetErr.message);
+    currentOffset = newOffset;
+  }
+
+  return { ok: true, processed: totalProcessed, finalOffset: currentOffset };
+}
