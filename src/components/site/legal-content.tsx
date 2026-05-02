@@ -595,6 +595,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             Open an issue on any of the public repositories, or reach out via the contact details listed on the GitHub
             profile. We aim to respond within 5 working days.
           </p>
+          <p>
+            <strong>Telegram:</strong> you can also reach the project through our official{" "}
+            <strong>Elezzjoni Bot</strong> on Telegram. The bot is for information requests
+            (candidates, parties, proposals, FAQ, neutral Q&amp;A) — for formal corrections,
+            takedown requests, or data-protection enquiries please still use GitHub so we have a
+            written record.
+          </p>
         </>
       ),
     },
