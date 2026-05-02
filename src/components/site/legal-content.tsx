@@ -393,7 +393,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             , inklużi l-paġni tal-kandidati, partiti, distretti, proposti,
             "staqsi lill-AI" u l-paġni għall-iżviluppaturi/API kemm
             bl-Ingliż kif ukoll bil-Malti. Il-pannell tal-amministrazzjoni
-            għall-istaff biss huwa barra mill-kamp ta' applikazzjoni.
+            għall-istaff biss huwa barra mill-kamp ta' applikazzjoni. Il-bot
+            uffiċjali ta' Elezzjoni fuq Telegram huwa wkoll barra mill-kamp
+            ta' din l-istqarrija — l-aċċessibbiltà tiegħu tiddependi
+            mill-klijent ta' Telegram li tuża; inżommu t-tweġibiet tal-bot
+            bħala test sempliċi biex screen readers ikunu jistgħu jaqrawhom,
+            u l-istess informazzjoni hija disponibbli wkoll fuq is-sit
+            pubbliku bħala alternattiva ekwivalenti.
           </p>
 
           <h2>X'nagħmlu</h2>
