@@ -5,6 +5,11 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
+const SITE_URL = (process.env.SITE_URL ?? "https://elezzjoni.app").replace(/\/$/, "");
+
+function siteLink(path: string, label: string): string {
+  return `<a href="${SITE_URL}${path}">${escapeHtml(label)}</a>`;
+}
 
 type TgMessage = {
   message_id: number;
