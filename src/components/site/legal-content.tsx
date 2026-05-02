@@ -166,6 +166,8 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           <p>Anonymised usage analytics so we can improve the site. Loaded only after you accept analytics cookies in the consent banner.</p>
           <h2>Managing cookies</h2>
           <p>You can change your choice at any time by clearing site data in your browser, which will re-show the consent banner on your next visit. You can also block cookies entirely in your browser settings, but the site may not work as expected.</p>
+          <h2>Telegram bot</h2>
+          <p>The official Elezzjoni Telegram bot does not set any cookies — your interaction takes place entirely inside the Telegram app and is governed by Telegram's own privacy and cookie practices.</p>
         </>
       ),
     },
