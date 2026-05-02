@@ -231,7 +231,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             </a>
             ), including the candidate, party, district, proposal, "ask AI"
             and developer/API pages in both English and Maltese. The
-            staff-only admin dashboard is out of scope.
+            staff-only admin dashboard is out of scope. The official
+            Elezzjoni Telegram bot is also out of scope of this statement —
+            its accessibility depends on the Telegram client you use; we
+            keep bot replies as plain text so screen readers can read them
+            and offer the same information on the public website as an
+            equivalent alternative.
           </p>
 
           <h2>What we do</h2>
