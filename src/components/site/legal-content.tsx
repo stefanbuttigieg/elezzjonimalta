@@ -54,10 +54,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Elezzjoni 2026 hu servizz ta' informazzjoni indipendenti u imparzjali. Billi taċċessa dan
-            is-sit jew l-API tiegħu int taqbel li tuża d-data għal skopijiet legali ta' informazzjoni,
-            ġurnaliżmu, ċiviċi, jew riċerka, u li tagħti attribuzzjoni lil Elezzjoni 2026 bħala s-sors
-            fejn applikabbli.
+            Elezzjoni 2026 hu servizz ta' informazzjoni indipendenti u imparzjali offrut permezz ta'
+            dan is-sit, l-API pubbliku, u l-bot uffiċjali fuq Telegram (<strong>Elezzjoni Bot</strong>{" "}
+            fuq Telegram). Billi taċċessa s-sit, l-API, jew tinteraġixxi mal-bot ta' Telegram int
+            taqbel li tuża d-data għal skopijiet legali ta' informazzjoni, ġurnaliżmu, ċiviċi, jew
+            riċerka, u li tagħti attribuzzjoni lil Elezzjoni 2026 bħala s-sors fejn applikabbli.
           </p>
           <h2>Natura editorjali</h2>
           <p>
