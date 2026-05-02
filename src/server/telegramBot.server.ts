@@ -91,6 +91,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 <b>Commands</b>
 /candidates [district|name] — list or search candidates
 /party [name|short] — show party info and proposals
+/proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
 /ask <question> — ask the assistant anything
 /help — show this message
@@ -99,6 +100,8 @@ Examples:
 <code>/candidates 5</code>
 <code>/candidates abela</code>
 <code>/party PL</code>
+<code>/proposals housing</code>
+<code>/proposals PL</code>
 <code>/faq id card</code>
 <code>/ask When do polls open?</code>`;
 
@@ -206,6 +209,51 @@ async function handleParty(arg: string): Promise<string> {
   return lines.join("\n");
 }
 
+async function handleProposals(arg: string): Promise<string> {
+  const a = arg.trim();
+  if (!a) {
+    return "Usage: <code>/proposals &lt;keyword&gt;</code> or <code>/proposals &lt;party short name&gt;</code>";
+  }
+
+  // Try matching a party first (short name or name)
+  const { data: party } = await supabaseAdmin
+    .from("parties")
+    .select("id, name_en, short_name")
+    .eq("status", "published")
+    .or(`short_name.ilike.${a},name_en.ilike.%${a}%,slug.ilike.%${a}%`)
+    .limit(1)
+    .maybeSingle();
+
+  let query = supabaseAdmin
+    .from("proposals")
+    .select("title_en, description_en, party:parties(short_name, name_en)")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false })
+    .limit(10);
+
+  let header: string;
+  if (party) {
+    query = query.eq("party_id", party.id);
+    header = `<b>Proposals — ${escapeHtml(party.name_en)}${party.short_name ? ` (${escapeHtml(party.short_name)})` : ""}</b>`;
+  } else {
+    query = query.or(`title_en.ilike.%${a}%,description_en.ilike.%${a}%`);
+    header = `<b>Proposals matching "${escapeHtml(a)}"</b>`;
+  }
+
+  const { data: props } = await query;
+  if (!props || props.length === 0) {
+    return `No published proposals found for "${escapeHtml(a)}".`;
+  }
+
+  const lines = props.map((p) => {
+    const pty = p.party as { short_name?: string; name_en?: string } | null;
+    const tag = pty?.short_name || pty?.name_en;
+    const desc = p.description_en ? ` — ${escapeHtml(p.description_en.slice(0, 140))}` : "";
+    return `• <b>${escapeHtml(p.title_en)}</b>${tag ? ` <i>(${escapeHtml(tag)})</i>` : ""}${desc}`;
+  });
+  return `${header}\n${lines.join("\n")}`;
+}
+
 async function handleFaq(arg: string): Promise<string> {
   const a = arg.trim();
   let query = supabaseAdmin
@@ -296,6 +344,9 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
     case "party":
     case "parties":
       return { command: "party", response: await handleParty(arg) };
+    case "proposals":
+    case "proposal":
+      return { command: "proposals", response: await handleProposals(arg) };
     case "faq":
     case "faqs":
       return { command: "faq", response: await handleFaq(arg) };
@@ -308,7 +359,7 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
 
 // Commands where feedback is meaningful. We skip /help and unknown commands
 // since rating those would just be noise.
-const FEEDBACK_COMMANDS = new Set(["candidates", "party", "faq", "ask"]);
+const FEEDBACK_COMMANDS = new Set(["candidates", "party", "proposals", "faq", "ask"]);
 
 async function processMessage(update: TgUpdate): Promise<void> {
   const msg = update.message;
