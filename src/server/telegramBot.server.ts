@@ -308,7 +308,7 @@ async function processUpdate(update: TgUpdate): Promise<void> {
         text,
         command,
         response: response.slice(0, 4000),
-        raw_update: update as unknown as Record<string, unknown>,
+        raw_update: JSON.parse(JSON.stringify(update)),
       },
     ],
     { onConflict: "update_id" }
