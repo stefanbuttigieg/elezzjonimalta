@@ -541,10 +541,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li>Maltese news outlets: Times of Malta, MaltaToday, Lovin Malta, Malta Daily.</li>
             <li>Editor-curated quotes, podcast appearances, and social profiles.</li>
           </ul>
+          <h2>Distribution channels</h2>
+          <p>The same neutral, sourced information is available through the public website, the developer API, and our official Telegram bot (<strong>Elezzjoni Bot</strong> on Telegram). All three channels share the same underlying data and editorial review process.</p>
           <h2>Neutrality commitments</h2>
           <ul>
-            <li>We never recommend a candidate or party.</li>
-            <li>The AI assistant cites sources and refuses endorsements.</li>
+            <li>We never recommend a candidate or party — on the website, in the API, or via the Telegram bot.</li>
+            <li>The AI assistant (web and Telegram) cites sources and refuses endorsements.</li>
             <li>Party colours appear only as small badges, never as page surfaces.</li>
             <li>Editor changes are logged and surfaced in the public changelog.</li>
           </ul>
