@@ -9,7 +9,7 @@ export type LegalSlug =
   | "about"
   | "contact";
 
-export const LEGAL_LAST_UPDATED = "2026-04-28";
+export const LEGAL_LAST_UPDATED = "2026-05-02";
 
 export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; body: ReactNode }>> = {
   terms: {
@@ -18,9 +18,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Elezzjoni 2026 is an independent, non-partisan information service. By accessing this site
-            or its API you agree to use the data for lawful informational, journalistic, civic, or
-            research purposes, and to attribute Elezzjoni 2026 as the source where applicable.
+            Elezzjoni 2026 is an independent, non-partisan information service delivered through this
+            website, the public API, and the official Telegram bot (<strong>Elezzjoni Bot</strong> on
+            Telegram). By accessing the site, the API, or interacting with the Telegram bot you agree
+            to use the data for lawful informational, journalistic, civic, or research purposes, and
+            to attribute Elezzjoni 2026 as the source where applicable.
           </p>
           <h2>Editorial nature</h2>
           <p>
@@ -31,10 +33,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           </p>
           <h2>Acceptable use</h2>
           <p>
-            You may not use the site or API to harass individuals, to misrepresent the data, to
-            generate misleading political content, or in any way that violates Maltese or EU law.
-            Automated access to the public site (scraping) without using the documented API is not
-            permitted.
+            You may not use the site, the API, or the Telegram bot to harass individuals, to
+            misrepresent the data, to generate misleading political content, to spam the bot, or in
+            any way that violates Maltese or EU law. Automated access to the public site (scraping)
+            without using the documented API is not permitted. Automated or scripted use of the
+            Telegram bot beyond reasonable personal use is also not permitted.
           </p>
           <h2>Liability</h2>
           <p>
@@ -51,10 +54,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Elezzjoni 2026 hu servizz ta' informazzjoni indipendenti u imparzjali. Billi taċċessa dan
-            is-sit jew l-API tiegħu int taqbel li tuża d-data għal skopijiet legali ta' informazzjoni,
-            ġurnaliżmu, ċiviċi, jew riċerka, u li tagħti attribuzzjoni lil Elezzjoni 2026 bħala s-sors
-            fejn applikabbli.
+            Elezzjoni 2026 hu servizz ta' informazzjoni indipendenti u imparzjali offrut permezz ta'
+            dan is-sit, l-API pubbliku, u l-bot uffiċjali fuq Telegram (<strong>Elezzjoni Bot</strong>{" "}
+            fuq Telegram). Billi taċċessa s-sit, l-API, jew tinteraġixxi mal-bot ta' Telegram int
+            taqbel li tuża d-data għal skopijiet legali ta' informazzjoni, ġurnaliżmu, ċiviċi, jew
+            riċerka, u li tagħti attribuzzjoni lil Elezzjoni 2026 bħala s-sors fejn applikabbli.
           </p>
           <h2>Natura editorjali</h2>
           <p>
@@ -65,10 +69,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           </p>
           <h2>Użu aċċettabbli</h2>
           <p>
-            M'għandekx tuża s-sit jew l-API biex tdejjaq lil individwi, tirrappreżenta ħażin id-data,
-            tiġġenera kontenut politiku qarrieqi, jew b'xi mod li jikser il-liġi Maltija jew tal-UE.
-            Aċċess awtomatizzat għas-sit pubbliku (scraping) mingħajr ma tuża l-API dokumentat mhuwiex
-            permess.
+            M'għandekx tuża s-sit, l-API jew il-bot ta' Telegram biex tdejjaq lil individwi,
+            tirrappreżenta ħażin id-data, tiġġenera kontenut politiku qarrieqi, tagħmel spam fuq
+            il-bot, jew b'xi mod li jikser il-liġi Maltija jew tal-UE. Aċċess awtomatizzat
+            għas-sit pubbliku (scraping) mingħajr ma tuża l-API dokumentat mhuwiex permess. Użu
+            awtomatizzat jew skrittjat tal-bot ta' Telegram lil hinn minn użu personali raġonevoli
+            lanqas mhu permess.
           </p>
           <h2>Responsabbiltà</h2>
           <p>
@@ -99,16 +105,18 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li><strong>AI assistant queries:</strong> the text of your question, stored briefly to improve neutrality and detect abuse. Not linked to your identity.</li>
             <li><strong>API usage:</strong> request metadata (endpoint, timestamp, API key) for rate limiting and abuse prevention.</li>
             <li><strong>Account data (developers and editors only):</strong> email address.</li>
+            <li><strong>Telegram bot interactions:</strong> if you message our official Telegram bot (<strong>Elezzjoni Bot</strong>), we receive your Telegram chat ID, the text of your message, and your optional 👍/👎 feedback. We use this only to reply, to prevent abuse, and to improve answer quality. We do not link this to any other identity. Your interaction with Telegram itself is also governed by Telegram's own privacy policy.</li>
           </ul>
           <h2>Legal basis</h2>
-          <p>Consent (analytics, optional cookies), legitimate interest (security and abuse prevention), and contract (developer accounts).</p>
+          <p>Consent (analytics, optional cookies, voluntarily messaging the Telegram bot), legitimate interest (security and abuse prevention), and contract (developer accounts).</p>
           <h2>Retention</h2>
-          <p>Analytics data is retained for up to 14 months. AI query logs are retained for up to 30 days. API usage logs are retained for up to 12 months.</p>
+          <p>Analytics data is retained for up to 14 months. AI query logs are retained for up to 30 days. API usage logs are retained for up to 12 months. Telegram messages and feedback are retained for up to 90 days, after which they are deleted or fully anonymised.</p>
           <h2>Your rights</h2>
           <p>
             Under GDPR you may request access, correction, deletion, portability, or restriction of
-            your personal data. Contact us using the details on the Contact page. You may also lodge a
-            complaint with the Information and Data Protection Commissioner (IDPC) of Malta.
+            your personal data, including any data held about your Telegram interactions. Contact us
+            using the details on the Contact page. You may also lodge a complaint with the
+            Information and Data Protection Commissioner (IDPC) of Malta.
           </p>
         </>
       ),
@@ -128,15 +136,17 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li><strong>Mistoqsijiet tal-assistent AI:</strong> it-test tal-mistoqsija tiegħek, maħżun għal żmien qasir biex titjieb in-newtralità u jiġi identifikat l-abbuż. Mhux marbut mal-identità tiegħek.</li>
             <li><strong>Użu tal-API:</strong> metadata tat-talbiet (endpoint, ħin, ċavetta tal-API) għar-rate limiting u l-prevenzjoni tal-abbuż.</li>
             <li><strong>Data tal-account (żviluppaturi u edituri biss):</strong> indirizz email.</li>
+            <li><strong>Interazzjonijiet mal-bot ta' Telegram:</strong> jekk tibgħat messaġġ lill-bot uffiċjali tagħna fuq Telegram (<strong>Elezzjoni Bot</strong>), aħna nirċievu l-chat ID tiegħek ta' Telegram, it-test tal-messaġġ, u l-feedback opzjonali 👍/👎 tiegħek. Nużaw dan biss biex inwieġbuk, biex nipprevjenu l-abbuż, u biex intejbu l-kwalità tat-tweġibiet. Ma norbtuhx ma' xi identità oħra. L-interazzjoni tiegħek ma' Telegram innifsu hija wkoll regolata mill-politika ta' privatezza ta' Telegram.</li>
           </ul>
           <h2>Bażi legali</h2>
-          <p>Kunsens (analitika, cookies opzjonali), interess leġittimu (sigurtà u prevenzjoni tal-abbuż), u kuntratt (accounts tal-iżviluppaturi).</p>
+          <p>Kunsens (analitika, cookies opzjonali, użu volontarju tal-bot ta' Telegram), interess leġittimu (sigurtà u prevenzjoni tal-abbuż), u kuntratt (accounts tal-iżviluppaturi).</p>
           <h2>Ritenzjoni</h2>
-          <p>Id-data analitika tinżamm sa 14-il xahar. Logs tal-mistoqsijiet AI jinżammu sa 30 ġurnata. Logs tal-użu tal-API jinżammu sa 12-il xahar.</p>
+          <p>Id-data analitika tinżamm sa 14-il xahar. Logs tal-mistoqsijiet AI jinżammu sa 30 ġurnata. Logs tal-użu tal-API jinżammu sa 12-il xahar. Messaġġi u feedback ta' Telegram jinżammu sa 90 ġurnata, u wara jitħassru jew jiġu kompletament anonimizzati.</p>
           <h2>Drittijiet tiegħek</h2>
           <p>
             Skont il-GDPR tista' titlob aċċess, korrezzjoni, tħassir, portabbiltà jew restrizzjoni
-            tad-data personali tiegħek. Ikkuntattjana bid-dettalji fil-paġna ta' Kuntatt. Tista' wkoll
+            tad-data personali tiegħek, inkluża kwalunkwe data miżmuma dwar l-interazzjonijiet
+            tiegħek fuq Telegram. Ikkuntattjana bid-dettalji fil-paġna ta' Kuntatt. Tista' wkoll
             tippreżenta ilment mal-Kummissarju għall-Informazzjoni u l-Protezzjoni tad-Data (IDPC) ta' Malta.
           </p>
         </>
@@ -156,6 +166,8 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           <p>Anonymised usage analytics so we can improve the site. Loaded only after you accept analytics cookies in the consent banner.</p>
           <h2>Managing cookies</h2>
           <p>You can change your choice at any time by clearing site data in your browser, which will re-show the consent banner on your next visit. You can also block cookies entirely in your browser settings, but the site may not work as expected.</p>
+          <h2>Telegram bot</h2>
+          <p>The official Elezzjoni Telegram bot does not set any cookies — your interaction takes place entirely inside the Telegram app and is governed by Telegram's own privacy and cookie practices.</p>
         </>
       ),
     },
@@ -171,6 +183,8 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           <p>Analitika anonimizzata tal-użu biex intejbu s-sit. Mitgħobbija biss wara li taċċetta l-cookies analitiċi fil-banner tal-kunsens.</p>
           <h2>Tmexxi l-cookies</h2>
           <p>Tista' tibdel l-għażla tiegħek f'kull ħin billi tneħħi d-data tas-sit fil-browser, u l-banner tal-kunsens jerġa' jidher fuq iż-żjara li jmiss. Tista' wkoll timblokka l-cookies għal kollox fis-settings tal-browser, iżda s-sit jista' ma jaħdimx kif mistenni.</p>
+          <h2>Bot ta' Telegram</h2>
+          <p>Il-bot uffiċjali ta' Elezzjoni fuq Telegram ma jissettja l-ebda cookie — l-interazzjoni tiegħek issir kollha fl-app ta' Telegram u hija regolata mill-prattiki ta' privatezza u cookies ta' Telegram innifsu.</p>
         </>
       ),
     },
@@ -217,7 +231,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             </a>
             ), including the candidate, party, district, proposal, "ask AI"
             and developer/API pages in both English and Maltese. The
-            staff-only admin dashboard is out of scope.
+            staff-only admin dashboard is out of scope. The official
+            Elezzjoni Telegram bot is also out of scope of this statement —
+            its accessibility depends on the Telegram client you use; we
+            keep bot replies as plain text so screen readers can read them
+            and offer the same information on the public website as an
+            equivalent alternative.
           </p>
 
           <h2>What we do</h2>
@@ -374,7 +393,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             , inklużi l-paġni tal-kandidati, partiti, distretti, proposti,
             "staqsi lill-AI" u l-paġni għall-iżviluppaturi/API kemm
             bl-Ingliż kif ukoll bil-Malti. Il-pannell tal-amministrazzjoni
-            għall-istaff biss huwa barra mill-kamp ta' applikazzjoni.
+            għall-istaff biss huwa barra mill-kamp ta' applikazzjoni. Il-bot
+            uffiċjali ta' Elezzjoni fuq Telegram huwa wkoll barra mill-kamp
+            ta' din l-istqarrija — l-aċċessibbiltà tiegħu tiddependi
+            mill-klijent ta' Telegram li tuża; inżommu t-tweġibiet tal-bot
+            bħala test sempliċi biex screen readers ikunu jistgħu jaqrawhom,
+            u l-istess informazzjoni hija disponibbli wkoll fuq is-sit
+            pubbliku bħala alternattiva ekwivalenti.
           </p>
 
           <h2>X'nagħmlu</h2>
@@ -516,10 +541,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li>Maltese news outlets: Times of Malta, MaltaToday, Lovin Malta, Malta Daily.</li>
             <li>Editor-curated quotes, podcast appearances, and social profiles.</li>
           </ul>
+          <h2>Distribution channels</h2>
+          <p>The same neutral, sourced information is available through the public website, the developer API, and our official Telegram bot (<strong>Elezzjoni Bot</strong> on Telegram). All three channels share the same underlying data and editorial review process.</p>
           <h2>Neutrality commitments</h2>
           <ul>
-            <li>We never recommend a candidate or party.</li>
-            <li>The AI assistant cites sources and refuses endorsements.</li>
+            <li>We never recommend a candidate or party — on the website, in the API, or via the Telegram bot.</li>
+            <li>The AI assistant (web and Telegram) cites sources and refuses endorsements.</li>
             <li>Party colours appear only as small badges, never as page surfaces.</li>
             <li>Editor changes are logged and surfaced in the public changelog.</li>
           </ul>
@@ -539,10 +566,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li>Sorsi tal-aħbarijiet Maltin: Times of Malta, MaltaToday, Lovin Malta, Malta Daily.</li>
             <li>Quotes, dehriet f'podcasts, u profili soċjali kkurati mill-edituri.</li>
           </ul>
+          <h2>Kanali ta' distribuzzjoni</h2>
+          <p>L-istess informazzjoni newtrali u msejsa fuq sorsi hija disponibbli mis-sit pubbliku, mill-API għall-iżviluppaturi, u mill-bot uffiċjali tagħna fuq Telegram (<strong>Elezzjoni Bot</strong> fuq Telegram). It-tlieta jaqsmu l-istess data u l-istess proċess editorjali.</p>
           <h2>Impenji ta' newtralità</h2>
           <ul>
-            <li>Qatt ma nirrakkomandaw kandidat jew partit.</li>
-            <li>L-assistent AI jiċċita sorsi u jirrifjuta endorsjamenti.</li>
+            <li>Qatt ma nirrakkomandaw kandidat jew partit — fuq is-sit, fl-API, jew permezz tal-bot ta' Telegram.</li>
+            <li>L-assistent AI (fuq il-web u fuq Telegram) jiċċita sorsi u jirrifjuta endorsjamenti.</li>
             <li>Il-kuluri tal-partiti jidhru biss bħala badges żgħar, qatt bħala wiċċ tal-paġna.</li>
             <li>Il-bidliet tal-edituri huma loggjati u juru fir-reġistru pubbliku tal-bidliet.</li>
           </ul>
@@ -566,6 +595,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             Open an issue on any of the public repositories, or reach out via the contact details listed on the GitHub
             profile. We aim to respond within 5 working days.
           </p>
+          <p>
+            <strong>Telegram:</strong> you can also reach the project through our official{" "}
+            <strong>Elezzjoni Bot</strong> on Telegram. The bot is for information requests
+            (candidates, parties, proposals, FAQ, neutral Q&amp;A) — for formal corrections,
+            takedown requests, or data-protection enquiries please still use GitHub so we have a
+            written record.
+          </p>
         </>
       ),
     },
@@ -583,6 +619,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
           <p>
             Iftaħ issue fuq xi waħda mir-repożitorji pubbliċi, jew ikkuntattjana permezz tad-dettalji elenkati fuq il-profil
             tal-GitHub. Naħdmu biex inwieġbu fi żmien 5 ijiem tax-xogħol.
+          </p>
+          <p>
+            <strong>Telegram:</strong> tista' wkoll tikkuntattjana permezz tal-bot uffiċjali
+            tagħna <strong>Elezzjoni Bot</strong> fuq Telegram. Il-bot huwa għal mistoqsijiet ta'
+            informazzjoni (kandidati, partiti, proposti, FAQ, mistoqsijiet u tweġibiet newtrali)
+            — għal korrezzjonijiet formali, talbiet ta' tneħħija jew kwistjonijiet ta'
+            protezzjoni tad-data jekk jogħġbok għadek uża GitHub biex ikollna rekord miktub.
           </p>
         </>
       ),
