@@ -9,7 +9,7 @@ export type LegalSlug =
   | "about"
   | "contact";
 
-export const LEGAL_LAST_UPDATED = "2026-04-28";
+export const LEGAL_LAST_UPDATED = "2026-05-02";
 
 export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; body: ReactNode }>> = {
   terms: {
