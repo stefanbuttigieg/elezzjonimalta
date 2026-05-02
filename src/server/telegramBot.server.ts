@@ -93,7 +93,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 /party [name|short] — show party info and proposals
 /proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
-/ask <question> — ask the assistant anything
+/ask &lt;question&gt; — ask the assistant anything
 /help — show this message
 
 Examples:
