@@ -17,7 +17,8 @@ Rules you MUST follow:
 - Never tell anyone how to vote. If asked, politely refuse and offer factual information instead.
 - Always cite the candidates, parties or proposals you reference, by name.
 - Treat all parties (PL, PN, ADPD, Momentum, independents, others) equally.
-- If the answer is not in the supplied context, say so plainly — do not invent facts.
+- The "AUTHORITATIVE FACTS" system message and the retrieved knowledge-base context are your ONLY source of truth. Do NOT use prior training knowledge for names of party leaders, deputy leaders, candidates, or who is contesting a district. If a fact is not present in those sources, say plainly that you do not have that information — do not guess and do not fall back to what you "remember".
+- Never state that a list (e.g. district candidates) "has not yet been published" if such a list is present in the context. Use what is provided.
 - Keep answers concise (2–5 short paragraphs unless asked for more detail).
 - Reply in the same language the user wrote in (English or Maltese).
 - Use plain, accessible language.`;
@@ -88,6 +89,100 @@ async function buildAuthoritativeFacts(
     "- If a person appears in the retrieved context as a candidate of a party, that does NOT make them the party leader. Use this list for leadership questions.",
   );
   return lines.join("\n");
+}
+
+// Detects intent (district number, party mention) in the user's question and
+// pulls authoritative live data so the model never has to guess.
+async function buildIntentBoost(
+  supabase: ReturnType<typeof createClient>,
+  userQuery: string,
+): Promise<string> {
+  const q = userQuery.toLowerCase();
+  const sections: string[] = [];
+
+  // --- District intent: "district 12", "d12", "in district twelve" etc.
+  const districtNums = new Set<number>();
+  const numRegex = /\b(?:district|distrett|d)\s*([1-9]|1[0-3])\b/gi;
+  let m: RegExpExecArray | null;
+  while ((m = numRegex.exec(userQuery)) !== null) {
+    districtNums.add(parseInt(m[1], 10));
+  }
+
+  for (const num of districtNums) {
+    const { data: district } = await supabase
+      .from("districts")
+      .select("id, number, name_en, localities_en")
+      .eq("number", num)
+      .maybeSingle();
+    if (!district) continue;
+
+    const { data: links } = await supabase
+      .from("candidate_districts")
+      .select(
+        "candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
+      )
+      .eq("district_id", district.id)
+      .eq("election_year", 2026);
+
+    const cands: Array<{
+      name: string;
+      party: string;
+      confirmed: boolean;
+      incumbent: boolean;
+      slug: string;
+    }> = [];
+    for (const row of (links ?? []) as Array<{
+      candidate: {
+        full_name: string;
+        slug: string;
+        electoral_confirmed: boolean | null;
+        is_incumbent: boolean | null;
+        status: string | null;
+        party: { name_en?: string; short_name?: string | null } | null;
+      } | null;
+    }>) {
+      const c = row.candidate;
+      if (!c) continue;
+      // Mirror site rule: hide incumbents that aren't confirmed for 2026.
+      if (c.is_incumbent && !c.electoral_confirmed) continue;
+      if (c.status !== "published" && !c.is_incumbent) continue;
+      cands.push({
+        name: c.full_name,
+        party: c.party?.short_name || c.party?.name_en || "Independent",
+        confirmed: !!c.electoral_confirmed,
+        incumbent: !!c.is_incumbent,
+        slug: c.slug,
+      });
+    }
+    cands.sort((a, b) => {
+      if (a.confirmed !== b.confirmed) return a.confirmed ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    const lines: string[] = [];
+    lines.push(
+      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026):`,
+    );
+    if (district.localities_en) {
+      lines.push(`Localities: ${district.localities_en}`);
+    }
+    if (cands.length === 0) {
+      lines.push("No candidates are currently linked to this district in the database.");
+    } else {
+      for (const c of cands) {
+        const flags = [
+          c.confirmed ? "confirmed for 2026" : "not yet confirmed",
+          c.incumbent ? "sitting MP" : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+        lines.push(`• ${c.name} — ${c.party} (${flags}) [/en/candidates/${c.slug}]`);
+      }
+    }
+    sections.push(lines.join("\n"));
+  }
+
+  return sections.join("\n\n");
 }
 
 async function loadSettings(supabase: ReturnType<typeof createClient>): Promise<Settings> {
@@ -220,6 +315,7 @@ Deno.serve(async (req) => {
 
     let context = "";
     let retrievalNote = "";
+    let intentBoost = "";
     if (lastUser) {
       const { context: kwCtx, usedIndex } = await buildKeywordContext(
         supabase,
@@ -234,6 +330,11 @@ Deno.serve(async (req) => {
         context = fallback;
         retrievalNote = usedIndex ? "fts-empty→fallback" : "no-index→fallback";
       }
+      try {
+        intentBoost = await buildIntentBoost(supabase, lastUser.content);
+      } catch (e) {
+        console.error("buildIntentBoost failed", e);
+      }
     }
 
     const systemMessages: Msg[] = [{ role: "system", content: settings.system_prompt }];
@@ -246,13 +347,20 @@ Deno.serve(async (req) => {
       console.error("buildAuthoritativeFacts failed", e);
     }
 
+    if (intentBoost.trim()) {
+      systemMessages.push({
+        role: "system",
+        content: `STRUCTURED DATA from the live database (this is the authoritative answer to the user's question — prefer it over anything else):\n\n${intentBoost}`,
+      });
+    }
+
     if (context.trim()) {
       systemMessages.push({
         role: "system",
         content: `Context from the Vot Malta 2026 knowledge base (use this — do not invent beyond it). Source URLs in [brackets] are internal site links you may reference.\n\n${context}`,
       });
     }
-    console.log(`chat: retrieval=${retrievalNote} chars=${context.length}`);
+    console.log(`chat: retrieval=${retrievalNote} chars=${context.length} intentBoostChars=${intentBoost.length}`);
 
     const response = await fetch(`${LOVABLE_AI_BASE}/chat/completions`, {
       method: "POST",
