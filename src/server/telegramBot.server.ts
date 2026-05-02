@@ -226,7 +226,8 @@ async function handleCandidates(arg: string): Promise<string> {
     const p = c.party as { short_name?: string; name_en?: string } | null;
     const party = p?.short_name || p?.name_en || "Independent";
     const dist = (c.primary_district as { number?: number } | null)?.number;
-    return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>${dist ? ` (D${dist})` : ""}`;
+    const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
+    return `• ${link} — <i>${escapeHtml(party)}</i>${dist ? ` (D${dist})` : ""}`;
   });
   return `<b>Candidates matching "${escapeHtml(a)}"</b>\n${lines.join("\n")}`;
 }
