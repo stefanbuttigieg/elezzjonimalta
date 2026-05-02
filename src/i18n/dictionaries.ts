@@ -55,6 +55,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Data sourced from electoral.gov.mt, parlament.mt, party websites, and named news outlets.",
     "footer.lastUpdated": "Last updated",
     "footer.rights": "© {year} Elezzjoni. Open data, attribution required.",
+    "footer.telegram": "Telegram bot",
 
     "home.hero.eyebrow": "Malta General Election",
     "home.hero.title": "Make an informed vote",
