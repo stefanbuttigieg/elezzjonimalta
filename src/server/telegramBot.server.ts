@@ -504,7 +504,7 @@ export async function runTelegramPoll(): Promise<{
     const data = await tgCall("getUpdates", {
       offset: currentOffset,
       timeout,
-      allowed_updates: ["message"],
+      allowed_updates: ["message", "callback_query"],
     });
     const updates = (data.result ?? []) as TgUpdate[];
     if (updates.length === 0) continue;
