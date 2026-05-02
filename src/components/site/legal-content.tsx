@@ -566,10 +566,12 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             <li>Sorsi tal-aħbarijiet Maltin: Times of Malta, MaltaToday, Lovin Malta, Malta Daily.</li>
             <li>Quotes, dehriet f'podcasts, u profili soċjali kkurati mill-edituri.</li>
           </ul>
+          <h2>Kanali ta' distribuzzjoni</h2>
+          <p>L-istess informazzjoni newtrali u msejsa fuq sorsi hija disponibbli mis-sit pubbliku, mill-API għall-iżviluppaturi, u mill-bot uffiċjali tagħna fuq Telegram (<strong>Elezzjoni Bot</strong> fuq Telegram). It-tlieta jaqsmu l-istess data u l-istess proċess editorjali.</p>
           <h2>Impenji ta' newtralità</h2>
           <ul>
-            <li>Qatt ma nirrakkomandaw kandidat jew partit.</li>
-            <li>L-assistent AI jiċċita sorsi u jirrifjuta endorsjamenti.</li>
+            <li>Qatt ma nirrakkomandaw kandidat jew partit — fuq is-sit, fl-API, jew permezz tal-bot ta' Telegram.</li>
+            <li>L-assistent AI (fuq il-web u fuq Telegram) jiċċita sorsi u jirrifjuta endorsjamenti.</li>
             <li>Il-kuluri tal-partiti jidhru biss bħala badges żgħar, qatt bħala wiċċ tal-paġna.</li>
             <li>Il-bidliet tal-edituri huma loggjati u juru fir-reġistru pubbliku tal-bidliet.</li>
           </ul>
