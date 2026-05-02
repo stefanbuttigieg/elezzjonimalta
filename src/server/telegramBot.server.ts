@@ -150,18 +150,52 @@ async function handleCandidates(arg: string): Promise<string> {
       .eq("status", "published")
       .maybeSingle();
     if (!d) return `No published district found for number ${n}.`;
-    const { data: cands } = await supabaseAdmin
-      .from("candidates")
-      .select("full_name, party:parties(short_name, name_en)")
-      .eq("status", "published")
-      .eq("primary_district_id", d.id)
-      .order("full_name", { ascending: true })
-      .limit(50);
-    if (!cands || cands.length === 0) {
+    const { data: linkedCandidates } = await supabaseAdmin
+      .from("candidate_districts")
+      .select(
+        "candidate_id, election_year, candidate:candidates(id, full_name, electoral_confirmed, is_incumbent, status, party:parties(short_name, name_en))"
+      )
+      .eq("district_id", d.id)
+      .eq("election_year", 2026);
+
+    const byId = new Map<
+      string,
+      {
+        full_name: string;
+        electoral_confirmed: boolean;
+        is_incumbent: boolean;
+        party: { short_name?: string | null; name_en?: string | null } | null;
+      }
+    >();
+
+    for (const link of (linkedCandidates ?? []) as Array<{
+      candidate: {
+        id: string;
+        full_name: string;
+        electoral_confirmed: boolean;
+        is_incumbent: boolean;
+        status: string;
+        party: { short_name?: string | null; name_en?: string | null } | null;
+      } | null;
+    }>) {
+      const c = link.candidate;
+      if (!c || c.status !== "published") continue;
+      if (c.is_incumbent && !c.electoral_confirmed) continue;
+      if (!byId.has(c.id)) byId.set(c.id, c);
+    }
+
+    const cands = Array.from(byId.values()).sort((a, b) => {
+      if (a.electoral_confirmed !== b.electoral_confirmed) {
+        return a.electoral_confirmed ? -1 : 1;
+      }
+      return a.full_name.localeCompare(b.full_name);
+    });
+
+    if (cands.length === 0) {
       return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.`;
     }
     const lines = cands.map((c) => {
-      const p = (c.party as { short_name?: string; name_en?: string } | null);
+      const p = c.party;
       const party = p?.short_name || p?.name_en || "Independent";
       return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>`;
     });
