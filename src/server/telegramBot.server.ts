@@ -158,7 +158,7 @@ async function handleCandidates(arg: string): Promise<string> {
     const { data: linkedCandidates } = await supabaseAdmin
       .from("candidate_districts")
       .select(
-        "candidate_id, election_year, candidate:candidates(id, full_name, electoral_confirmed, is_incumbent, status, party:parties(short_name, name_en))"
+        "candidate_id, election_year, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
       )
       .eq("district_id", d.id)
       .eq("election_year", 2026);
@@ -166,21 +166,23 @@ async function handleCandidates(arg: string): Promise<string> {
     const byId = new Map<
       string,
       {
+        slug: string;
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
-        party: { short_name?: string | null; name_en?: string | null } | null;
+        party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       }
     >();
 
     for (const link of (linkedCandidates ?? []) as Array<{
       candidate: {
         id: string;
+        slug: string;
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
         status: string;
-        party: { short_name?: string | null; name_en?: string | null } | null;
+        party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       } | null;
     }>) {
       const c = link.candidate;
@@ -196,15 +198,17 @@ async function handleCandidates(arg: string): Promise<string> {
       return a.full_name.localeCompare(b.full_name);
     });
 
+    const districtLink = siteLink(`/en/my-district/${n}`, `View District ${n} on the site`);
     if (cands.length === 0) {
-      return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.`;
+      return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.\n\n🔗 ${districtLink}`;
     }
     const lines = cands.map((c) => {
       const p = c.party;
       const party = p?.short_name || p?.name_en || "Independent";
-      return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>`;
+      const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
+      return `• ${link} — <i>${escapeHtml(party)}</i>`;
     });
-    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}`;
+    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
   }
 
   // Name search
