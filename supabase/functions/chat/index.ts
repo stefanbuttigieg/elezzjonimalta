@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
 
     let context = "";
     let retrievalNote = "";
+    let intentBoost = "";
     if (lastUser) {
       const { context: kwCtx, usedIndex } = await buildKeywordContext(
         supabase,
@@ -235,6 +236,11 @@ Deno.serve(async (req) => {
         context = fallback;
         retrievalNote = usedIndex ? "fts-empty→fallback" : "no-index→fallback";
       }
+      try {
+        intentBoost = await buildIntentBoost(supabase, lastUser.content);
+      } catch (e) {
+        console.error("buildIntentBoost failed", e);
+      }
     }
 
     const systemMessages: Msg[] = [{ role: "system", content: settings.system_prompt }];
@@ -247,13 +253,20 @@ Deno.serve(async (req) => {
       console.error("buildAuthoritativeFacts failed", e);
     }
 
+    if (intentBoost.trim()) {
+      systemMessages.push({
+        role: "system",
+        content: `STRUCTURED DATA from the live database (this is the authoritative answer to the user's question — prefer it over anything else):\n\n${intentBoost}`,
+      });
+    }
+
     if (context.trim()) {
       systemMessages.push({
         role: "system",
         content: `Context from the Vot Malta 2026 knowledge base (use this — do not invent beyond it). Source URLs in [brackets] are internal site links you may reference.\n\n${context}`,
       });
     }
-    console.log(`chat: retrieval=${retrievalNote} chars=${context.length}`);
+    console.log(`chat: retrieval=${retrievalNote} chars=${context.length} intentBoostChars=${intentBoost.length}`);
 
     const response = await fetch(`${LOVABLE_AI_BASE}/chat/completions`, {
       method: "POST",
