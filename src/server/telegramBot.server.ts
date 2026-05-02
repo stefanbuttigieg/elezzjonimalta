@@ -344,6 +344,9 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
     case "party":
     case "parties":
       return { command: "party", response: await handleParty(arg) };
+    case "proposals":
+    case "proposal":
+      return { command: "proposals", response: await handleProposals(arg) };
     case "faq":
     case "faqs":
       return { command: "faq", response: await handleFaq(arg) };
@@ -356,7 +359,7 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
 
 // Commands where feedback is meaningful. We skip /help and unknown commands
 // since rating those would just be noise.
-const FEEDBACK_COMMANDS = new Set(["candidates", "party", "faq", "ask"]);
+const FEEDBACK_COMMANDS = new Set(["candidates", "party", "proposals", "faq", "ask"]);
 
 async function processMessage(update: TgUpdate): Promise<void> {
   const msg = update.message;
