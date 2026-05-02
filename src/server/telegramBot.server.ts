@@ -5,6 +5,11 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
+const SITE_URL = (process.env.SITE_URL ?? "https://elezzjoni.app").replace(/\/$/, "");
+
+function siteLink(path: string, label: string): string {
+  return `<a href="${SITE_URL}${path}">${escapeHtml(label)}</a>`;
+}
 
 type TgMessage = {
   message_id: number;
@@ -153,7 +158,7 @@ async function handleCandidates(arg: string): Promise<string> {
     const { data: linkedCandidates } = await supabaseAdmin
       .from("candidate_districts")
       .select(
-        "candidate_id, election_year, candidate:candidates(id, full_name, electoral_confirmed, is_incumbent, status, party:parties(short_name, name_en))"
+        "candidate_id, election_year, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
       )
       .eq("district_id", d.id)
       .eq("election_year", 2026);
@@ -161,21 +166,23 @@ async function handleCandidates(arg: string): Promise<string> {
     const byId = new Map<
       string,
       {
+        slug: string;
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
-        party: { short_name?: string | null; name_en?: string | null } | null;
+        party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       }
     >();
 
     for (const link of (linkedCandidates ?? []) as Array<{
       candidate: {
         id: string;
+        slug: string;
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
         status: string;
-        party: { short_name?: string | null; name_en?: string | null } | null;
+        party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       } | null;
     }>) {
       const c = link.candidate;
@@ -191,15 +198,17 @@ async function handleCandidates(arg: string): Promise<string> {
       return a.full_name.localeCompare(b.full_name);
     });
 
+    const districtLink = siteLink(`/en/my-district/${n}`, `View District ${n} on the site`);
     if (cands.length === 0) {
-      return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.`;
+      return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.\n\n🔗 ${districtLink}`;
     }
     const lines = cands.map((c) => {
       const p = c.party;
       const party = p?.short_name || p?.name_en || "Independent";
-      return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>`;
+      const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
+      return `• ${link} — <i>${escapeHtml(party)}</i>`;
     });
-    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}`;
+    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
   }
 
   // Name search
@@ -217,7 +226,8 @@ async function handleCandidates(arg: string): Promise<string> {
     const p = c.party as { short_name?: string; name_en?: string } | null;
     const party = p?.short_name || p?.name_en || "Independent";
     const dist = (c.primary_district as { number?: number } | null)?.number;
-    return `• ${escapeHtml(c.full_name)} — <i>${escapeHtml(party)}</i>${dist ? ` (D${dist})` : ""}`;
+    const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
+    return `• ${link} — <i>${escapeHtml(party)}</i>${dist ? ` (D${dist})` : ""}`;
   });
   return `<b>Candidates matching "${escapeHtml(a)}"</b>\n${lines.join("\n")}`;
 }
@@ -227,17 +237,20 @@ async function handleParty(arg: string): Promise<string> {
   if (!a) {
     const { data: parties } = await supabaseAdmin
       .from("parties")
-      .select("short_name, name_en")
+      .select("slug, short_name, name_en")
       .eq("status", "published")
       .order("name_en");
     const list = (parties ?? [])
-      .map((p) => `• ${escapeHtml(p.short_name || "")} — ${escapeHtml(p.name_en)}`)
+      .map((p) => {
+        const link = siteLink(`/en/parties/${p.slug}`, p.name_en);
+        return `• ${escapeHtml(p.short_name || "")} — ${link}`;
+      })
       .join("\n");
     return `<b>Parties</b>\n${list}\n\nUse <code>/party &lt;short name&gt;</code> for details.`;
   }
   const { data: party } = await supabaseAdmin
     .from("parties")
-    .select("id, name_en, short_name, description_en, leader_name, website, slogan_en")
+    .select("id, slug, name_en, short_name, description_en, leader_name, website, slogan_en")
     .eq("status", "published")
     .or(`short_name.ilike.${a},name_en.ilike.%${a}%,slug.ilike.%${a}%`)
     .limit(1)
@@ -261,6 +274,9 @@ async function handleParty(arg: string): Promise<string> {
   if (props && props.length > 0) {
     lines.push(`\n<b>Top proposals</b>`);
     for (const p of props) lines.push(`• ${escapeHtml(p.title_en)}`);
+  }
+  if (party.slug) {
+    lines.push(`\n🔗 ${siteLink(`/en/parties/${party.slug}`, `View ${party.name_en} on the site`)}`);
   }
   return lines.join("\n");
 }
