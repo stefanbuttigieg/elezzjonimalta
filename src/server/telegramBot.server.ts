@@ -27,6 +27,7 @@ type TgUpdate = {
 };
 
 type InlineKeyboard = { inline_keyboard: Array<Array<{ text: string; callback_data: string }>> };
+type TelegramGatewayResponse = { ok?: boolean; result?: unknown; [key: string]: unknown };
 
 function getEnv() {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
@@ -36,22 +37,39 @@ function getEnv() {
   return { LOVABLE_API_KEY, TELEGRAM_API_KEY };
 }
 
-async function tgCall(path: string, body: Record<string, unknown>) {
+async function tgCall(path: string, body: Record<string, unknown>): Promise<TelegramGatewayResponse> {
   const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getEnv();
-  const resp = await fetch(`${GATEWAY_URL}/${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
-    throw new Error(`Telegram ${path} failed [${resp.status}]: ${JSON.stringify(data)}`);
+  let lastError = "unknown error";
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const resp = await fetch(`${GATEWAY_URL}/${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "X-Connection-Api-Key": TELEGRAM_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const raw = await resp.text();
+    let data: TelegramGatewayResponse = {};
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      data = parsed && typeof parsed === "object" ? (parsed as TelegramGatewayResponse) : { raw: parsed };
+    } catch {
+      data = { raw };
+    }
+
+    if (resp.ok) return data;
+
+    lastError = `Telegram ${path} failed [${resp.status}]: ${JSON.stringify(data)}`;
+    const retryable = resp.status === 429 || resp.status >= 500;
+    if (!retryable || attempt === 3) break;
+    await new Promise((resolve) => setTimeout(resolve, attempt * 500));
   }
-  return data;
+
+  throw new Error(lastError);
 }
 
 async function sendMessage(
@@ -69,7 +87,11 @@ async function sendMessage(
   };
   if (replyMarkup) body.reply_markup = replyMarkup;
   const data = await tgCall("sendMessage", body);
-  return data?.result ? { message_id: data.result.message_id as number } : null;
+  const result = data.result;
+  if (result && typeof result === "object" && "message_id" in result) {
+    return { message_id: Number(result.message_id) };
+  }
+  return null;
 }
 
 // Neutral feedback keyboard. Encoded as `fb:<up|down>` — no per-message ID
@@ -93,7 +115,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 /party [name|short] — show party info and proposals
 /proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
-/ask <question> — ask the assistant anything
+/ask &lt;question&gt; — ask the assistant anything
 /help — show this message
 
 Examples:
