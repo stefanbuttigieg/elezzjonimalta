@@ -87,7 +87,11 @@ async function sendMessage(
   };
   if (replyMarkup) body.reply_markup = replyMarkup;
   const data = await tgCall("sendMessage", body);
-  return data?.result ? { message_id: data.result.message_id as number } : null;
+  const result = data.result;
+  if (result && typeof result === "object" && "message_id" in result) {
+    return { message_id: Number(result.message_id) };
+  }
+  return null;
 }
 
 // Neutral feedback keyboard. Encoded as `fb:<up|down>` — no per-message ID
