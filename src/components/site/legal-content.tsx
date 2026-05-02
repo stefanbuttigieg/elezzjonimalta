@@ -18,9 +18,11 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
       body: (
         <>
           <p>
-            Elezzjoni 2026 is an independent, non-partisan information service. By accessing this site
-            or its API you agree to use the data for lawful informational, journalistic, civic, or
-            research purposes, and to attribute Elezzjoni 2026 as the source where applicable.
+            Elezzjoni 2026 is an independent, non-partisan information service delivered through this
+            website, the public API, and the official Telegram bot (<strong>Elezzjoni Bot</strong> on
+            Telegram). By accessing the site, the API, or interacting with the Telegram bot you agree
+            to use the data for lawful informational, journalistic, civic, or research purposes, and
+            to attribute Elezzjoni 2026 as the source where applicable.
           </p>
           <h2>Editorial nature</h2>
           <p>
