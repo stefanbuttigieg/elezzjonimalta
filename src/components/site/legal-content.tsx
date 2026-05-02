@@ -620,6 +620,13 @@ export const LEGAL_CONTENT: Record<LegalSlug, Record<Locale, { title: string; bo
             Iftaħ issue fuq xi waħda mir-repożitorji pubbliċi, jew ikkuntattjana permezz tad-dettalji elenkati fuq il-profil
             tal-GitHub. Naħdmu biex inwieġbu fi żmien 5 ijiem tax-xogħol.
           </p>
+          <p>
+            <strong>Telegram:</strong> tista' wkoll tikkuntattjana permezz tal-bot uffiċjali
+            tagħna <strong>Elezzjoni Bot</strong> fuq Telegram. Il-bot huwa għal mistoqsijiet ta'
+            informazzjoni (kandidati, partiti, proposti, FAQ, mistoqsijiet u tweġibiet newtrali)
+            — għal korrezzjonijiet formali, talbiet ta' tneħħija jew kwistjonijiet ta'
+            protezzjoni tad-data jekk jogħġbok għadek uża GitHub biex ikollna rekord miktub.
+          </p>
         </>
       ),
     },
