@@ -396,13 +396,13 @@ function ProposalsAdmin() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   <FileText className="mx-auto mb-2 h-6 w-6" />
                   No proposals yet. Create the first one.
                 </td>
@@ -410,6 +410,14 @@ function ProposalsAdmin() {
             ) : (
               filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
+                  <td className="px-4 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${r.title_en}`}
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleOne(r.id)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.title_en}</div>
