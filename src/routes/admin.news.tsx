@@ -1013,6 +1013,8 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
             title_en: r.title_en.trim(),
             description_en: r.description_en.trim(),
             category: r.category.trim(),
+            category_ids: r.category_ids,
+            status: r.status,
             party_id: r.party_id,
             candidate_id: r.candidate_id,
           }))
