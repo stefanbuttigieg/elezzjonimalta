@@ -384,6 +384,21 @@ function ProposalsAdmin() {
           Show merged ({mergedCount})
         </label>
         <button
+          type="button"
+          onClick={() => {
+            setQ("");
+            setFilterParty("all");
+            setFilterCategory("all");
+            setFilterStatus("all");
+            setFilterLink("all");
+            setFilterTranslation("all");
+            setFilterCategorised("all");
+          }}
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+        >
+          Reset
+        </button>
+        <button
           onClick={runBulkTranslate}
           disabled={bulkTranslating || missingTranslationCount === 0}
           className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
