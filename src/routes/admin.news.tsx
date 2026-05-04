@@ -963,7 +963,7 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           description_en: typeof r.description_en === "string" ? r.description_en : "",
           category: typeof r.category === "string" ? r.category : "",
           category_ids: [],
-          status: "pending_review",
+          status: "pending_review" as const,
           party_id: typeof r.party_id === "string" ? r.party_id : "",
           candidate_id: typeof r.candidate_id === "string" ? r.candidate_id : "",
         })).filter((r) => r.title_en.trim().length > 0);
