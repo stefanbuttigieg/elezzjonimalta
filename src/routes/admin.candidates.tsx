@@ -185,16 +185,59 @@ function CandidatesAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [c, p, d] = await Promise.all([
+    const [c, p, d, cf] = await Promise.all([
       supabase.from("candidates").select("*").order("full_name"),
       supabase.from("parties").select("id, name_en").order("name_en"),
       supabase.from("districts").select("id, number, name_en").order("number"),
+      supabase
+        .from("custom_field_definitions")
+        .select("key, label, required, field_type, entity_type")
+        .eq("entity_type", "candidate"),
     ]);
     if (c.error) toast.error(c.error.message);
     setRows((c.data ?? []) as Candidate[]);
     setParties((p.data ?? []) as PartyOpt[]);
     setDistricts((d.data ?? []) as DistrictOpt[]);
+    setCustomFieldDefs((cf.data ?? []) as CustomFieldDef[]);
     setLoading(false);
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const runBulkAutofill = async () => {
+    if (selected.size === 0 || bulkAutofillBusy) return;
+    if (
+      !confirm(
+        `Auto-fill ${selected.size} candidate(s) from web search + parliament.mt? Only empty fields will be filled. This may take a few minutes.`
+      )
+    )
+      return;
+    setBulkAutofillBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const res = await bulkAutofillCandidates({
+        data: { candidate_ids: ids, use_web_search: true, use_parliament_mt: true },
+      });
+      if (!res.ok) throw new Error(res.error);
+      const succeeded = res.results.filter((r) => r.ok).length;
+      const totalUpdated = res.results.reduce((acc, r) => acc + (r.updated_count ?? 0), 0);
+      const failed = res.results.filter((r) => !r.ok).length;
+      toast.success(
+        `Auto-fill done · ${succeeded}/${res.results.length} processed · ${totalUpdated} fields filled${failed ? ` · ${failed} failed` : ""}`
+      );
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk auto-fill failed");
+    } finally {
+      setBulkAutofillBusy(false);
+    }
   };
 
   useEffect(() => {
