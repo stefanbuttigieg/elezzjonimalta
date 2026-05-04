@@ -666,6 +666,7 @@ function CandidatesAdmin() {
           value={editing}
           parties={parties}
           districts={districts}
+          customFieldDefs={customFieldDefs}
           onChange={setEditing}
           onClose={clearEditing}
           onSaved={() => {
