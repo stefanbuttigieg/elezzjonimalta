@@ -93,6 +93,52 @@ function ProposalsAdmin() {
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
   const [bulkTranslating, setBulkTranslating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const bulkUpdateStatus = async (status: ReviewStatus) => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`Set status to "${status}" for ${selected.size} proposal(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("proposals").update({ status }).in("id", ids);
+      if (error) throw error;
+      toast.success(`Updated ${ids.length} proposal(s)`);
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk update failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`Delete ${selected.size} proposal(s)? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("proposals").delete().in("id", ids);
+      if (error) throw error;
+      toast.success(`Deleted ${ids.length} proposal(s)`);
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk delete failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const missingTranslationCount = useMemo(
     () =>
@@ -292,10 +338,54 @@ function ProposalsAdmin() {
         </Link>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="font-medium">{selected.size} selected</span>
+          <span className="text-muted-foreground">· Set status:</span>
+          {(["draft", "pending_review", "published", "archived"] as ReviewStatus[]).map((s) => (
+            <button
+              key={s}
+              disabled={bulkBusy}
+              onClick={() => void bulkUpdateStatus(s)}
+              className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            >
+              {s}
+            </button>
+          ))}
+          <button
+            disabled={bulkBusy}
+            onClick={() => void bulkDelete()}
+            className="ml-2 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs text-muted-foreground hover:underline"
+          >
+            Clear selection
+          </button>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
+              <th className="w-10 px-4 py-3">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelected(new Set(filtered.map((r) => r.id)));
+                    } else {
+                      setSelected(new Set());
+                    }
+                  }}
+                />
+              </th>
               <th className="px-4 py-3">Title</th>
               <th className="px-4 py-3">Linked to</th>
               <th className="px-4 py-3">Category</th>
@@ -306,13 +396,13 @@ function ProposalsAdmin() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   <FileText className="mx-auto mb-2 h-6 w-6" />
                   No proposals yet. Create the first one.
                 </td>
@@ -320,6 +410,14 @@ function ProposalsAdmin() {
             ) : (
               filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
+                  <td className="px-4 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${r.title_en}`}
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleOne(r.id)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.title_en}</div>
