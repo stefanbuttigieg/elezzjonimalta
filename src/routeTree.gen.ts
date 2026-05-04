@@ -31,6 +31,7 @@ import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
+import { Route as LangThemesRouteImport } from './routes/$lang.themes'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangSearchRouteImport } from './routes/$lang.search'
@@ -167,6 +168,11 @@ const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
   id: '/api-logs',
   path: '/api-logs',
   getParentRoute: () => AdminRoute,
+} as any)
+const LangThemesRoute = LangThemesRouteImport.update({
+  id: '/themes',
+  path: '/themes',
+  getParentRoute: () => LangRoute,
 } as any)
 const LangTermsRoute = LangTermsRouteImport.update({
   id: '/terms',
@@ -320,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
   '/$lang/terms': typeof LangTermsRoute
+  '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/$lang/themes'
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/$lang/themes'
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/$lang/search'
     | '/$lang/sitting-mps'
     | '/$lang/terms'
+    | '/$lang/themes'
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
@@ -767,6 +779,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/api-logs'
       preLoaderRoute: typeof AdminApiLogsRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/$lang/themes': {
+      id: '/$lang/themes'
+      path: '/themes'
+      fullPath: '/$lang/themes'
+      preLoaderRoute: typeof LangThemesRouteImport
+      parentRoute: typeof LangRoute
     }
     '/$lang/terms': {
       id: '/$lang/terms'
@@ -970,6 +989,7 @@ interface LangRouteChildren {
   LangSearchRoute: typeof LangSearchRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
   LangTermsRoute: typeof LangTermsRoute
+  LangThemesRoute: typeof LangThemesRoute
   LangIndexRoute: typeof LangIndexRoute
   LangCandidatesSlugRoute: typeof LangCandidatesSlugRoute
   LangMyDistrictNumberRoute: typeof LangMyDistrictNumberRoute
@@ -995,6 +1015,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangSearchRoute: LangSearchRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
   LangTermsRoute: LangTermsRoute,
+  LangThemesRoute: LangThemesRoute,
   LangIndexRoute: LangIndexRoute,
   LangCandidatesSlugRoute: LangCandidatesSlugRoute,
   LangMyDistrictNumberRoute: LangMyDistrictNumberRoute,
