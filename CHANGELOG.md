@@ -4,7 +4,38 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-01
+## [Unreleased] — 2026-05-04
+
+### Added
+- **Admin proposals: multi-select & batch actions.** The proposals admin
+  table now has per-row checkboxes plus a "select all" header checkbox.
+  When one or more rows are selected, a bulk action bar appears with
+  one-click status changes (Draft / Pending review / Published /
+  Archived) and a bulk Delete action. Updates and deletes go through a
+  single Supabase batch call.
+- **Telegram bot: shareable site links.** `/candidate` and `/district`
+  responses now include direct links back to the matching candidate or
+  district page on the site, and the site footer links to the bot at
+  <https://t.me/elezzjonibot>.
+- **AI Assistant: authoritative facts injection.** The chat Edge Function
+  now builds a live "facts sheet" from the database on every request
+  (party leaders, deputy leaders, election date) and injects it as a
+  high-priority system message so leadership questions can no longer
+  fall back to outdated training data. The same override applies to the
+  Telegram `/ask` command.
+- **AI Assistant: district intent boost.** Queries that mention a
+  district (e.g. "district 12") trigger a direct lookup against
+  `candidate_districts` for the 2026 cycle and inject the structured
+  candidate list into the chat context.
+
+### Fixed
+- **Telegram bot: district candidate mismatch.** Resolved a mismatch
+  where `/district 12` returned a different candidate set than the
+  public `/my-district/12` page. The bot now applies the same filtering
+  used on the site (sitting MPs included, unconfirmed incumbents
+  hidden, `published` status required for new candidates).
+
+## [2026-05-01]
 
 ### Added
 - **Proposals: AI-generated bilingual translation.** When a proposal is
