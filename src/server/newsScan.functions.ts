@@ -213,6 +213,8 @@ export const convertFinding = createServerFn({ method: "POST" })
           title_en?: string;
           description_en?: string;
           category?: string;
+          category_ids?: string[];
+          status?: "draft" | "pending_review" | "published" | "archived";
           party_id?: string;
           candidate_id?: string;
         };
@@ -227,21 +229,48 @@ export const convertFinding = createServerFn({ method: "POST" })
                 category: p.category,
                 party_id: p.party_id,
                 candidate_id: p.candidate_id,
+                status: (p.status as ProposalRow["status"]) ?? undefined,
               },
             ];
 
         const valid = batch.filter((r) => r.title_en && r.title_en.trim().length > 0);
         if (valid.length === 0) throw new Error("at least one proposal title is required");
 
-        const rows = valid.map((r) => ({
-          title_en: r.title_en!.trim(),
-          description_en: r.description_en?.trim() || null,
-          category: r.category?.trim() || null,
-          party_id: r.party_id || null,
-          candidate_id: r.candidate_id || null,
-          source_url: sourceUrl,
-          status: "pending_review" as const,
-        }));
+        // Look up category names so we can keep the legacy `category` text
+        // column in sync with the first selected category.
+        const allCategoryIds = Array.from(
+          new Set(valid.flatMap((r) => r.category_ids ?? []).filter(Boolean))
+        );
+        const catNameById = new Map<string, string>();
+        if (allCategoryIds.length > 0) {
+          const { data: cats } = await supabaseAdmin
+            .from("proposal_categories")
+            .select("id, name_en")
+            .in("id", allCategoryIds);
+          for (const c of (cats ?? []) as Array<{ id: string; name_en: string }>) {
+            catNameById.set(c.id, c.name_en);
+          }
+        }
+
+        const rows = valid.map((r) => {
+          const primaryCatName =
+            r.category_ids && r.category_ids.length > 0
+              ? (catNameById.get(r.category_ids[0]) ?? r.category?.trim() ?? null)
+              : r.category?.trim() || null;
+          return {
+            title_en: r.title_en!.trim(),
+            description_en: r.description_en?.trim() || null,
+            category: primaryCatName,
+            party_id: r.party_id || null,
+            candidate_id: r.candidate_id || null,
+            source_url: sourceUrl,
+            status: (r.status ?? "pending_review") as
+              | "draft"
+              | "pending_review"
+              | "published"
+              | "archived",
+          };
+        });
 
         const { data: inserted, error } = await supabaseAdmin
           .from("proposals")
@@ -249,6 +278,27 @@ export const convertFinding = createServerFn({ method: "POST" })
           .select("id");
         if (error) throw new Error(error.message);
         const ids = (inserted ?? []).map((r) => r.id);
+
+        // Insert category assignments for each created proposal.
+        const assignments: Array<{
+          proposal_id: string;
+          category_id: string;
+          sort_order: number;
+        }> = [];
+        valid.forEach((r, idx) => {
+          const proposalId = ids[idx];
+          if (!proposalId || !r.category_ids) return;
+          r.category_ids.forEach((cid, ci) => {
+            if (cid) assignments.push({ proposal_id: proposalId, category_id: cid, sort_order: ci });
+          });
+        });
+        if (assignments.length > 0) {
+          const { error: aErr } = await supabaseAdmin
+            .from("proposal_category_assignments")
+            .insert(assignments);
+          if (aErr) console.warn("proposal_category_assignments insert failed:", aErr.message);
+        }
+
         // Link the finding to the first proposal; report all created IDs.
         createdEntity = { type: "proposal", id: ids[0] };
         (createdEntity as { ids?: string[] }).ids = ids;

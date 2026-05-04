@@ -11,6 +11,7 @@ import {
   scanUrlNow,
   autofillFindingForm,
 } from "@/server/newsScan.functions";
+import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 import { toast } from "sonner";
 import {
   Newspaper,
@@ -123,6 +124,7 @@ function NewsMonitor() {
   const [parties, setParties] = useState<PartyOpt[]>([]);
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [candidates, setCandidates] = useState<CandidateOpt[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name_en: string }>>([]);
   const [convertFor, setConvertFor] = useState<Finding | null>(null);
   const [sourceDraft, setSourceDraft] = useState<SourceDraft | null>(null);
   const [showSourceManager, setShowSourceManager] = useState(false);
@@ -148,13 +150,14 @@ function NewsMonitor() {
       .order("created_at", { ascending: false })
       .limit(200);
     if (tab !== "all") q = q.eq("status", tab);
-    const [findingsRes, sourcesRes, runsRes, partiesRes, districtsRes, candidatesRes] = await Promise.all([
+    const [findingsRes, sourcesRes, runsRes, partiesRes, districtsRes, candidatesRes, categoriesRes] = await Promise.all([
       q,
       supabase.from("news_sources").select("*").order("name"),
       supabase.from("news_scan_runs").select("*").order("started_at", { ascending: false }).limit(15),
       supabase.from("parties").select("id, name_en, short_name").order("name_en"),
       supabase.from("districts").select("id, number, name_en").order("number"),
       supabase.from("candidates").select("id, full_name, party_id").order("full_name").limit(2000),
+      supabase.from("proposal_categories").select("id, name_en").order("sort_order").order("name_en"),
     ]);
     if (findingsRes.error) toast.error(findingsRes.error.message);
     setFindings((findingsRes.data ?? []) as unknown as Finding[]);
@@ -163,6 +166,7 @@ function NewsMonitor() {
     setParties((partiesRes.data ?? []) as PartyOpt[]);
     setDistricts((districtsRes.data ?? []) as DistrictOpt[]);
     setCandidates((candidatesRes.data ?? []) as CandidateOpt[]);
+    setCategories((categoriesRes.data ?? []) as Array<{ id: string; name_en: string }>);
     setLoading(false);
   }, [tab]);
 
@@ -787,6 +791,7 @@ function NewsMonitor() {
           parties={parties}
           districts={districts}
           candidates={candidates}
+          categories={categories}
           onClose={() => setConvertFor(null)}
           onSubmit={async (target, payload) => {
             const result = await convertFn({ data: { findingId: convertFor.id, target, payload } });
@@ -817,11 +822,12 @@ interface ConvertDialogProps {
   parties: PartyOpt[];
   districts: DistrictOpt[];
   candidates: CandidateOpt[];
+  categories: Array<{ id: string; name_en: string }>;
   onClose: () => void;
   onSubmit: (target: ConvertTarget, payload: Record<string, unknown>) => Promise<void>;
 }
 
-function ConvertDialog({ finding, parties, districts, candidates, onClose, onSubmit }: ConvertDialogProps) {
+function ConvertDialog({ finding, parties, districts, candidates, categories, onClose, onSubmit }: ConvertDialogProps) {
   const ex = finding.extracted ?? {};
   const defaultTarget: ConvertTarget =
     finding.kind === "new_candidate"
@@ -841,6 +847,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     bio_en: finding.summary_en ?? "",
     notes: finding.summary_en ?? "",
   });
+  const suggestCatsFn = useServerFn(suggestProposalCategories);
+  const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
   // Multiple proposals can be created from a single finding (an article often
   // contains several pledges). The first row mirrors the legacy single-form
   // fields so existing autofill behaviour keeps working.
@@ -848,6 +856,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     title_en: string;
     description_en: string;
     category: string;
+    category_ids: string[];
+    status: "draft" | "pending_review" | "published" | "archived";
     party_id: string;
     candidate_id: string;
   };
@@ -855,6 +865,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     title_en: "",
     description_en: "",
     category: "",
+    category_ids: [],
+    status: "pending_review",
     party_id: "",
     candidate_id: "",
   });
@@ -863,12 +875,60 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
       title_en: finding.title ?? "",
       description_en: finding.summary_en ?? "",
       category: "",
+      category_ids: [],
+      status: "pending_review",
       party_id: "",
       candidate_id: "",
     },
   ]);
-  const updateProposal = (i: number, k: keyof ProposalRow, v: string) =>
+  const updateProposal = <K extends keyof ProposalRow>(i: number, k: K, v: ProposalRow[K]) =>
     setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const toggleCategoryFor = (i: number, id: string) =>
+    setProposals((rows) =>
+      rows.map((r, idx) => {
+        if (idx !== i) return r;
+        const has = r.category_ids.includes(id);
+        return {
+          ...r,
+          category_ids: has ? r.category_ids.filter((x) => x !== id) : [...r.category_ids, id],
+        };
+      })
+    );
+  const suggestCategoriesFor = async (i: number) => {
+    const row = proposals[i];
+    if (!row?.title_en.trim() && !row?.description_en.trim()) {
+      toast.error("Add a title or description first");
+      return;
+    }
+    setSuggestingFor(i);
+    try {
+      const res = await suggestCatsFn({
+        data: {
+          title_en: row.title_en,
+          description_en: row.description_en,
+          max: 3,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      const ids = res.suggestions.map((s) => s.id);
+      if (ids.length === 0) {
+        toast.info("No matching categories");
+      } else {
+        setProposals((rows) =>
+          rows.map((r, idx) =>
+            idx === i
+              ? { ...r, category_ids: Array.from(new Set([...r.category_ids, ...ids])) }
+              : r
+          )
+        );
+        toast.success(`Added ${ids.length} suggested categor${ids.length === 1 ? "y" : "ies"}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Suggestion failed");
+    } finally {
+      setSuggestingFor(null);
+    }
+  };
   const addProposal = () => setProposals((rows) => [...rows, emptyProposal()]);
   const removeProposal = (i: number) =>
     setProposals((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
@@ -902,6 +962,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
           title_en: typeof r.title_en === "string" ? r.title_en : "",
           description_en: typeof r.description_en === "string" ? r.description_en : "",
           category: typeof r.category === "string" ? r.category : "",
+          category_ids: [],
+          status: "pending_review" as const,
           party_id: typeof r.party_id === "string" ? r.party_id : "",
           candidate_id: typeof r.candidate_id === "string" ? r.candidate_id : "",
         })).filter((r) => r.title_en.trim().length > 0);
@@ -921,6 +983,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
             title_en: titleStr || prev[0]?.title_en || "",
             description_en: descStr || prev[0]?.description_en || "",
             category: catStr || prev[0]?.category || "",
+            category_ids: prev[0]?.category_ids ?? [],
+            status: prev[0]?.status ?? "pending_review",
             party_id: partyStr || prev[0]?.party_id || "",
             candidate_id: candStr || prev[0]?.candidate_id || "",
           }];
@@ -949,6 +1013,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
             title_en: r.title_en.trim(),
             description_en: r.description_en.trim(),
             category: r.category.trim(),
+            category_ids: r.category_ids,
+            status: r.status,
             party_id: r.party_id,
             candidate_id: r.candidate_id,
           }))
@@ -1069,7 +1135,56 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
                   <div className="space-y-2">
                     <Field label="Title *" value={row.title_en} onChange={(v) => updateProposal(i, "title_en", v)} />
                     <TextArea label="Description (EN)" value={row.description_en} onChange={(v) => updateProposal(i, "description_en", v)} />
-                    <Field label="Category" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="e.g. Health, Transport" />
+                    <div>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="text-xs font-medium text-muted-foreground">Categories</label>
+                        <button
+                          type="button"
+                          onClick={() => void suggestCategoriesFor(i)}
+                          disabled={suggestingFor === i || categories.length === 0}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-medium hover:bg-accent disabled:opacity-50"
+                        >
+                          <Sparkles className={"h-3 w-3 " + (suggestingFor === i ? "animate-pulse" : "")} />
+                          {suggestingFor === i ? "Suggesting…" : "AI suggest"}
+                        </button>
+                      </div>
+                      {categories.length === 0 ? (
+                        <p className="text-[11px] text-muted-foreground">No categories defined.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
+                          {categories.map((c) => {
+                            const sel = row.category_ids.includes(c.id);
+                            return (
+                              <button
+                                type="button"
+                                key={c.id}
+                                onClick={() => toggleCategoryFor(i, c.id)}
+                                className={
+                                  "rounded-full border px-2.5 py-0.5 text-[11px] font-medium " +
+                                  (sel
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background hover:bg-accent")
+                                }
+                              >
+                                {c.name_en}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <SelectField
+                      label="Publishing status"
+                      value={row.status}
+                      onChange={(v) => updateProposal(i, "status", v as ProposalRow["status"])}
+                      options={[
+                        { value: "draft", label: "Draft" },
+                        { value: "pending_review", label: "Pending review" },
+                        { value: "published", label: "Published" },
+                        { value: "archived", label: "Archived" },
+                      ]}
+                    />
+                    <Field label="Free-text category (legacy)" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="Optional fallback" />
                     <SelectField label="Party" value={row.party_id} onChange={(v) => updateProposal(i, "party_id", v)}
                       options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
                     <SelectField label="Candidate" value={row.candidate_id} onChange={(v) => updateProposal(i, "candidate_id", v)}
