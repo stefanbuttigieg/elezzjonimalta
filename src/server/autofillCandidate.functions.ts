@@ -337,7 +337,7 @@ async function autofillOne(
 
   const { error: upErr } = await supabaseAdmin
     .from("candidates")
-    .update(patch)
+    .update(patch as never)
     .eq("id", candidateId);
   if (upErr) return { ok: false, error: upErr.message };
 
