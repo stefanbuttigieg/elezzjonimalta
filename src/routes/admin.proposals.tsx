@@ -421,6 +421,76 @@ function ProposalsAdmin() {
         </Link>
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+        <FilterSelect
+          label="Party"
+          value={filterParty}
+          onChange={setFilterParty}
+          options={[
+            { value: "all", label: "All parties" },
+            { value: "none", label: "No party" },
+            ...parties.map((p) => ({ value: p.id, label: p.short_name ?? p.name_en })),
+          ]}
+        />
+        <FilterSelect
+          label="Category"
+          value={filterCategory}
+          onChange={setFilterCategory}
+          options={[
+            { value: "all", label: "All categories" },
+            { value: "none", label: "Uncategorised" },
+            ...categories.map((c) => ({ value: c.id, label: c.name_en })),
+          ]}
+        />
+        <FilterSelect
+          label="Status"
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={[
+            { value: "all", label: "All statuses" },
+            { value: "draft", label: "Draft" },
+            { value: "pending_review", label: "Pending review" },
+            { value: "published", label: "Published" },
+            { value: "archived", label: "Archived" },
+          ]}
+        />
+        <FilterSelect
+          label="Linked to"
+          value={filterLink}
+          onChange={setFilterLink}
+          options={[
+            { value: "all", label: "Any link" },
+            { value: "party", label: "Party only" },
+            { value: "candidate", label: "Candidate only" },
+            { value: "both", label: "Party + candidate" },
+            { value: "none", label: "Unlinked" },
+          ]}
+        />
+        <FilterSelect
+          label="Translation"
+          value={filterTranslation}
+          onChange={setFilterTranslation}
+          options={[
+            { value: "all", label: "Any translation" },
+            { value: "complete", label: "Complete (EN + MT)" },
+            { value: "missing", label: "Missing translation" },
+          ]}
+        />
+        <FilterSelect
+          label="Categorised"
+          value={filterCategorised}
+          onChange={setFilterCategorised}
+          options={[
+            { value: "all", label: "Any" },
+            { value: "yes", label: "Has categories" },
+            { value: "no", label: "No categories" },
+          ]}
+        />
+        <span className="text-muted-foreground">
+          Showing {filtered.length} of {rows.length}
+        </span>
+      </div>
+
       {selected.size > 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
           <span className="font-medium">{selected.size} selected</span>
