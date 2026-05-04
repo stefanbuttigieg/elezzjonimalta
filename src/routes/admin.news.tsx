@@ -791,6 +791,7 @@ function NewsMonitor() {
           parties={parties}
           districts={districts}
           candidates={candidates}
+          categories={categories}
           onClose={() => setConvertFor(null)}
           onSubmit={async (target, payload) => {
             const result = await convertFn({ data: { findingId: convertFor.id, target, payload } });
