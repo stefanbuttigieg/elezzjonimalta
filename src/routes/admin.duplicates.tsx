@@ -242,7 +242,7 @@ function DuplicatesAdmin() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => dismissGroup(key)}
+                      onClick={() => dismissGroup(key, group.map((g) => g.id))}
                       className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-accent"
                       title="Hide this cluster — it isn't a real duplicate"
                     >
