@@ -509,6 +509,14 @@ function CandidatesAdmin() {
               }
               return filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
+                  <td className="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${r.full_name}`}
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleSelect(r.id)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
