@@ -434,11 +434,43 @@ function CandidatesAdmin() {
         </div>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="font-medium">{selected.size} selected</span>
+          <button
+            disabled={bulkAutofillBusy}
+            onClick={() => void runBulkAutofill()}
+            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            title="Use AI + web search + parliament.mt to fill empty fields"
+          >
+            <Wand2 className="h-3 w-3" /> {bulkAutofillBusy ? "Auto-filling…" : "Auto-fill from web"}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs text-muted-foreground hover:underline"
+          >
+            Clear selection
+          </button>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
+              <th className="w-10 px-3 py-3">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelected(new Set(filtered.map((r) => r.id)));
+                    else setSelected(new Set());
+                  }}
+                />
+              </th>
               <th className="px-4 py-3">Name</th>
+              {showCol("completion") ? <th className="px-4 py-3">Completion</th> : null}
               {showCol("party") ? <th className="px-4 py-3">Party</th> : null}
               {showCol("district") ? <th className="px-4 py-3">District</th> : null}
               {showCol("status") ? <th className="px-4 py-3">Status</th> : null}
@@ -456,7 +488,7 @@ function CandidatesAdmin() {
           <tbody>
             {(() => {
               const colCount =
-                1 + visibleColumns.length + 1; // name + visible + actions
+                2 + visibleColumns.length + 1; // checkbox + name + visible + actions
               if (loading) {
                 return (
                   <tr>
