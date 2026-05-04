@@ -107,24 +107,43 @@ function DuplicatesAdmin() {
     [allGroups, dismissed]
   );
 
-  const dismissGroup = (key: string) => {
+  const logAudit = async (action: "duplicate_cluster_dismiss" | "duplicate_cluster_restore", key: string, ids: string[]) => {
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      await supabase.from("admin_audit_log").insert({
+        entity_type: "proposals",
+        entity_id: ids[0] ?? null,
+        action,
+        actor_id: u.user?.id ?? null,
+        actor_email: u.user?.email ?? null,
+        metadata: { cluster_key: key, proposal_ids: ids, threshold },
+      } as never);
+    } catch (e) {
+      console.error("audit log failed", e);
+    }
+  };
+
+  const dismissGroup = (key: string, ids: string[]) => {
     setDismissed((prev) => {
       const next = new Set(prev);
       next.add(key);
       saveDismissed(next);
       return next;
     });
+    void logAudit("duplicate_cluster_dismiss", key, ids);
     toast.success("Cluster dismissed");
   };
 
-  const restoreGroup = (key: string) => {
+  const restoreGroup = (key: string, ids: string[]) => {
     setDismissed((prev) => {
       const next = new Set(prev);
       next.delete(key);
       saveDismissed(next);
       return next;
     });
+    void logAudit("duplicate_cluster_restore", key, ids);
   };
+
 
   const handleMerge = async (groupKey: string, group: Row[]) => {
     const primaryId = primaryByGroup[groupKey] ?? group[0].id;
