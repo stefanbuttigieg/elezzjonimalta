@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CandidateStatusBadge, slugify, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
-import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3, ImagePlus, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, CheckCircle2, Columns3, ImagePlus, Sparkles, Wand2, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   Drawer,
@@ -13,10 +13,16 @@ import {
   Textarea,
 } from "./admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
+import { CompletionMeter } from "@/components/admin/CompletionMeter";
 import {
   findMissingCandidatePhotos,
   findPhotoForCandidateById,
 } from "@/server/findCandidatePhoto.functions";
+import {
+  autofillCandidate,
+  bulkAutofillCandidates,
+} from "@/server/autofillCandidate.functions";
+import type { CustomFieldDef } from "@/lib/candidateCompletion";
 
 type CandidatesSearch = { edit?: string };
 
@@ -102,6 +108,7 @@ const empty: Candidate = {
 };
 
 type ColumnKey =
+  | "completion"
   | "party"
   | "district"
   | "status"
@@ -115,6 +122,7 @@ type ColumnKey =
   | "created_at";
 
 const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "completion", label: "Profile completion" },
   { key: "party", label: "Party" },
   { key: "district", label: "District" },
   { key: "status", label: "Status" },
@@ -128,13 +136,16 @@ const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: "created_at", label: "Created" },
 ];
 
-const DEFAULT_COLUMNS: ColumnKey[] = ["party", "district", "status", "leadership", "flags"];
+const DEFAULT_COLUMNS: ColumnKey[] = ["completion", "party", "district", "status", "leadership", "flags"];
 const COLUMNS_STORAGE_KEY = "admin:candidates:columns";
 
 function CandidatesAdmin() {
   const [rows, setRows] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<PartyOpt[]>([]);
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAutofillBusy, setBulkAutofillBusy] = useState(false);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [partyFilter, setPartyFilter] = useState<string>("all"); // "all" | "none" | partyId
   const [districtFilter, setDistrictFilter] = useState<string>("all"); // "all" | "none" | districtId
@@ -174,16 +185,59 @@ function CandidatesAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [c, p, d] = await Promise.all([
+    const [c, p, d, cf] = await Promise.all([
       supabase.from("candidates").select("*").order("full_name"),
       supabase.from("parties").select("id, name_en").order("name_en"),
       supabase.from("districts").select("id, number, name_en").order("number"),
+      supabase
+        .from("custom_field_definitions")
+        .select("key, label, required, field_type, entity_type")
+        .eq("entity_type", "candidate"),
     ]);
     if (c.error) toast.error(c.error.message);
     setRows((c.data ?? []) as Candidate[]);
     setParties((p.data ?? []) as PartyOpt[]);
     setDistricts((d.data ?? []) as DistrictOpt[]);
+    setCustomFieldDefs((cf.data ?? []) as CustomFieldDef[]);
     setLoading(false);
+  };
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const runBulkAutofill = async () => {
+    if (selected.size === 0 || bulkAutofillBusy) return;
+    if (
+      !confirm(
+        `Auto-fill ${selected.size} candidate(s) from web search + parliament.mt? Only empty fields will be filled. This may take a few minutes.`
+      )
+    )
+      return;
+    setBulkAutofillBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const res = await bulkAutofillCandidates({
+        data: { candidate_ids: ids, use_web_search: true, use_parliament_mt: true },
+      });
+      if (!res.ok) throw new Error(res.error);
+      const succeeded = res.results.filter((r) => r.ok).length;
+      const totalUpdated = res.results.reduce((acc, r) => acc + (r.updated_count ?? 0), 0);
+      const failed = res.results.filter((r) => !r.ok).length;
+      toast.success(
+        `Auto-fill done · ${succeeded}/${res.results.length} processed · ${totalUpdated} fields filled${failed ? ` · ${failed} failed` : ""}`
+      );
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk auto-fill failed");
+    } finally {
+      setBulkAutofillBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -380,11 +434,43 @@ function CandidatesAdmin() {
         </div>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="font-medium">{selected.size} selected</span>
+          <button
+            disabled={bulkAutofillBusy}
+            onClick={() => void runBulkAutofill()}
+            className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            title="Use AI + web search + parliament.mt to fill empty fields"
+          >
+            <Wand2 className="h-3 w-3" /> {bulkAutofillBusy ? "Auto-filling…" : "Auto-fill from web"}
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs text-muted-foreground hover:underline"
+          >
+            Clear selection
+          </button>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
+              <th className="w-10 px-3 py-3">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelected(new Set(filtered.map((r) => r.id)));
+                    else setSelected(new Set());
+                  }}
+                />
+              </th>
               <th className="px-4 py-3">Name</th>
+              {showCol("completion") ? <th className="px-4 py-3">Completion</th> : null}
               {showCol("party") ? <th className="px-4 py-3">Party</th> : null}
               {showCol("district") ? <th className="px-4 py-3">District</th> : null}
               {showCol("status") ? <th className="px-4 py-3">Status</th> : null}
@@ -402,7 +488,7 @@ function CandidatesAdmin() {
           <tbody>
             {(() => {
               const colCount =
-                1 + visibleColumns.length + 1; // name + visible + actions
+                2 + visibleColumns.length + 1; // checkbox + name + visible + actions
               if (loading) {
                 return (
                   <tr>
@@ -423,6 +509,14 @@ function CandidatesAdmin() {
               }
               return filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border">
+                  <td className="px-3 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${r.full_name}`}
+                      checked={selected.has(r.id)}
+                      onChange={() => toggleSelect(r.id)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-foreground">{r.full_name}</div>
@@ -455,6 +549,11 @@ function CandidatesAdmin() {
                       <div className="text-xs text-muted-foreground">imported · {r.imported_from}</div>
                     ) : null}
                   </td>
+                  {showCol("completion") ? (
+                    <td className="px-4 py-3">
+                      <CompletionMeter candidate={r as never} customFieldDefs={customFieldDefs} />
+                    </td>
+                  ) : null}
                   {showCol("party") ? (
                     <td className="px-4 py-3 text-muted-foreground">
                       {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
@@ -567,6 +666,7 @@ function CandidatesAdmin() {
           value={editing}
           parties={parties}
           districts={districts}
+          customFieldDefs={customFieldDefs}
           onChange={setEditing}
           onClose={clearEditing}
           onSaved={() => {
@@ -583,6 +683,7 @@ function CandidateEditor({
   value,
   parties,
   districts,
+  customFieldDefs,
   onChange,
   onClose,
   onSaved,
@@ -590,6 +691,7 @@ function CandidateEditor({
   value: Candidate;
   parties: PartyOpt[];
   districts: DistrictOpt[];
+  customFieldDefs: CustomFieldDef[];
   onChange: (next: Candidate) => void;
   onClose: () => void;
   onSaved: () => void;
@@ -597,6 +699,8 @@ function CandidateEditor({
   const v = value;
   const setV = (next: Candidate) => onChange(next);
   const [saving, setSaving] = useState(false);
+  const [autofillBusy, setAutofillBusy] = useState(false);
+  const [autofillUrls, setAutofillUrls] = useState("");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
   const isNew = !v.id;
