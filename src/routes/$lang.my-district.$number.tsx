@@ -218,6 +218,12 @@ function MyDistrictPage() {
     (a, b) => b.rows.length - a.rows.length
   );
 
+  // Lookup map for party metadata used by the proposals sidebar.
+  const partyById = new Map<string, PartyLite>();
+  for (const c of candidates) {
+    if (c.party && !partyById.has(c.party.id)) partyById.set(c.party.id, c.party);
+  }
+
   return (
     <section className="border-b border-border bg-background">
       <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
