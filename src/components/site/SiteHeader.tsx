@@ -15,6 +15,7 @@ import {
   BookOpen,
   HelpCircle,
   MessagesSquare,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 import { getPreferredDistrict, type PreferredDistrict } from "@/lib/preferredDistrict";
