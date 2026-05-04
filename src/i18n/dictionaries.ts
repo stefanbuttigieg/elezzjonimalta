@@ -467,6 +467,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "nav.compare": "Qabbel",
     "nav.askAi": "Staqsi lill-AI",
     "nav.proposals": "Proposti",
+    "nav.themes": "Temi",
     "nav.resources": "Riżorsi",
     "nav.faq": "FAQs",
     "faq.meta.title": "FAQs dwar il-Vot — Elezzjoni Ġenerali ta' Malta",
