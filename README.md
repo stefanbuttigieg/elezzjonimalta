@@ -187,6 +187,21 @@ The admin candidates table supports per-user column selection so staff
 can hide or show fields (status, flags, leadership, district, etc.)
 based on what they're working on; the choice persists across sessions.
 
+### Multi-Select & Batch Actions for Proposals
+The admin proposals workspace supports selecting multiple proposals via
+per-row checkboxes (or the "select all" header checkbox). When one or
+more rows are selected, a bulk action bar exposes one-click status
+changes (Draft / Pending review / Published / Archived) and a bulk
+delete, executed as a single batch update against the database.
+
+### Telegram Bot
+A companion Telegram bot at <https://t.me/elezzjonibot> mirrors the
+public site: `/candidate`, `/party`, and `/district` commands return
+structured summaries with direct links back to the matching pages on
+the site, and `/ask` proxies through the same AI assistant pipeline
+— including the live "authoritative facts" injection (leaders, deputy
+leaders, district candidate lists) used by the on-site assistant.
+
 ### Global Search & Command Palette
 A single search experience covers **candidates, parties, proposals, and
 electoral districts** across every page of the site.
