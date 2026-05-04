@@ -187,6 +187,32 @@ The admin candidates table supports per-user column selection so staff
 can hide or show fields (status, flags, leadership, district, etc.)
 based on what they're working on; the choice persists across sessions.
 
+### Candidate Auto-Fill & Profile Completion
+Candidate records can be auto-filled from web search, parliament.mt (for
+incumbents), and optional admin-supplied URLs (party sites, electoral
+commission, trusted news outlets) — either one-by-one from the editor
+drawer or in bulk from the candidates table. Only empty fields are
+written and every run is captured in the audit log. A colour-coded
+profile completion meter on every row and inside the editor shows the
+percentage of filled fields (core info, bio, contacts, socials, photo
+and required custom fields) and surfaces what's still missing.
+
+### Proposal Attachments & Social Posts
+Each proposal can carry file attachments (PDFs, images, documents up to
+20 MB, served from a public storage bucket) and labelled social-media
+post links (Facebook, Instagram, X, TikTok, LinkedIn, YouTube, Threads)
+alongside plain source URLs. Social hosts are auto-detected when a link
+is pasted.
+
+### Extended Proposal Filtering & Duplicate Dismissals
+The admin proposals workspace exposes filters for party, category,
+status, linked-to (candidate / party), translation state and
+AI-categorisation state, with a live result counter and a reset button.
+The Duplicates admin lets reviewers dismiss false-positive clusters
+(and restore them later); every dismissal/restoration is recorded in
+the admin audit log and each clustered proposal shows its party (with
+brand colour) and linked candidate.
+
 ### Multi-Select & Batch Actions for Proposals
 The admin proposals workspace supports selecting multiple proposals via
 per-row checkboxes (or the "select all" header checkbox). When one or
