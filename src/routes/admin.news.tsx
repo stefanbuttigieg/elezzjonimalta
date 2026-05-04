@@ -962,6 +962,8 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           title_en: typeof r.title_en === "string" ? r.title_en : "",
           description_en: typeof r.description_en === "string" ? r.description_en : "",
           category: typeof r.category === "string" ? r.category : "",
+          category_ids: [],
+          status: "pending_review",
           party_id: typeof r.party_id === "string" ? r.party_id : "",
           candidate_id: typeof r.candidate_id === "string" ? r.candidate_id : "",
         })).filter((r) => r.title_en.trim().length > 0);
@@ -981,6 +983,8 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
             title_en: titleStr || prev[0]?.title_en || "",
             description_en: descStr || prev[0]?.description_en || "",
             category: catStr || prev[0]?.category || "",
+            category_ids: prev[0]?.category_ids ?? [],
+            status: prev[0]?.status ?? "pending_review",
             party_id: partyStr || prev[0]?.party_id || "",
             candidate_id: candStr || prev[0]?.candidate_id || "",
           }];
