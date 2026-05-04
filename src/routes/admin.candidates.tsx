@@ -683,6 +683,7 @@ function CandidateEditor({
   value,
   parties,
   districts,
+  customFieldDefs,
   onChange,
   onClose,
   onSaved,
@@ -690,6 +691,7 @@ function CandidateEditor({
   value: Candidate;
   parties: PartyOpt[];
   districts: DistrictOpt[];
+  customFieldDefs: CustomFieldDef[];
   onChange: (next: Candidate) => void;
   onClose: () => void;
   onSaved: () => void;
@@ -697,6 +699,8 @@ function CandidateEditor({
   const v = value;
   const setV = (next: Candidate) => onChange(next);
   const [saving, setSaving] = useState(false);
+  const [autofillBusy, setAutofillBusy] = useState(false);
+  const [autofillUrls, setAutofillUrls] = useState("");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
   const isNew = !v.id;
