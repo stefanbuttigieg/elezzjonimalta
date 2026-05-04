@@ -338,6 +338,36 @@ function ProposalsAdmin() {
         </Link>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+          <span className="font-medium">{selected.size} selected</span>
+          <span className="text-muted-foreground">· Set status:</span>
+          {(["draft", "pending_review", "published", "archived"] as ReviewStatus[]).map((s) => (
+            <button
+              key={s}
+              disabled={bulkBusy}
+              onClick={() => void bulkUpdateStatus(s)}
+              className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            >
+              {s}
+            </button>
+          ))}
+          <button
+            disabled={bulkBusy}
+            onClick={() => void bulkDelete()}
+            className="ml-2 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-xs text-muted-foreground hover:underline"
+          >
+            Clear selection
+          </button>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
