@@ -1354,30 +1354,42 @@ export type Database = {
         Row: {
           added_by: string | null
           created_at: string
+          file_size: number | null
           id: string
+          kind: string
           label: string | null
+          media_type: string | null
           note: string | null
           proposal_id: string
+          storage_path: string | null
           updated_at: string
           url: string
         }
         Insert: {
           added_by?: string | null
           created_at?: string
+          file_size?: number | null
           id?: string
+          kind?: string
           label?: string | null
+          media_type?: string | null
           note?: string | null
           proposal_id: string
+          storage_path?: string | null
           updated_at?: string
           url: string
         }
         Update: {
           added_by?: string | null
           created_at?: string
+          file_size?: number | null
           id?: string
+          kind?: string
           label?: string | null
+          media_type?: string | null
           note?: string | null
           proposal_id?: string
+          storage_path?: string | null
           updated_at?: string
           url?: string
         }
