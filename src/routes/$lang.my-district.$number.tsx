@@ -218,6 +218,12 @@ function MyDistrictPage() {
     (a, b) => b.rows.length - a.rows.length
   );
 
+  // Lookup map for party metadata used by the proposals sidebar.
+  const partyById = new Map<string, PartyLite>();
+  for (const c of candidates) {
+    if (c.party && !partyById.has(c.party.id)) partyById.set(c.party.id, c.party);
+  }
+
   return (
     <section className="border-b border-border bg-background">
       <div className="container mx-auto max-w-6xl px-4 py-12 md:py-16">
@@ -379,9 +385,31 @@ function MyDistrictPage() {
                   {proposals.slice(0, 6).map((p) => {
                     const title =
                       locale === "mt" ? p.title_mt || p.title_en : p.title_en || p.title_mt;
+                    const party = p.party_id ? partyById.get(p.party_id) ?? null : null;
+                    const partyName = party
+                      ? locale === "mt"
+                        ? party.short_name || party.name_mt || party.name_en
+                        : party.short_name || party.name_en || party.name_mt
+                      : t("districts.partyBreakdown.independent");
                     return (
                       <li key={p.id} className="border-b border-border pb-3 last:border-b-0">
-                        <p className="text-sm font-semibold text-foreground">{title}</p>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            aria-hidden="true"
+                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{
+                              backgroundColor:
+                                party?.color ?? "hsl(var(--muted-foreground))",
+                            }}
+                          />
+                          <span
+                            className="text-[11px] font-bold uppercase tracking-wider"
+                            style={{ color: party?.color ?? undefined }}
+                          >
+                            {partyName}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm font-semibold text-foreground">{title}</p>
                         {p.category ? (
                           <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                             {p.category}
