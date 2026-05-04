@@ -274,12 +274,45 @@ function ProposalsAdmin() {
     () =>
       rows.filter((r) => {
         if (!showMerged && r.merged_into_id) return false;
+        if (filterParty !== "all") {
+          if (filterParty === "none" ? !!r.party_id : r.party_id !== filterParty) return false;
+        }
+        if (filterCategory !== "all") {
+          if (filterCategory === "none" ? r.category_ids.length > 0 : !r.category_ids.includes(filterCategory)) return false;
+        }
+        if (filterStatus !== "all" && r.status !== filterStatus) return false;
+        if (filterLink !== "all") {
+          const hasP = !!r.party_id;
+          const hasC = !!r.candidate_id;
+          if (filterLink === "party" && !(hasP && !hasC)) return false;
+          if (filterLink === "candidate" && !(hasC && !hasP)) return false;
+          if (filterLink === "both" && !(hasP && hasC)) return false;
+          if (filterLink === "none" && (hasP || hasC)) return false;
+        }
+        if (filterTranslation !== "all") {
+          const enHas = !!(r.title_en?.trim() || r.description_en?.trim());
+          const mtHas = !!(r.title_mt?.trim() || r.description_mt?.trim());
+          const titleGap =
+            (!!r.title_en?.trim() && !r.title_mt?.trim()) ||
+            (!!r.title_mt?.trim() && !r.title_en?.trim());
+          const descGap =
+            (!!r.description_en?.trim() && !r.description_mt?.trim()) ||
+            (!!r.description_mt?.trim() && !r.description_en?.trim());
+          const missing = (enHas || mtHas) && (titleGap || descGap);
+          if (filterTranslation === "missing" && !missing) return false;
+          if (filterTranslation === "complete" && missing) return false;
+        }
+        if (filterCategorised !== "all") {
+          const has = r.category_ids.length > 0;
+          if (filterCategorised === "yes" && !has) return false;
+          if (filterCategorised === "no" && has) return false;
+        }
         if (!q) return true;
         return `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
           .toLowerCase()
           .includes(q.toLowerCase());
       }),
-    [rows, q, showMerged]
+    [rows, q, showMerged, filterParty, filterCategory, filterStatus, filterLink, filterTranslation, filterCategorised]
   );
 
   const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
