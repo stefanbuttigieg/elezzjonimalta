@@ -23,6 +23,7 @@ import {
   translateMissingProposals,
 } from "@/server/translateProposal.functions";
 import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
+import { bulkCategoriseProposals } from "@/server/bulkCategoriseProposals.functions";
 
 export const Route = createFileRoute("/admin/proposals")({
   component: ProposalsAdmin,
@@ -117,6 +118,34 @@ function ProposalsAdmin() {
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bulk update failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkCategorise = async () => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (
+      !confirm(
+        `AI-categorise ${selected.size} proposal(s)? New categories (high + medium confidence) will be added without removing existing ones.`
+      )
+    )
+      return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const res = await bulkCategoriseProposals({
+        data: { proposal_ids: ids, min_confidence: ["high", "medium"], max_per_proposal: 3 },
+      });
+      if (!res.ok) throw new Error(res.error);
+      toast.success(
+        `Processed ${res.processed} · added ${res.added} categor${res.added === 1 ? "y" : "ies"}` +
+          (res.errors.length ? ` · ${res.errors.length} error(s)` : "")
+      );
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk categorise failed");
     } finally {
       setBulkBusy(false);
     }
@@ -352,6 +381,14 @@ function ProposalsAdmin() {
               {s}
             </button>
           ))}
+          <button
+            disabled={bulkBusy}
+            onClick={() => void bulkCategorise()}
+            className="ml-2 inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+            title="Use AI to suggest categories for the selected proposals"
+          >
+            <Sparkles className="h-3 w-3" /> AI categorise
+          </button>
           <button
             disabled={bulkBusy}
             onClick={() => void bulkDelete()}
