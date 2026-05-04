@@ -822,11 +822,12 @@ interface ConvertDialogProps {
   parties: PartyOpt[];
   districts: DistrictOpt[];
   candidates: CandidateOpt[];
+  categories: Array<{ id: string; name_en: string }>;
   onClose: () => void;
   onSubmit: (target: ConvertTarget, payload: Record<string, unknown>) => Promise<void>;
 }
 
-function ConvertDialog({ finding, parties, districts, candidates, onClose, onSubmit }: ConvertDialogProps) {
+function ConvertDialog({ finding, parties, districts, candidates, categories, onClose, onSubmit }: ConvertDialogProps) {
   const ex = finding.extracted ?? {};
   const defaultTarget: ConvertTarget =
     finding.kind === "new_candidate"
@@ -846,6 +847,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     bio_en: finding.summary_en ?? "",
     notes: finding.summary_en ?? "",
   });
+  const suggestCatsFn = useServerFn(suggestProposalCategories);
+  const [suggestingFor, setSuggestingFor] = useState<number | null>(null);
   // Multiple proposals can be created from a single finding (an article often
   // contains several pledges). The first row mirrors the legacy single-form
   // fields so existing autofill behaviour keeps working.
@@ -853,6 +856,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     title_en: string;
     description_en: string;
     category: string;
+    category_ids: string[];
+    status: "draft" | "pending_review" | "published" | "archived";
     party_id: string;
     candidate_id: string;
   };
@@ -860,6 +865,8 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
     title_en: "",
     description_en: "",
     category: "",
+    category_ids: [],
+    status: "pending_review",
     party_id: "",
     candidate_id: "",
   });
@@ -868,12 +875,60 @@ function ConvertDialog({ finding, parties, districts, candidates, onClose, onSub
       title_en: finding.title ?? "",
       description_en: finding.summary_en ?? "",
       category: "",
+      category_ids: [],
+      status: "pending_review",
       party_id: "",
       candidate_id: "",
     },
   ]);
-  const updateProposal = (i: number, k: keyof ProposalRow, v: string) =>
+  const updateProposal = <K extends keyof ProposalRow>(i: number, k: K, v: ProposalRow[K]) =>
     setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const toggleCategoryFor = (i: number, id: string) =>
+    setProposals((rows) =>
+      rows.map((r, idx) => {
+        if (idx !== i) return r;
+        const has = r.category_ids.includes(id);
+        return {
+          ...r,
+          category_ids: has ? r.category_ids.filter((x) => x !== id) : [...r.category_ids, id],
+        };
+      })
+    );
+  const suggestCategoriesFor = async (i: number) => {
+    const row = proposals[i];
+    if (!row?.title_en.trim() && !row?.description_en.trim()) {
+      toast.error("Add a title or description first");
+      return;
+    }
+    setSuggestingFor(i);
+    try {
+      const res = await suggestCatsFn({
+        data: {
+          title_en: row.title_en,
+          description_en: row.description_en,
+          max: 3,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      const ids = res.suggestions.map((s) => s.id);
+      if (ids.length === 0) {
+        toast.info("No matching categories");
+      } else {
+        setProposals((rows) =>
+          rows.map((r, idx) =>
+            idx === i
+              ? { ...r, category_ids: Array.from(new Set([...r.category_ids, ...ids])) }
+              : r
+          )
+        );
+        toast.success(`Added ${ids.length} suggested categor${ids.length === 1 ? "y" : "ies"}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Suggestion failed");
+    } finally {
+      setSuggestingFor(null);
+    }
+  };
   const addProposal = () => setProposals((rows) => [...rows, emptyProposal()]);
   const removeProposal = (i: number) =>
     setProposals((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
