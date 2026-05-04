@@ -90,6 +90,12 @@ function ProposalsAdmin() {
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
   const [showMerged, setShowMerged] = useState(false);
+  const [filterParty, setFilterParty] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterLink, setFilterLink] = useState<string>("all"); // all | party | candidate | both | none
+  const [filterTranslation, setFilterTranslation] = useState<string>("all"); // all | complete | missing
+  const [filterCategorised, setFilterCategorised] = useState<string>("all"); // all | yes | no
   const [manifestoOpen, setManifestoOpen] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
@@ -268,12 +274,45 @@ function ProposalsAdmin() {
     () =>
       rows.filter((r) => {
         if (!showMerged && r.merged_into_id) return false;
+        if (filterParty !== "all") {
+          if (filterParty === "none" ? !!r.party_id : r.party_id !== filterParty) return false;
+        }
+        if (filterCategory !== "all") {
+          if (filterCategory === "none" ? r.category_ids.length > 0 : !r.category_ids.includes(filterCategory)) return false;
+        }
+        if (filterStatus !== "all" && r.status !== filterStatus) return false;
+        if (filterLink !== "all") {
+          const hasP = !!r.party_id;
+          const hasC = !!r.candidate_id;
+          if (filterLink === "party" && !(hasP && !hasC)) return false;
+          if (filterLink === "candidate" && !(hasC && !hasP)) return false;
+          if (filterLink === "both" && !(hasP && hasC)) return false;
+          if (filterLink === "none" && (hasP || hasC)) return false;
+        }
+        if (filterTranslation !== "all") {
+          const enHas = !!(r.title_en?.trim() || r.description_en?.trim());
+          const mtHas = !!(r.title_mt?.trim() || r.description_mt?.trim());
+          const titleGap =
+            (!!r.title_en?.trim() && !r.title_mt?.trim()) ||
+            (!!r.title_mt?.trim() && !r.title_en?.trim());
+          const descGap =
+            (!!r.description_en?.trim() && !r.description_mt?.trim()) ||
+            (!!r.description_mt?.trim() && !r.description_en?.trim());
+          const missing = (enHas || mtHas) && (titleGap || descGap);
+          if (filterTranslation === "missing" && !missing) return false;
+          if (filterTranslation === "complete" && missing) return false;
+        }
+        if (filterCategorised !== "all") {
+          const has = r.category_ids.length > 0;
+          if (filterCategorised === "yes" && !has) return false;
+          if (filterCategorised === "no" && has) return false;
+        }
         if (!q) return true;
         return `${r.title_en} ${r.title_mt ?? ""} ${r.category ?? ""}`
           .toLowerCase()
           .includes(q.toLowerCase());
       }),
-    [rows, q, showMerged]
+    [rows, q, showMerged, filterParty, filterCategory, filterStatus, filterLink, filterTranslation, filterCategorised]
   );
 
   const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
@@ -345,6 +384,21 @@ function ProposalsAdmin() {
           Show merged ({mergedCount})
         </label>
         <button
+          type="button"
+          onClick={() => {
+            setQ("");
+            setFilterParty("all");
+            setFilterCategory("all");
+            setFilterStatus("all");
+            setFilterLink("all");
+            setFilterTranslation("all");
+            setFilterCategorised("all");
+          }}
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+        >
+          Reset
+        </button>
+        <button
           onClick={runBulkTranslate}
           disabled={bulkTranslating || missingTranslationCount === 0}
           className="ml-auto inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
@@ -365,6 +419,76 @@ function ProposalsAdmin() {
         >
           <Layers className="h-4 w-4" /> Find duplicates
         </Link>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+        <FilterSelect
+          label="Party"
+          value={filterParty}
+          onChange={setFilterParty}
+          options={[
+            { value: "all", label: "All parties" },
+            { value: "none", label: "No party" },
+            ...parties.map((p) => ({ value: p.id, label: p.short_name ?? p.name_en })),
+          ]}
+        />
+        <FilterSelect
+          label="Category"
+          value={filterCategory}
+          onChange={setFilterCategory}
+          options={[
+            { value: "all", label: "All categories" },
+            { value: "none", label: "Uncategorised" },
+            ...categories.map((c) => ({ value: c.id, label: c.name_en })),
+          ]}
+        />
+        <FilterSelect
+          label="Status"
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={[
+            { value: "all", label: "All statuses" },
+            { value: "draft", label: "Draft" },
+            { value: "pending_review", label: "Pending review" },
+            { value: "published", label: "Published" },
+            { value: "archived", label: "Archived" },
+          ]}
+        />
+        <FilterSelect
+          label="Linked to"
+          value={filterLink}
+          onChange={setFilterLink}
+          options={[
+            { value: "all", label: "Any link" },
+            { value: "party", label: "Party only" },
+            { value: "candidate", label: "Candidate only" },
+            { value: "both", label: "Party + candidate" },
+            { value: "none", label: "Unlinked" },
+          ]}
+        />
+        <FilterSelect
+          label="Translation"
+          value={filterTranslation}
+          onChange={setFilterTranslation}
+          options={[
+            { value: "all", label: "Any translation" },
+            { value: "complete", label: "Complete (EN + MT)" },
+            { value: "missing", label: "Missing translation" },
+          ]}
+        />
+        <FilterSelect
+          label="Categorised"
+          value={filterCategorised}
+          onChange={setFilterCategorised}
+          options={[
+            { value: "all", label: "Any" },
+            { value: "yes", label: "Has categories" },
+            { value: "no", label: "No categories" },
+          ]}
+        />
+        <span className="text-muted-foreground">
+          Showing {filtered.length} of {rows.length}
+        </span>
       </div>
 
       {selected.size > 0 ? (
@@ -1063,5 +1187,34 @@ function ProposalEditor({
 
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <label className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5">
+      <span className="text-muted-foreground">{label}:</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-transparent text-xs font-medium text-foreground outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
