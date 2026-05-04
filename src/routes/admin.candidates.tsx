@@ -839,8 +839,84 @@ function CandidateEditor({
     }
   };
 
+  const runAutofill = async () => {
+    if (autofillBusy) return;
+    if (isNew) {
+      toast.error("Save the candidate first before auto-filling.");
+      return;
+    }
+    const urls = autofillUrls
+      .split(/[\s,]+/)
+      .map((s) => s.trim())
+      .filter((s) => /^https?:\/\//i.test(s));
+    setAutofillBusy(true);
+    try {
+      const res = await autofillCandidate({
+        data: {
+          candidate_id: v.id,
+          urls,
+          use_web_search: true,
+          use_parliament_mt: true,
+        },
+      });
+      if (!res.ok) throw new Error(res.error);
+      const updated = res.updated_fields ?? [];
+      if (updated.length === 0) {
+        toast.info("No empty fields could be filled from the available sources.");
+      } else {
+        toast.success(`Filled ${updated.length} field(s): ${updated.slice(0, 6).join(", ")}${updated.length > 6 ? "…" : ""}`);
+      }
+      // Reload the candidate row so the editor reflects new values.
+      const { data: fresh } = await supabase
+        .from("candidates")
+        .select("*")
+        .eq("id", v.id)
+        .single();
+      if (fresh) setV(fresh as Candidate);
+      setAutofillUrls("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Auto-fill failed");
+    } finally {
+      setAutofillBusy(false);
+    }
+  };
+
   return (
     <Drawer title={isNew ? "New candidate" : `Edit: ${v.full_name}`} onClose={onClose}>
+      {!isNew ? (
+        <div className="mb-5 space-y-3 rounded-lg border border-border bg-muted/30 p-3">
+          <div>
+            <div className="mb-1 text-xs font-medium text-muted-foreground">Profile completion</div>
+            <CompletionMeter candidate={v as never} customFieldDefs={customFieldDefs} size="md" showMissing />
+          </div>
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <LinkIcon className="h-3 w-3" /> Source URLs (optional · party site, electoral commission, news)
+            </label>
+            <textarea
+              value={autofillUrls}
+              onChange={(e) => setAutofillUrls(e.target.value)}
+              placeholder="Paste one or more URLs, separated by spaces, commas, or new lines"
+              rows={2}
+              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] text-muted-foreground">
+                Auto-fill only writes to <strong>empty</strong> fields. Web search + parliament.mt (for MPs) are always used.
+              </p>
+              <button
+                type="button"
+                onClick={() => void runAutofill()}
+                disabled={autofillBusy}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {autofillBusy ? "Auto-filling…" : "Auto-fill this candidate"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Full name *">
           <Input value={v.full_name} onChange={(x) => setV({ ...v, full_name: x })} />
