@@ -108,6 +108,7 @@ const empty: Candidate = {
 };
 
 type ColumnKey =
+  | "completion"
   | "party"
   | "district"
   | "status"
@@ -121,6 +122,7 @@ type ColumnKey =
   | "created_at";
 
 const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "completion", label: "Profile completion" },
   { key: "party", label: "Party" },
   { key: "district", label: "District" },
   { key: "status", label: "Status" },
@@ -134,7 +136,7 @@ const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: "created_at", label: "Created" },
 ];
 
-const DEFAULT_COLUMNS: ColumnKey[] = ["party", "district", "status", "leadership", "flags"];
+const DEFAULT_COLUMNS: ColumnKey[] = ["completion", "party", "district", "status", "leadership", "flags"];
 const COLUMNS_STORAGE_KEY = "admin:candidates:columns";
 
 function CandidatesAdmin() {
