@@ -143,6 +143,9 @@ function CandidatesAdmin() {
   const [rows, setRows] = useState<Candidate[]>([]);
   const [parties, setParties] = useState<PartyOpt[]>([]);
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAutofillBusy, setBulkAutofillBusy] = useState(false);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [partyFilter, setPartyFilter] = useState<string>("all"); // "all" | "none" | partyId
   const [districtFilter, setDistrictFilter] = useState<string>("all"); // "all" | "none" | districtId
