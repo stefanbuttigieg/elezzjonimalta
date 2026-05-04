@@ -110,8 +110,8 @@ export const Route = createFileRoute("/$lang/themes")({
 
 function ThemesPage() {
   const { lang } = Route.useParams();
-  const data = Route.useLoaderData();
-  const t = useT(lang as Locale);
+  const data = Route.useLoaderData() as LoaderData;
+  const t = useT();
   const locale = lang as Locale;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeParty, setActiveParty] = useState<string | null>(null);
