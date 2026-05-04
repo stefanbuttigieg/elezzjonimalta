@@ -90,6 +90,12 @@ function ProposalsAdmin() {
   const [categories, setCategories] = useState<CategoryLite[]>([]);
   const [q, setQ] = useState("");
   const [showMerged, setShowMerged] = useState(false);
+  const [filterParty, setFilterParty] = useState<string>("all");
+  const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterLink, setFilterLink] = useState<string>("all"); // all | party | candidate | both | none
+  const [filterTranslation, setFilterTranslation] = useState<string>("all"); // all | complete | missing
+  const [filterCategorised, setFilterCategorised] = useState<string>("all"); // all | yes | no
   const [manifestoOpen, setManifestoOpen] = useState(false);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
