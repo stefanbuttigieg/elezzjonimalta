@@ -11,6 +11,7 @@ import {
   scanUrlNow,
   autofillFindingForm,
 } from "@/server/newsScan.functions";
+import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 import { toast } from "sonner";
 import {
   Newspaper,
