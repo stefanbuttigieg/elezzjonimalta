@@ -7,6 +7,33 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-05-04
 
 ### Added
+- **Admin proposals: extended filtering.** New filter controls in the
+  proposals admin (party, category, status, linked-to, translation
+  state, AI-categorised state, plus merged toggle) with a result count
+  and a one-click reset.
+- **Public Themes navigation.** Added a top-level "Themes" / "Temi"
+  link with a network icon to the public site header.
+- **Proposal attachments & social posts.** Each proposal can now hold
+  file attachments (uploaded to a public bucket, max 20 MB) and labelled
+  social-media post links (Facebook, Instagram, X, TikTok, LinkedIn,
+  YouTube, Threads) alongside plain source links.
+- **Candidate auto-fill from web + custom URLs.** Candidates can be
+  auto-filled from web search, parliament.mt (for incumbents), and
+  optional admin-supplied URLs (party site, electoral commission,
+  trusted news). Both per-candidate (in the editor drawer) and bulk
+  (from the table action bar) flows are available; only empty fields
+  are written, every run is captured in the audit log.
+- **Candidate profile completion meter.** Each candidate row and the
+  editor drawer header show a colour-coded percentage of profile
+  completeness (covering core fields, bio, contacts, socials, photo,
+  and required custom fields), with the missing fields surfaced on
+  hover and inside the editor.
+- **Duplicates admin: dismiss / restore clusters.** Suggested duplicate
+  clusters can be dismissed (and restored) from the admin Duplicates
+  page; dismissals persist locally, are excluded from merges, and now
+  also write a `duplicate_cluster_dismiss` / `duplicate_cluster_restore`
+  entry to the admin audit log. Each clustered proposal also displays
+  its party (with brand colour) and linked candidate.
 - **Admin proposals: multi-select & batch actions.** The proposals admin
   table now has per-row checkboxes plus a "select all" header checkbox.
   When one or more rows are selected, a bulk action bar appears with
