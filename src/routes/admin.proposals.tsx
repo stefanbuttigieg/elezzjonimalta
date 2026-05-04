@@ -93,6 +93,52 @@ function ProposalsAdmin() {
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
   const [bulkTranslating, setBulkTranslating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const bulkUpdateStatus = async (status: ReviewStatus) => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`Set status to "${status}" for ${selected.size} proposal(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("proposals").update({ status }).in("id", ids);
+      if (error) throw error;
+      toast.success(`Updated ${ids.length} proposal(s)`);
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk update failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`Delete ${selected.size} proposal(s)? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("proposals").delete().in("id", ids);
+      if (error) throw error;
+      toast.success(`Deleted ${ids.length} proposal(s)`);
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk delete failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const missingTranslationCount = useMemo(
     () =>
