@@ -1135,7 +1135,56 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
                   <div className="space-y-2">
                     <Field label="Title *" value={row.title_en} onChange={(v) => updateProposal(i, "title_en", v)} />
                     <TextArea label="Description (EN)" value={row.description_en} onChange={(v) => updateProposal(i, "description_en", v)} />
-                    <Field label="Category" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="e.g. Health, Transport" />
+                    <div>
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="text-xs font-medium text-muted-foreground">Categories</label>
+                        <button
+                          type="button"
+                          onClick={() => void suggestCategoriesFor(i)}
+                          disabled={suggestingFor === i || categories.length === 0}
+                          className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-medium hover:bg-accent disabled:opacity-50"
+                        >
+                          <Sparkles className={"h-3 w-3 " + (suggestingFor === i ? "animate-pulse" : "")} />
+                          {suggestingFor === i ? "Suggesting…" : "AI suggest"}
+                        </button>
+                      </div>
+                      {categories.length === 0 ? (
+                        <p className="text-[11px] text-muted-foreground">No categories defined.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-background p-2">
+                          {categories.map((c) => {
+                            const sel = row.category_ids.includes(c.id);
+                            return (
+                              <button
+                                type="button"
+                                key={c.id}
+                                onClick={() => toggleCategoryFor(i, c.id)}
+                                className={
+                                  "rounded-full border px-2.5 py-0.5 text-[11px] font-medium " +
+                                  (sel
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background hover:bg-accent")
+                                }
+                              >
+                                {c.name_en}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <SelectField
+                      label="Publishing status"
+                      value={row.status}
+                      onChange={(v) => updateProposal(i, "status", v as ProposalRow["status"])}
+                      options={[
+                        { value: "draft", label: "Draft" },
+                        { value: "pending_review", label: "Pending review" },
+                        { value: "published", label: "Published" },
+                        { value: "archived", label: "Archived" },
+                      ]}
+                    />
+                    <Field label="Free-text category (legacy)" value={row.category} onChange={(v) => updateProposal(i, "category", v)} placeholder="Optional fallback" />
                     <SelectField label="Party" value={row.party_id} onChange={(v) => updateProposal(i, "party_id", v)}
                       options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
                     <SelectField label="Candidate" value={row.candidate_id} onChange={(v) => updateProposal(i, "candidate_id", v)}
