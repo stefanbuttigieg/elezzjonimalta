@@ -372,6 +372,20 @@ function ProposalsAdmin() {
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
+              <th className="w-10 px-4 py-3">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelected(new Set(filtered.map((r) => r.id)));
+                    } else {
+                      setSelected(new Set());
+                    }
+                  }}
+                />
+              </th>
               <th className="px-4 py-3">Title</th>
               <th className="px-4 py-3">Linked to</th>
               <th className="px-4 py-3">Category</th>
