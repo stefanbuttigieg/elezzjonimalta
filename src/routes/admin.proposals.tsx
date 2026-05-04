@@ -1189,3 +1189,32 @@ function ProposalEditor({
     </Drawer>
   );
 }
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <label className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5">
+      <span className="text-muted-foreground">{label}:</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-transparent text-xs font-medium text-foreground outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
