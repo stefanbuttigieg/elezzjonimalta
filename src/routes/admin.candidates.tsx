@@ -549,6 +549,11 @@ function CandidatesAdmin() {
                       <div className="text-xs text-muted-foreground">imported · {r.imported_from}</div>
                     ) : null}
                   </td>
+                  {showCol("completion") ? (
+                    <td className="px-4 py-3">
+                      <CompletionMeter candidate={r as never} customFieldDefs={customFieldDefs} />
+                    </td>
+                  ) : null}
                   {showCol("party") ? (
                     <td className="px-4 py-3 text-muted-foreground">
                       {r.party_id ? partyMap[r.party_id] ?? "—" : "—"}
