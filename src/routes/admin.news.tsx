@@ -124,6 +124,7 @@ function NewsMonitor() {
   const [parties, setParties] = useState<PartyOpt[]>([]);
   const [districts, setDistricts] = useState<DistrictOpt[]>([]);
   const [candidates, setCandidates] = useState<CandidateOpt[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name_en: string }>>([]);
   const [convertFor, setConvertFor] = useState<Finding | null>(null);
   const [sourceDraft, setSourceDraft] = useState<SourceDraft | null>(null);
   const [showSourceManager, setShowSourceManager] = useState(false);
