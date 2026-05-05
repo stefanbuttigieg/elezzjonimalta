@@ -187,6 +187,16 @@ The admin candidates table supports per-user column selection so staff
 can hide or show fields (status, flags, leadership, district, etc.)
 based on what they're working on; the choice persists across sessions.
 
+### Fair Party Promises on District Pages
+Each district page's "What parties here are promising" sidebar loads the
+latest proposals per party in parallel and interleaves them round-robin,
+so every party with candidates in the district is represented when
+proposals exist (a core fairness principle of the site). A search box,
+per-party filter chips with counts (parties with no proposals yet are
+shown as dashed chips), result-count, and "Compare party platforms"
+shortcut help voters explore promises. The "See all proposals" link
+carries the active search and party filter into the proposals page.
+
 ### Candidate Auto-Fill & Profile Completion
 Candidate records can be auto-filled from web search, parliament.mt (for
 incumbents), and optional admin-supplied URLs (party sites, electoral
