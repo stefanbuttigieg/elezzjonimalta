@@ -415,6 +415,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.proposals.empty":
       "No proposals have been published yet from parties contesting this district.",
     "myDistrict.proposals.seeAll": "See all proposals →",
+    "myDistrict.proposals.fairness":
+      "Filterable across every party with candidates here — fair by design.",
+    "myDistrict.proposals.results": "Showing {count} matching",
+    "myDistrict.proposals.noMatch": "No proposals match your search.",
+    "myDistrict.proposals.compareParties": "Compare party platforms",
     "myDistrict.askCta.title": "Got a question?",
     "myDistrict.askCta.body":
       "Ask the AI assistant about candidates, parties or proposals in your district.",
