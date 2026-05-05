@@ -869,6 +869,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.proposals.empty":
       "Għadhom ma ġewx ippubblikati proposti mill-partiti li qed jikkontestaw dan id-distrett.",
     "myDistrict.proposals.seeAll": "Ara l-proposti kollha →",
+    "myDistrict.proposals.fairness":
+      "Tista' tiffiltra minn kull partit li għandu kandidati hawn — ġust mid-disinn.",
+    "myDistrict.proposals.results": "Qed turi {count}",
+    "myDistrict.proposals.noMatch": "L-ebda proposta ma taqbel mat-tfittxija tiegħek.",
+    "myDistrict.proposals.compareParties": "Qabbel il-pjattaformi tal-partiti",
     "myDistrict.askCta.title": "Għandek mistoqsija?",
     "myDistrict.askCta.body":
       "Staqsi lill-assistent AI dwar il-kandidati, il-partiti jew il-proposti fid-distrett tiegħek.",
