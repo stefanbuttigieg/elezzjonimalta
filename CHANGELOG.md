@@ -7,6 +7,15 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 ## [Unreleased] — 2026-05-04
 
 ### Added
+- **District page: fair, searchable party promises.** The "What parties
+  here are promising" sidebar on each district page now loads the latest
+  proposals per party in parallel and interleaves them round-robin so
+  every party with candidates in the district is represented when
+  proposals exist. A new search box, per-party filter chips with counts
+  (including dashed chips for parties with no proposals yet),
+  result-count, fairness caption, and "Compare party platforms" shortcut
+  help voters explore promises. The "See all proposals" link now carries
+  the active search and party filter into the proposals page.
 - **Admin proposals: extended filtering.** New filter controls in the
   proposals admin (party, category, status, linked-to, translation
   state, AI-categorised state, plus merged toggle) with a result count
