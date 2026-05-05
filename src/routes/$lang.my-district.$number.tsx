@@ -140,7 +140,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
           .eq("party_id", pid)
           .is("merged_into_id", null)
           .order("created_at", { ascending: false })
-          .limit(6);
+          .limit(25);
         if (error) throw error;
         return (data ?? []) as ProposalRow[];
       })
