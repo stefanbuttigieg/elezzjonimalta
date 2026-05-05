@@ -124,19 +124,35 @@ async function loadMyDistrict(rawNumber: string): Promise<{
     )
   );
 
+  // Fairness: fetch the latest proposals per party in parallel so every party
+  // with at least one candidate in this district is represented (when available),
+  // then interleave round-robin so no single party dominates the sidebar.
   let proposals: ProposalRow[] = [];
   if (partyIds.length > 0) {
-    const { data, error } = await supabase
-      .from("proposals")
-      .select(
-        "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id"
-      )
-      .eq("status", "published")
-      .in("party_id", partyIds)
-      .order("created_at", { ascending: false })
-      .limit(8);
-    if (error) throw error;
-    proposals = (data ?? []) as ProposalRow[];
+    const perParty = await Promise.all(
+      partyIds.map(async (pid) => {
+        const { data, error } = await supabase
+          .from("proposals")
+          .select(
+            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id"
+          )
+          .eq("status", "published")
+          .eq("party_id", pid)
+          .is("merged_into_id", null)
+          .order("created_at", { ascending: false })
+          .limit(6);
+        if (error) throw error;
+        return (data ?? []) as ProposalRow[];
+      })
+    );
+    // Round-robin interleave across parties for fair representation.
+    const queues = perParty.map((arr) => [...arr]);
+    while (queues.some((q) => q.length > 0)) {
+      for (const q of queues) {
+        const next = q.shift();
+        if (next) proposals.push(next);
+      }
+    }
   }
 
   return { district: districtTyped, candidates, proposals };
