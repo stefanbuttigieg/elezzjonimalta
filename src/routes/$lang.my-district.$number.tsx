@@ -5,12 +5,14 @@ import {
   notFound,
   useRouter,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ExternalLink,
+  Filter,
   GitCompareArrows,
   Map as MapIcon,
+  Search,
   Sparkles,
   Users,
 } from "lucide-react";
