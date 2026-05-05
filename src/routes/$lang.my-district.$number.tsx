@@ -5,12 +5,14 @@ import {
   notFound,
   useRouter,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ExternalLink,
+  Filter,
   GitCompareArrows,
   Map as MapIcon,
+  Search,
   Sparkles,
   Users,
 } from "lucide-react";
@@ -140,7 +142,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
           .eq("party_id", pid)
           .is("merged_into_id", null)
           .order("created_at", { ascending: false })
-          .limit(6);
+          .limit(25);
         if (error) throw error;
         return (data ?? []) as ProposalRow[];
       })
@@ -239,6 +241,45 @@ function MyDistrictPage() {
   for (const c of candidates) {
     if (c.party && !partyById.has(c.party.id)) partyById.set(c.party.id, c.party);
   }
+  const districtParties = Array.from(partyById.values()).sort((a, b) =>
+    (a.short_name || a.name_en).localeCompare(b.short_name || b.name_en)
+  );
+
+  // Per-party proposal counts in this district feed (for fairness indicators).
+  const proposalsByParty = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of proposals) {
+      const key = p.party_id ?? "__ind__";
+      m.set(key, (m.get(key) ?? 0) + 1);
+    }
+    return m;
+  }, [proposals]);
+
+  const [proposalQuery, setProposalQuery] = useState("");
+  const [proposalParty, setProposalParty] = useState<string>("all");
+
+  const filteredProposals = useMemo(() => {
+    const q = proposalQuery.trim().toLowerCase();
+    return proposals.filter((p) => {
+      if (proposalParty !== "all") {
+        const key = p.party_id ?? "__ind__";
+        if (key !== proposalParty) return false;
+      }
+      if (!q) return true;
+      const haystack = [
+        p.title_en,
+        p.title_mt,
+        p.description_en,
+        p.description_mt,
+        p.category,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [proposals, proposalQuery, proposalParty]);
+
 
   return (
     <section className="border-b border-border bg-background">
@@ -389,60 +430,175 @@ function MyDistrictPage() {
 
           <aside className="space-y-6">
             <div className="rounded-xl border border-border bg-surface p-5 shadow-card">
-              <h2 className="font-serif text-lg font-bold text-foreground">
-                {t("myDistrict.proposals.title")}
-              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-foreground">
+                    {t("myDistrict.proposals.title")}
+                  </h2>
+                  <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                    {t("myDistrict.proposals.fairness")}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-semibold text-foreground">
+                  {proposals.length}
+                </span>
+              </div>
+
               {proposals.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">
                   {t("myDistrict.proposals.empty")}
                 </p>
               ) : (
-                <ul className="mt-3 space-y-3">
-                  {proposals.slice(0, 6).map((p) => {
-                    const title =
-                      locale === "mt" ? p.title_mt || p.title_en : p.title_en || p.title_mt;
-                    const party = p.party_id ? partyById.get(p.party_id) ?? null : null;
-                    const partyName = party
-                      ? locale === "mt"
-                        ? party.short_name || party.name_mt || party.name_en
-                        : party.short_name || party.name_en || party.name_mt
-                      : t("districts.partyBreakdown.independent");
-                    return (
-                      <li key={p.id} className="border-b border-border pb-3 last:border-b-0">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            aria-hidden="true"
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
-                            style={{
-                              backgroundColor:
-                                party?.color ?? "hsl(var(--muted-foreground))",
-                            }}
-                          />
-                          <span
-                            className="text-[11px] font-bold uppercase tracking-wider"
-                            style={{ color: party?.color ?? undefined }}
+                <>
+                  <div className="mt-3 space-y-2">
+                    <label className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-primary">
+                      <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                      <input
+                        value={proposalQuery}
+                        onChange={(e) => setProposalQuery(e.target.value)}
+                        placeholder={t("proposals.search.placeholder")}
+                        className="w-full bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
+                      />
+                    </label>
+
+                    {districtParties.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setProposalParty("all")}
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                            proposalParty === "all"
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-background text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          <Filter className="h-3 w-3" />
+                          {t("proposals.filter.party.all")}
+                          <span className="opacity-70">{proposals.length}</span>
+                        </button>
+                        {districtParties.map((p) => {
+                          const count = proposalsByParty.get(p.id) ?? 0;
+                          const active = proposalParty === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => setProposalParty(p.id)}
+                              title={p.name_en}
+                              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                                active
+                                  ? "border-foreground bg-foreground text-background"
+                                  : count === 0
+                                    ? "border-dashed border-border bg-background text-muted-foreground hover:bg-accent"
+                                    : "border-border bg-background text-foreground hover:bg-accent"
+                              }`}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="h-2 w-2 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    p.color ?? "hsl(var(--muted-foreground))",
+                                }}
+                              />
+                              {p.short_name || p.name_en}
+                              <span className="opacity-70">{count}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-3 text-[11px] font-medium text-muted-foreground">
+                    {t("myDistrict.proposals.results", {
+                      count: filteredProposals.length,
+                    })}
+                  </p>
+
+                  {filteredProposals.length === 0 ? (
+                    <p className="mt-2 rounded-md border border-dashed border-border bg-background px-3 py-4 text-center text-xs text-muted-foreground">
+                      {t("myDistrict.proposals.noMatch")}
+                    </p>
+                  ) : (
+                    <ul className="mt-2 max-h-[480px] space-y-3 overflow-y-auto pr-1">
+                      {filteredProposals.slice(0, 12).map((p) => {
+                        const title =
+                          locale === "mt"
+                            ? p.title_mt || p.title_en
+                            : p.title_en || p.title_mt;
+                        const party = p.party_id
+                          ? partyById.get(p.party_id) ?? null
+                          : null;
+                        const partyName = party
+                          ? locale === "mt"
+                            ? party.short_name || party.name_mt || party.name_en
+                            : party.short_name || party.name_en || party.name_mt
+                          : t("districts.partyBreakdown.independent");
+                        return (
+                          <li
+                            key={p.id}
+                            className="border-b border-border pb-3 last:border-b-0"
                           >
-                            {partyName}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm font-semibold text-foreground">{title}</p>
-                        {p.category ? (
-                          <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {p.category}
-                          </p>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                aria-hidden="true"
+                                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    party?.color ?? "hsl(var(--muted-foreground))",
+                                }}
+                              />
+                              <span
+                                className="text-[11px] font-bold uppercase tracking-wider"
+                                style={{ color: party?.color ?? undefined }}
+                              >
+                                {partyName}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm font-semibold text-foreground">
+                              {title}
+                            </p>
+                            {p.category ? (
+                              <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {p.category}
+                              </p>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </>
               )}
-              <Link
-                to="/$lang/proposals"
-                params={{ lang: locale }}
-                className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-foreground hover:underline"
-              >
-                {t("myDistrict.proposals.seeAll")}
-              </Link>
+
+              <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-3">
+                <Link
+                  to="/$lang/proposals"
+                  params={{ lang: locale }}
+                  search={{
+                    q: proposalQuery,
+                    scope: "all",
+                    party:
+                      proposalParty !== "all" && proposalParty !== "__ind__"
+                        ? proposalParty
+                        : "all",
+                    candidate: "all",
+                    category: "all",
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-foreground hover:underline"
+                >
+                  {t("myDistrict.proposals.seeAll")}
+                </Link>
+                <Link
+                  to="/$lang/compare"
+                  params={{ lang: locale }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  <GitCompareArrows className="h-3 w-3" />
+                  {t("myDistrict.proposals.compareParties")}
+                </Link>
+              </div>
             </div>
 
             <div className="rounded-xl border border-border bg-surface p-5 shadow-card">
