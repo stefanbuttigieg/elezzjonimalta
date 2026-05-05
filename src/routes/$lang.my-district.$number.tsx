@@ -241,6 +241,45 @@ function MyDistrictPage() {
   for (const c of candidates) {
     if (c.party && !partyById.has(c.party.id)) partyById.set(c.party.id, c.party);
   }
+  const districtParties = Array.from(partyById.values()).sort((a, b) =>
+    (a.short_name || a.name_en).localeCompare(b.short_name || b.name_en)
+  );
+
+  // Per-party proposal counts in this district feed (for fairness indicators).
+  const proposalsByParty = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of proposals) {
+      const key = p.party_id ?? "__ind__";
+      m.set(key, (m.get(key) ?? 0) + 1);
+    }
+    return m;
+  }, [proposals]);
+
+  const [proposalQuery, setProposalQuery] = useState("");
+  const [proposalParty, setProposalParty] = useState<string>("all");
+
+  const filteredProposals = useMemo(() => {
+    const q = proposalQuery.trim().toLowerCase();
+    return proposals.filter((p) => {
+      if (proposalParty !== "all") {
+        const key = p.party_id ?? "__ind__";
+        if (key !== proposalParty) return false;
+      }
+      if (!q) return true;
+      const haystack = [
+        p.title_en,
+        p.title_mt,
+        p.description_en,
+        p.description_mt,
+        p.category,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [proposals, proposalQuery, proposalParty]);
+
 
   return (
     <section className="border-b border-border bg-background">
