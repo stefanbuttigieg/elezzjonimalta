@@ -299,6 +299,21 @@ export const convertFinding = createServerFn({ method: "POST" })
           if (aErr) console.warn("proposal_category_assignments insert failed:", aErr.message);
         }
 
+        // Attach the article URL as a source row on each created proposal.
+        if (sourceUrl && ids.length > 0) {
+          const sourceRows = ids.map((proposalId) => ({
+            proposal_id: proposalId,
+            url: sourceUrl,
+            label: "News article",
+            note: "Imported from news monitor",
+            added_by: userId,
+          }));
+          const { error: sErr } = await supabaseAdmin
+            .from("proposal_sources")
+            .insert(sourceRows as never);
+          if (sErr) console.warn("proposal_sources insert failed:", sErr.message);
+        }
+
         // Link the finding to the first proposal; report all created IDs.
         createdEntity = { type: "proposal", id: ids[0] };
         (createdEntity as { ids?: string[] }).ids = ids;
