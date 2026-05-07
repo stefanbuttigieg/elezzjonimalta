@@ -1531,6 +1531,60 @@ export type Database = {
         }
         Relationships: []
       }
+      site_resources: {
+        Row: {
+          created_at: string
+          description_en: string
+          description_mt: string
+          host: string
+          icon: Database["public"]["Enums"]["resource_icon"]
+          id: string
+          is_published: boolean
+          slug: string
+          sort_order: number
+          tag_en: string
+          tag_mt: string
+          title_en: string
+          title_mt: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description_en?: string
+          description_mt?: string
+          host: string
+          icon?: Database["public"]["Enums"]["resource_icon"]
+          id?: string
+          is_published?: boolean
+          slug: string
+          sort_order?: number
+          tag_en?: string
+          tag_mt?: string
+          title_en: string
+          title_mt?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description_en?: string
+          description_mt?: string
+          host?: string
+          icon?: Database["public"]["Enums"]["resource_icon"]
+          id?: string
+          is_published?: boolean
+          slug?: string
+          sort_order?: number
+          tag_en?: string
+          tag_mt?: string
+          title_en?: string
+          title_mt?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       telegram_bot_state: {
         Row: {
           id: number
@@ -1810,6 +1864,20 @@ export type Database = {
         | "not_relevant"
       news_finding_status: "pending" | "accepted" | "dismissed" | "reviewed"
       news_scan_trigger: "cron" | "manual"
+      resource_icon:
+        | "globe"
+        | "landmark"
+        | "barchart"
+        | "newspaper"
+        | "book"
+        | "scale"
+        | "users"
+        | "flag"
+        | "filetext"
+        | "helpcircle"
+        | "messages"
+        | "map"
+        | "network"
       review_status: "draft" | "pending_review" | "published" | "archived"
       source_kind: "official" | "manifesto" | "news" | "social" | "other"
     }
@@ -1965,6 +2033,21 @@ export const Constants = {
       ],
       news_finding_status: ["pending", "accepted", "dismissed", "reviewed"],
       news_scan_trigger: ["cron", "manual"],
+      resource_icon: [
+        "globe",
+        "landmark",
+        "barchart",
+        "newspaper",
+        "book",
+        "scale",
+        "users",
+        "flag",
+        "filetext",
+        "helpcircle",
+        "messages",
+        "map",
+        "network",
+      ],
       review_status: ["draft", "pending_review", "published", "archived"],
       source_kind: ["official", "manifesto", "news", "social", "other"],
     },
