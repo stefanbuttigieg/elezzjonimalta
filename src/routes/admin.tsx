@@ -29,6 +29,7 @@ import {
   Tag,
   Sparkles,
   AlertTriangle,
+  BookOpen,
 } from "lucide-react";
 import {
   Sheet,
