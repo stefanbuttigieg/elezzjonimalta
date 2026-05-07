@@ -821,6 +821,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.filqosor.title": "Fil-Qosor — l-aħbarijiet ta' Malta mingħajr spin",
     "resources.filqosor.desc":
       "Digest tal-aħbarijiet ibbażat fuq AI li jaqra kull mezz tal-aħbarijiet Malti u jiġbor fil-qosor kull storja minn kull angolu, b'indikaturi tal-preġudizzju. Utli biex tikseb stampa bilanċjata tal-kopertura tal-kampanja mingħajr ma tgħaddi minn rappurtaġġ partiġjan.",
+    "resources.lovinmalta.title": "Lovin Malta — Hub Elezzjoni 2026",
+    "resources.lovinmalta.desc":
+      "Il-hub ta' Lovin Malta dedikat għall-Elezzjoni Ġenerali 2026, b'aħbarijiet kontinwi, profili tal-kandidati, opinjonijiet, u analiżi tal-kampanja hekk kif tiżvolġi.",
     "resources.meta.title": "Riżorsi utli għall-elezzjoni — Elezzjoni",
     "resources.meta.description":
       "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
