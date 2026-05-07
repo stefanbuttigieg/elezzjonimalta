@@ -364,6 +364,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.filqosor.title": "Fil-Qosor — Malta news without the spin",
     "resources.filqosor.desc":
       "An AI-powered news digest that reads every Maltese news outlet and summarises each story from every angle, with bias indicators. Useful for getting a balanced view of campaign coverage and political developments without wading through partisan reporting.",
+    "resources.lovinmalta.title": "Lovin Malta — Elections 2026 hub",
+    "resources.lovinmalta.desc":
+      "Lovin Malta's dedicated 2026 General Election hub, with rolling news, candidate profiles, opinion pieces, and analysis of the campaign as it unfolds.",
     "resources.meta.title": "Useful election resources — Elezzjoni",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
