@@ -52,6 +52,15 @@ const RESOURCES: Resource[] = [
     descKey: "resources.filqosor.desc",
     tagKey: "resources.tag.news",
   },
+  {
+    id: "lovinmalta-elections",
+    url: "https://elections.lovinmalta.com/",
+    host: "elections.lovinmalta.com",
+    Icon: Newspaper,
+    titleKey: "resources.lovinmalta.title",
+    descKey: "resources.lovinmalta.desc",
+    tagKey: "resources.tag.news",
+  },
 ];
 
 export const Route = createFileRoute("/$lang/resources")({
