@@ -364,6 +364,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.filqosor.title": "Fil-Qosor — Malta news without the spin",
     "resources.filqosor.desc":
       "An AI-powered news digest that reads every Maltese news outlet and summarises each story from every angle, with bias indicators. Useful for getting a balanced view of campaign coverage and political developments without wading through partisan reporting.",
+    "resources.lovinmalta.title": "Lovin Malta — Elections 2026 hub",
+    "resources.lovinmalta.desc":
+      "Lovin Malta's dedicated 2026 General Election hub, with rolling news, candidate profiles, opinion pieces, and analysis of the campaign as it unfolds.",
     "resources.meta.title": "Useful election resources — Elezzjoni",
     "resources.meta.description":
       "Curated external resources for Malta's 2026 General Election: vot.mt, the Electoral Commission, and Malta Elections historical results.",
@@ -818,6 +821,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "resources.filqosor.title": "Fil-Qosor — l-aħbarijiet ta' Malta mingħajr spin",
     "resources.filqosor.desc":
       "Digest tal-aħbarijiet ibbażat fuq AI li jaqra kull mezz tal-aħbarijiet Malti u jiġbor fil-qosor kull storja minn kull angolu, b'indikaturi tal-preġudizzju. Utli biex tikseb stampa bilanċjata tal-kopertura tal-kampanja mingħajr ma tgħaddi minn rappurtaġġ partiġjan.",
+    "resources.lovinmalta.title": "Lovin Malta — Hub Elezzjoni 2026",
+    "resources.lovinmalta.desc":
+      "Il-hub ta' Lovin Malta dedikat għall-Elezzjoni Ġenerali 2026, b'aħbarijiet kontinwi, profili tal-kandidati, opinjonijiet, u analiżi tal-kampanja hekk kif tiżvolġi.",
     "resources.meta.title": "Riżorsi utli għall-elezzjoni — Elezzjoni",
     "resources.meta.description":
       "Riżorsi esterni magħżula għall-Elezzjoni Ġenerali 2026: vot.mt, il-Kummissjoni Elettorali, u riżultati storiċi Malta Elections.",
