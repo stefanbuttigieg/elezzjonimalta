@@ -19,6 +19,7 @@ import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
 import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
+import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
 import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminNewsRouteImport } from './routes/admin.news'
@@ -107,6 +108,11 @@ const AdminRolesRoute = AdminRolesRouteImport.update({
 const AdminReviewRoute = AdminReviewRouteImport.update({
   id: '/review',
   path: '/review',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminResourcesRoute = AdminResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProposalsRoute = AdminProposalsRouteImport.update({
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
@@ -388,6 +395,7 @@ export interface FileRoutesByTo {
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
@@ -440,6 +448,7 @@ export interface FileRoutesById {
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
+  '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
@@ -493,6 +502,7 @@ export interface FileRouteTypes {
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
+    | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
@@ -542,6 +552,7 @@ export interface FileRouteTypes {
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
+    | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
@@ -593,6 +604,7 @@ export interface FileRouteTypes {
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
+    | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
     | '/admin/sitting-mps'
@@ -694,6 +706,13 @@ declare module '@tanstack/react-router' {
       path: '/review'
       fullPath: '/admin/review'
       preLoaderRoute: typeof AdminReviewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/resources': {
+      id: '/admin/resources'
+      path: '/resources'
+      fullPath: '/admin/resources'
+      preLoaderRoute: typeof AdminResourcesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/proposals': {
@@ -1039,6 +1058,7 @@ interface AdminRouteChildren {
   AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
   AdminProposalsRoute: typeof AdminProposalsRoute
+  AdminResourcesRoute: typeof AdminResourcesRoute
   AdminReviewRoute: typeof AdminReviewRoute
   AdminRolesRoute: typeof AdminRolesRoute
   AdminSittingMpsRoute: typeof AdminSittingMpsRoute
@@ -1059,6 +1079,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
   AdminProposalsRoute: AdminProposalsRoute,
+  AdminResourcesRoute: AdminResourcesRoute,
   AdminReviewRoute: AdminReviewRoute,
   AdminRolesRoute: AdminRolesRoute,
   AdminSittingMpsRoute: AdminSittingMpsRoute,
