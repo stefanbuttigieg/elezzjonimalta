@@ -994,8 +994,12 @@ function CandidateEditor({
             })}
           </div>
         </Field>
-        <Field label="Photo URL">
-          <Input value={v.photo_url ?? ""} onChange={(x) => setV({ ...v, photo_url: x })} />
+        <Field label="Photo" full>
+          <CandidatePhotoField
+            candidateId={v.id || null}
+            value={v.photo_url ?? ""}
+            onChange={(x) => setV({ ...v, photo_url: x })}
+          />
         </Field>
         <Field label="Website">
           <Input value={v.website ?? ""} onChange={(x) => setV({ ...v, website: x })} />
