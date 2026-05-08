@@ -182,6 +182,56 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
       <Link2 className="h-3 w-3" />
     );
 
+  const isImage = (s: ProposalSource) =>
+    (s.media_type?.startsWith("image/") ?? false) ||
+    /\.(png|jpe?g|gif|webp|avif|svg)(\?|$)/i.test(s.url);
+
+  const socialEmbed = (url: string): { type: "iframe" | "image"; src: string; aspect?: string } | null => {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./, "");
+      // YouTube
+      if (host === "youtube.com" || host === "m.youtube.com") {
+        const v = u.searchParams.get("v");
+        if (v) return { type: "iframe", src: `https://www.youtube.com/embed/${v}`, aspect: "16/9" };
+        const m = u.pathname.match(/^\/(?:shorts|embed)\/([\w-]+)/);
+        if (m) return { type: "iframe", src: `https://www.youtube.com/embed/${m[1]}`, aspect: "16/9" };
+      }
+      if (host === "youtu.be") {
+        const id = u.pathname.slice(1);
+        if (id) return { type: "iframe", src: `https://www.youtube.com/embed/${id}`, aspect: "16/9" };
+      }
+      // TikTok
+      if (host.endsWith("tiktok.com")) {
+        const m = u.pathname.match(/\/video\/(\d+)/);
+        if (m) return { type: "iframe", src: `https://www.tiktok.com/embed/v2/${m[1]}`, aspect: "9/16" };
+      }
+      // X/Twitter via publish.twitter embed
+      if (host === "twitter.com" || host === "x.com") {
+        return {
+          type: "iframe",
+          src: `https://platform.twitter.com/embed/Tweet.html?url=${encodeURIComponent(url)}&theme=light`,
+          aspect: "4/5",
+        };
+      }
+      // Instagram embed
+      if (host.endsWith("instagram.com")) {
+        return { type: "iframe", src: `${url.replace(/\/?$/, "/")}embed`, aspect: "4/5" };
+      }
+      // Facebook plugin
+      if (host.endsWith("facebook.com") || host === "fb.watch") {
+        return {
+          type: "iframe",
+          src: `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(url)}&show_text=true&width=500`,
+          aspect: "4/5",
+        };
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
   return (
     <section className="mt-6 rounded-lg border border-border bg-muted/20 p-4">
       <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
@@ -222,6 +272,36 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
                     <ExternalLink className="h-3 w-3 shrink-0" />
                   </a>
                 </div>
+                {s.kind === "attachment" && isImage(s) ? (
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 block max-w-xs overflow-hidden rounded-md border border-border bg-muted"
+                  >
+                    <img
+                      src={s.url}
+                      alt={s.label ?? "Attachment preview"}
+                      loading="lazy"
+                      className="block max-h-48 w-full object-contain"
+                    />
+                  </a>
+                ) : null}
+                {s.kind === "social" && socialEmbed(s.url) ? (
+                  <div
+                    className="mt-2 max-w-md overflow-hidden rounded-md border border-border bg-muted"
+                    style={{ aspectRatio: socialEmbed(s.url)!.aspect ?? "16/9" }}
+                  >
+                    <iframe
+                      src={socialEmbed(s.url)!.src}
+                      title={s.label ?? "Social post preview"}
+                      loading="lazy"
+                      allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="h-full w-full border-0"
+                    />
+                  </div>
+                ) : null}
                 {s.note ? (
                   <div className="mt-0.5 text-xs text-muted-foreground">{s.note}</div>
                 ) : null}
@@ -298,7 +378,7 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <FileText className="h-3 w-3" /> Max 20 MB · PDF, image, doc, etc.
+                  <FileText className="h-3 w-3" /> Max 20 MB · photos, PDFs, docs, etc.
                 </span>
               )}
             </div>
