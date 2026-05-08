@@ -378,7 +378,7 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <FileText className="h-3 w-3" /> Max 20 MB · PDF, image, doc, etc.
+                  <FileText className="h-3 w-3" /> Max 20 MB · photos, PDFs, docs, etc.
                 </span>
               )}
             </div>
