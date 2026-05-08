@@ -406,6 +406,9 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
                     />
                   </a>
                 ) : null}
+                {(s.kind === "link" || s.kind === "social") ? (
+                  <OgPreview url={s.url} />
+                ) : null}
                 {s.kind === "social" && socialEmbed(s.url) ? (
                   <div
                     className="mt-2 max-w-md overflow-hidden rounded-md border border-border bg-muted"
