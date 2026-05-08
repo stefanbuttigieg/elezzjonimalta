@@ -4,9 +4,31 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-04
+## [Unreleased] — 2026-05-08
 
 ### Added
+- **Resources admin (CRUD).** New `/admin/resources` workspace lets
+  staff create, edit, reorder and publish/unpublish voter resources
+  (icon, bilingual title/description, link, category). The public
+  `/resources` page now reads from the database, with a seeded entry
+  for <https://elections.lovinmalta.com/>.
+- **Candidate photo manager with square cropping.** The candidate
+  editor now ships a dedicated photo field that uploads to a public
+  `candidate-photos` storage bucket and opens a crop dialog
+  (`react-easy-crop`) for zoom, 90° rotation, and a fixed 1:1 square
+  output (800×800 JPEG). Existing photos can be re-cropped or replaced
+  via URL.
+- **Proposal sources: inline previews.** Source attachments now render
+  image thumbnails inline, social URLs (YouTube, TikTok, X, Instagram,
+  Facebook) get a live embed, and every link/social entry shows an
+  Open Graph preview card with favicon, site name, title, description
+  and thumbnail (fetched server-side and cached per session).
+- **News monitor: source URL captured on convert.** Converting a
+  finding into a new proposal from the manual-scan / Convert dialog
+  now automatically attaches the article URL as one of the proposal's
+  sources.
+
+### Added (previous)
 - **District page: fair, searchable party promises.** The "What parties
   here are promising" sidebar on each district page now loads the latest
   proposals per party in parallel and interleaves them round-robin so
