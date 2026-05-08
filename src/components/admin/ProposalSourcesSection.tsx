@@ -272,6 +272,36 @@ export function ProposalSourcesSection({ proposalId }: { proposalId: string }) {
                     <ExternalLink className="h-3 w-3 shrink-0" />
                   </a>
                 </div>
+                {s.kind === "attachment" && isImage(s) ? (
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 block max-w-xs overflow-hidden rounded-md border border-border bg-muted"
+                  >
+                    <img
+                      src={s.url}
+                      alt={s.label ?? "Attachment preview"}
+                      loading="lazy"
+                      className="block max-h-48 w-full object-contain"
+                    />
+                  </a>
+                ) : null}
+                {s.kind === "social" && socialEmbed(s.url) ? (
+                  <div
+                    className="mt-2 max-w-md overflow-hidden rounded-md border border-border bg-muted"
+                    style={{ aspectRatio: socialEmbed(s.url)!.aspect ?? "16/9" }}
+                  >
+                    <iframe
+                      src={socialEmbed(s.url)!.src}
+                      title={s.label ?? "Social post preview"}
+                      loading="lazy"
+                      allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="h-full w-full border-0"
+                    />
+                  </div>
+                ) : null}
                 {s.note ? (
                   <div className="mt-0.5 text-xs text-muted-foreground">{s.note}</div>
                 ) : null}
