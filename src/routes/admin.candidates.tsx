@@ -14,6 +14,7 @@ import {
 } from "./admin.parties";
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { CompletionMeter } from "@/components/admin/CompletionMeter";
+import { CandidatePhotoField } from "@/components/admin/CandidatePhotoField";
 import {
   findMissingCandidatePhotos,
   findPhotoForCandidateById,
