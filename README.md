@@ -207,12 +207,28 @@ profile completion meter on every row and inside the editor shows the
 percentage of filled fields (core info, bio, contacts, socials, photo
 and required custom fields) and surfaces what's still missing.
 
-### Proposal Attachments & Social Posts
+### Proposal Attachments, Social Posts & Link Previews
 Each proposal can carry file attachments (PDFs, images, documents up to
 20 MB, served from a public storage bucket) and labelled social-media
 post links (Facebook, Instagram, X, TikTok, LinkedIn, YouTube, Threads)
 alongside plain source URLs. Social hosts are auto-detected when a link
-is pasted.
+is pasted. Image attachments render as inline thumbnails, social URLs
+get a live embed (YouTube, TikTok, X, Instagram, Facebook), and every
+link/social entry shows an **Open Graph preview card** (favicon, site
+name, title, description, thumbnail) fetched server-side and cached
+per session. When converting a news-monitor finding into a proposal,
+the article URL is automatically attached as a source.
+
+### Candidate Photo Manager (Square Crop)
+The candidate editor includes a dedicated photo field that uploads to
+a public `candidate-photos` bucket and opens a crop dialog with zoom,
+90° rotation, and a fixed 1:1 square output (800×800 JPEG). Existing
+photos can be re-cropped or replaced via URL.
+
+### Voter Resources (Admin-Managed)
+The public `/resources` page is backed by the database and managed
+from `/admin/resources`, where staff can create, edit, reorder, and
+publish/unpublish bilingual entries with icon, link, and category.
 
 ### Extended Proposal Filtering & Duplicate Dismissals
 The admin proposals workspace exposes filters for party, category,
