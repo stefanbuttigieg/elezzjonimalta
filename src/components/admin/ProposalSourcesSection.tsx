@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Link2,
@@ -9,8 +10,126 @@ import {
   Share2,
   Upload,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { fetchUrlMetadata, type UrlMetadata } from "@/lib/urlMetadata.functions";
+
+// Module-level cache so we don't refetch the same URL across renders / list reloads
+const metadataCache = new Map<string, UrlMetadata>();
+const inflight = new Map<string, Promise<UrlMetadata>>();
+
+function useUrlMetadata(url: string | null, enabled: boolean) {
+  const fetcher = useServerFn(fetchUrlMetadata);
+  const [meta, setMeta] = useState<UrlMetadata | null>(
+    url ? metadataCache.get(url) ?? null : null
+  );
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || !url) return;
+    const cached = metadataCache.get(url);
+    if (cached) {
+      setMeta(cached);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    const existing = inflight.get(url);
+    const p = existing ?? fetcher({ data: { url } });
+    if (!existing) inflight.set(url, p);
+    p.then((res) => {
+      metadataCache.set(url, res);
+      inflight.delete(url);
+      if (!cancelled) setMeta(res);
+    })
+      .catch(() => {
+        inflight.delete(url);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [url, enabled, fetcher]);
+
+  return { meta, loading };
+}
+
+function hostOf(u: string): string {
+  try {
+    return new URL(u).hostname.replace(/^www\./, "");
+  } catch {
+    return u;
+  }
+}
+
+function OgPreview({ url }: { url: string }) {
+  const { meta, loading } = useUrlMetadata(url, true);
+
+  if (loading && !meta) {
+    return (
+      <div className="mt-2 flex max-w-md items-center gap-2 rounded-md border border-border bg-background p-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin" /> Fetching preview…
+      </div>
+    );
+  }
+  if (!meta || (!meta.title && !meta.description && !meta.image)) return null;
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 block max-w-md overflow-hidden rounded-md border border-border bg-background hover:border-primary/40 hover:shadow-sm"
+    >
+      <div className="flex">
+        {meta.image ? (
+          <div className="h-24 w-24 shrink-0 overflow-hidden bg-muted sm:h-28 sm:w-28">
+            <img
+              src={meta.image}
+              alt=""
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        ) : null}
+        <div className="min-w-0 flex-1 p-2.5">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+            {meta.favicon ? (
+              <img
+                src={meta.favicon}
+                alt=""
+                className="h-3 w-3"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = "none";
+                }}
+              />
+            ) : null}
+            <span className="truncate">{meta.siteName ?? hostOf(meta.finalUrl)}</span>
+          </div>
+          {meta.title ? (
+            <div className="mt-0.5 line-clamp-2 text-sm font-semibold leading-snug">
+              {meta.title}
+            </div>
+          ) : null}
+          {meta.description ? (
+            <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+              {meta.description}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </a>
+  );
+}
+
 
 type SourceKind = "link" | "attachment" | "social";
 
