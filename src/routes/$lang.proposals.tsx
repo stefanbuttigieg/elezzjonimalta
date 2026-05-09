@@ -171,6 +171,13 @@ function ProposalsPage() {
           <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg">
             {t("proposals.subtitle")}
           </p>
+          <Link
+            to="/$lang/community-proposals"
+            params={{ lang: locale }}
+            className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+          >
+            {locale === "mt" ? "Ara wkoll: Proposti mill-Komunità →" : "See also: Proposals from the Community →"}
+          </Link>
         </div>
 
         <div className="mt-8 grid gap-3 rounded-xl border border-border bg-surface p-4 shadow-card md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end">
