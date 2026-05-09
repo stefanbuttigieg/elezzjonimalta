@@ -881,6 +881,36 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
       candidate_id: "",
     },
   ]);
+  // Multiple candidates can also be created from a single finding (e.g. an
+  // article announcing several nominations at once).
+  type CandidateRow = {
+    full_name: string;
+    party_id: string;
+    primary_district_id: string;
+    bio_en: string;
+    notes: string;
+  };
+  const emptyCandidate = (): CandidateRow => ({
+    full_name: "",
+    party_id: "",
+    primary_district_id: "",
+    bio_en: "",
+    notes: "",
+  });
+  const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([
+    {
+      full_name: ex.candidate_name ?? "",
+      party_id: "",
+      primary_district_id: "",
+      bio_en: finding.summary_en ?? "",
+      notes: finding.summary_en ?? "",
+    },
+  ]);
+  const updateCandidate = <K extends keyof CandidateRow>(i: number, k: K, v: CandidateRow[K]) =>
+    setCandidateRows((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const addCandidate = () => setCandidateRows((rows) => [...rows, emptyCandidate()]);
+  const removeCandidate = (i: number) =>
+    setCandidateRows((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
   const updateProposal = <K extends keyof ProposalRow>(i: number, k: K, v: ProposalRow[K]) =>
     setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
   const toggleCategoryFor = (i: number, id: string) =>
