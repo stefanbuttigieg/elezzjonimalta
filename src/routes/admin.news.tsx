@@ -881,6 +881,36 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
       candidate_id: "",
     },
   ]);
+  // Multiple candidates can also be created from a single finding (e.g. an
+  // article announcing several nominations at once).
+  type CandidateRow = {
+    full_name: string;
+    party_id: string;
+    primary_district_id: string;
+    bio_en: string;
+    notes: string;
+  };
+  const emptyCandidate = (): CandidateRow => ({
+    full_name: "",
+    party_id: "",
+    primary_district_id: "",
+    bio_en: "",
+    notes: "",
+  });
+  const [candidateRows, setCandidateRows] = useState<CandidateRow[]>([
+    {
+      full_name: ex.candidate_name ?? "",
+      party_id: "",
+      primary_district_id: "",
+      bio_en: finding.summary_en ?? "",
+      notes: finding.summary_en ?? "",
+    },
+  ]);
+  const updateCandidate = <K extends keyof CandidateRow>(i: number, k: K, v: CandidateRow[K]) =>
+    setCandidateRows((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
+  const addCandidate = () => setCandidateRows((rows) => [...rows, emptyCandidate()]);
+  const removeCandidate = (i: number) =>
+    setCandidateRows((rows) => (rows.length === 1 ? rows : rows.filter((_, idx) => idx !== i)));
   const updateProposal = <K extends keyof ProposalRow>(i: number, k: K, v: ProposalRow[K]) =>
     setProposals((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
   const toggleCategoryFor = (i: number, id: string) =>
@@ -990,6 +1020,35 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           }];
         });
       }
+      // Seed/replace candidate rows from autofill for the new_candidate target.
+      const aiCandidates = (result.fields as { candidates?: unknown }).candidates;
+      if (target === "new_candidate" && Array.isArray(aiCandidates) && aiCandidates.length > 0) {
+        const rows: CandidateRow[] = (aiCandidates as Array<Record<string, unknown>>).map((r) => ({
+          full_name: typeof r.full_name === "string" ? r.full_name : "",
+          party_id: typeof r.party_id === "string" ? r.party_id : "",
+          primary_district_id: typeof r.primary_district_id === "string" ? r.primary_district_id : "",
+          bio_en: typeof r.bio_en === "string" ? r.bio_en : "",
+          notes: typeof r.notes === "string" ? r.notes : "",
+        })).filter((r) => r.full_name.trim().length > 0);
+        if (rows.length > 0) setCandidateRows(rows);
+      } else if (target === "new_candidate") {
+        setCandidateRows((prev) => {
+          if (prev.length > 1) return prev;
+          const fields = result.fields as Record<string, unknown>;
+          const nameStr = typeof fields.full_name === "string" ? fields.full_name : "";
+          const partyStr = typeof fields.party_id === "string" ? fields.party_id : "";
+          const distStr = typeof fields.primary_district_id === "string" ? fields.primary_district_id : "";
+          const bioStr = typeof fields.bio_en === "string" ? fields.bio_en : "";
+          const notesStr = typeof fields.notes === "string" ? fields.notes : "";
+          return [{
+            full_name: nameStr || prev[0]?.full_name || "",
+            party_id: partyStr || prev[0]?.party_id || "",
+            primary_district_id: distStr || prev[0]?.primary_district_id || "",
+            bio_en: bioStr || prev[0]?.bio_en || "",
+            notes: notesStr || prev[0]?.notes || "",
+          }];
+        });
+      }
       const switched =
         result.suggestedTarget && result.suggestedTarget !== target
           ? ` AI suggests "${result.suggestedTarget.replace("_", " ")}" instead — switch tabs if that fits better.`
@@ -1024,6 +1083,21 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           return;
         }
         await onSubmit(target, { proposals: cleaned });
+      } else if (target === "new_candidate") {
+        const cleaned = candidateRows
+          .map((r) => ({
+            full_name: r.full_name.trim(),
+            party_id: r.party_id,
+            primary_district_id: r.primary_district_id,
+            bio_en: r.bio_en.trim(),
+            notes: r.notes.trim(),
+          }))
+          .filter((r) => r.full_name.length > 0);
+        if (cleaned.length === 0) {
+          toast.error("Add at least one candidate name");
+          return;
+        }
+        await onSubmit(target, { candidates: cleaned });
       } else {
         await onSubmit(target, form);
       }
@@ -1091,14 +1165,41 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
 
         <form onSubmit={submit} className="mt-4 space-y-3">
           {target === "new_candidate" ? (
-            <>
-              <Field label="Full name *" value={form.full_name ?? ""} onChange={(v) => set("full_name", v)} />
-              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
-                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
-              <SelectField label="Primary district" value={form.primary_district_id ?? ""} onChange={(v) => set("primary_district_id", v)}
-                options={[{ value: "", label: "— none —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
-              <TextArea label="Bio (EN)" value={form.bio_en ?? ""} onChange={(v) => set("bio_en", v)} />
-            </>
+            <div className="space-y-4">
+              {candidateRows.map((row, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Candidate {i + 1}
+                    </span>
+                    {candidateRows.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeCandidate(i)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent"
+                      >
+                        <X className="h-3 w-3" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <Field label="Full name *" value={row.full_name} onChange={(v) => updateCandidate(i, "full_name", v)} />
+                    <SelectField label="Party" value={row.party_id} onChange={(v) => updateCandidate(i, "party_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+                    <SelectField label="Primary district" value={row.primary_district_id} onChange={(v) => updateCandidate(i, "primary_district_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
+                    <TextArea label="Bio (EN)" value={row.bio_en} onChange={(v) => updateCandidate(i, "bio_en", v)} />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addCandidate}
+                className="w-full rounded-md border border-dashed border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+              >
+                + Add another candidate
+              </button>
+            </div>
           ) : null}
 
           {target === "update_candidate" ? (
