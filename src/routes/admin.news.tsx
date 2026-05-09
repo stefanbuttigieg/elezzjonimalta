@@ -1020,6 +1020,35 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           }];
         });
       }
+      // Seed/replace candidate rows from autofill for the new_candidate target.
+      const aiCandidates = (result.fields as { candidates?: unknown }).candidates;
+      if (target === "new_candidate" && Array.isArray(aiCandidates) && aiCandidates.length > 0) {
+        const rows: CandidateRow[] = (aiCandidates as Array<Record<string, unknown>>).map((r) => ({
+          full_name: typeof r.full_name === "string" ? r.full_name : "",
+          party_id: typeof r.party_id === "string" ? r.party_id : "",
+          primary_district_id: typeof r.primary_district_id === "string" ? r.primary_district_id : "",
+          bio_en: typeof r.bio_en === "string" ? r.bio_en : "",
+          notes: typeof r.notes === "string" ? r.notes : "",
+        })).filter((r) => r.full_name.trim().length > 0);
+        if (rows.length > 0) setCandidateRows(rows);
+      } else if (target === "new_candidate") {
+        setCandidateRows((prev) => {
+          if (prev.length > 1) return prev;
+          const fields = result.fields as Record<string, unknown>;
+          const nameStr = typeof fields.full_name === "string" ? fields.full_name : "";
+          const partyStr = typeof fields.party_id === "string" ? fields.party_id : "";
+          const distStr = typeof fields.primary_district_id === "string" ? fields.primary_district_id : "";
+          const bioStr = typeof fields.bio_en === "string" ? fields.bio_en : "";
+          const notesStr = typeof fields.notes === "string" ? fields.notes : "";
+          return [{
+            full_name: nameStr || prev[0]?.full_name || "",
+            party_id: partyStr || prev[0]?.party_id || "",
+            primary_district_id: distStr || prev[0]?.primary_district_id || "",
+            bio_en: bioStr || prev[0]?.bio_en || "",
+            notes: notesStr || prev[0]?.notes || "",
+          }];
+        });
+      }
       const switched =
         result.suggestedTarget && result.suggestedTarget !== target
           ? ` AI suggests "${result.suggestedTarget.replace("_", " ")}" instead — switch tabs if that fits better.`
