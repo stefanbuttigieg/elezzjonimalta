@@ -51,7 +51,7 @@ import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibil
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
 import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
 import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidates.index'
-import { Route as AdminCandidatesConfirmEcRouteImport } from './routes/admin.candidates.confirm-ec'
+import { Route as AdminCandidatesConfirmEcRouteImport } from './routes/admin.candidates_.confirm-ec'
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
 import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
@@ -273,9 +273,9 @@ const LangCandidatesIndexRoute = LangCandidatesIndexRouteImport.update({
 } as any)
 const AdminCandidatesConfirmEcRoute =
   AdminCandidatesConfirmEcRouteImport.update({
-    id: '/confirm-ec',
-    path: '/confirm-ec',
-    getParentRoute: () => AdminCandidatesRoute,
+    id: '/candidates_/confirm-ec',
+    path: '/candidates/confirm-ec',
+    getParentRoute: () => AdminRoute,
   } as any)
 const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
   id: '/parties/$slug',
@@ -343,7 +343,7 @@ export interface FileRoutesByFullPath {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
-  '/admin/candidates': typeof AdminCandidatesRouteWithChildren
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
@@ -394,7 +394,7 @@ export interface FileRoutesByTo {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
-  '/admin/candidates': typeof AdminCandidatesRouteWithChildren
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
@@ -448,7 +448,7 @@ export interface FileRoutesById {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
-  '/admin/candidates': typeof AdminCandidatesRouteWithChildren
+  '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
@@ -468,7 +468,7 @@ export interface FileRoutesById {
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
   '/$lang/my-district/$number': typeof LangMyDistrictNumberRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
-  '/admin/candidates/confirm-ec': typeof AdminCandidatesConfirmEcRoute
+  '/admin/candidates_/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
@@ -627,7 +627,7 @@ export interface FileRouteTypes {
     | '/$lang/candidates/$slug'
     | '/$lang/my-district/$number'
     | '/$lang/parties/$slug'
-    | '/admin/candidates/confirm-ec'
+    | '/admin/candidates_/confirm-ec'
     | '/$lang/candidates/'
     | '/$lang/parties/'
     | '/api/public/hooks/scan-news'
@@ -945,12 +945,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCandidatesIndexRouteImport
       parentRoute: typeof LangRoute
     }
-    '/admin/candidates/confirm-ec': {
-      id: '/admin/candidates/confirm-ec'
-      path: '/confirm-ec'
+    '/admin/candidates_/confirm-ec': {
+      id: '/admin/candidates_/confirm-ec'
+      path: '/candidates/confirm-ec'
       fullPath: '/admin/candidates/confirm-ec'
       preLoaderRoute: typeof AdminCandidatesConfirmEcRouteImport
-      parentRoute: typeof AdminCandidatesRoute
+      parentRoute: typeof AdminRoute
     }
     '/$lang/parties/$slug': {
       id: '/$lang/parties/$slug'
@@ -1065,23 +1065,11 @@ const LangRouteChildren: LangRouteChildren = {
 
 const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
-interface AdminCandidatesRouteChildren {
-  AdminCandidatesConfirmEcRoute: typeof AdminCandidatesConfirmEcRoute
-}
-
-const AdminCandidatesRouteChildren: AdminCandidatesRouteChildren = {
-  AdminCandidatesConfirmEcRoute: AdminCandidatesConfirmEcRoute,
-}
-
-const AdminCandidatesRouteWithChildren = AdminCandidatesRoute._addFileChildren(
-  AdminCandidatesRouteChildren,
-)
-
 interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
   AdminAssistantRoute: typeof AdminAssistantRoute
   AdminAuditRoute: typeof AdminAuditRoute
-  AdminCandidatesRoute: typeof AdminCandidatesRouteWithChildren
+  AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomFieldsRoute: typeof AdminCustomFieldsRoute
   AdminDisclaimersRoute: typeof AdminDisclaimersRoute
@@ -1096,13 +1084,14 @@ interface AdminRouteChildren {
   AdminSittingMpsRoute: typeof AdminSittingMpsRoute
   AdminVotingFaqsRoute: typeof AdminVotingFaqsRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCandidatesConfirmEcRoute: typeof AdminCandidatesConfirmEcRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
   AdminAssistantRoute: AdminAssistantRoute,
   AdminAuditRoute: AdminAuditRoute,
-  AdminCandidatesRoute: AdminCandidatesRouteWithChildren,
+  AdminCandidatesRoute: AdminCandidatesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomFieldsRoute: AdminCustomFieldsRoute,
   AdminDisclaimersRoute: AdminDisclaimersRoute,
@@ -1117,6 +1106,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSittingMpsRoute: AdminSittingMpsRoute,
   AdminVotingFaqsRoute: AdminVotingFaqsRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminCandidatesConfirmEcRoute: AdminCandidatesConfirmEcRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1135,3 +1125,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

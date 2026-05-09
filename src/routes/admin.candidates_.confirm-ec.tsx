@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/admin/candidates/confirm-ec")({
+export const Route = createFileRoute("/admin/candidates_/confirm-ec")({
   component: ConfirmFromEcPage,
 });
 
