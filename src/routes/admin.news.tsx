@@ -220,38 +220,64 @@ function NewsMonitor() {
   };
 
   const handlePasteScan = async () => {
-    const url = pasteUrl.trim();
-    if (!url) return;
+    const urls = Array.from(
+      new Set(
+        pasteUrl
+          .split(/[\s,]+/)
+          .map((u) => u.trim())
+          .filter((u) => /^https?:\/\//i.test(u))
+      )
+    );
+    if (urls.length === 0) {
+      toast.error("Paste at least one valid URL (http/https)");
+      return;
+    }
     setPasteScanning(true);
     setPasteResult(null);
+    const lines: string[] = [];
+    let queued = 0;
+    let duplicates = 0;
+    let failed = 0;
+    let lastKind: "pending" | "all" | null = null;
     try {
-      const res = await scanUrlFn({ data: { url, force: pasteForce } });
-      if (!res.ok) {
-        toast.error(`Scan failed: ${res.error}`);
-        setPasteResult(null);
-      } else if (res.status === "duplicate") {
-        toast.info("Already scanned — opened existing finding for review");
-        setPasteResult(`Already scanned (${res.kind}, ${(Number(res.confidence) * 100).toFixed(0)}%). Tick "Re-scan" to re-classify.`);
-        setTab("all");
-      } else if (res.status === "scrape_failed") {
-        toast.error("Could not fetch the page");
-        setPasteResult("Scrape failed — Firecrawl could not extract content from this URL.");
-      } else if (res.status === "classify_failed") {
-        toast.error("Could not classify the article");
-        setPasteResult("Classification failed — the AI did not return a valid verdict.");
-      } else {
-        toast.success(`Classified as ${res.kind} (${Math.round((res.confidence ?? 0) * 100)}%)`);
-        setPasteResult(
-          res.belowThreshold
-            ? `Classified ${res.kind} at ${Math.round((res.confidence ?? 0) * 100)}% — below the auto-queue threshold but added for your review.`
-            : `Classified ${res.kind} at ${Math.round((res.confidence ?? 0) * 100)}% — added to Pending.`
-        );
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        setPasteResult(`Scanning ${i + 1}/${urls.length}: ${url}`);
+        try {
+          const res = await scanUrlFn({ data: { url, force: pasteForce } });
+          if (!res.ok) {
+            failed++;
+            lines.push(`✗ ${url} — ${res.error}`);
+          } else if (res.status === "duplicate") {
+            duplicates++;
+            lines.push(`• ${url} — already scanned (${res.kind}, ${Math.round(Number(res.confidence) * 100)}%)`);
+            lastKind = lastKind ?? "all";
+          } else if (res.status === "scrape_failed") {
+            failed++;
+            lines.push(`✗ ${url} — scrape failed`);
+          } else if (res.status === "classify_failed") {
+            failed++;
+            lines.push(`✗ ${url} — classify failed`);
+          } else {
+            queued++;
+            lines.push(`✓ ${url} — ${res.kind} (${Math.round((res.confidence ?? 0) * 100)}%)${res.belowThreshold ? " · below threshold" : ""}`);
+            lastKind = "pending";
+          }
+        } catch (err) {
+          failed++;
+          lines.push(`✗ ${url} — ${err instanceof Error ? err.message : "failed"}`);
+        }
+      }
+      const summary = `Done — ${queued} queued, ${duplicates} duplicates, ${failed} failed.`;
+      if (failed === 0) toast.success(summary); else toast.error(summary);
+      setPasteResult([summary, ...lines].join("\n"));
+      if (queued > 0) {
         setTab("pending");
         setPasteUrl("");
+      } else if (lastKind === "all") {
+        setTab("all");
       }
       await load();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed");
     } finally {
       setPasteScanning(false);
     }
@@ -389,42 +415,43 @@ function NewsMonitor() {
 
       <section className="mt-6 rounded-xl border border-border bg-surface p-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scan a URL now</p>
-          <span className="text-[11px] text-muted-foreground">Paste any article URL → same scrape + classify pipeline</span>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scan URLs now</p>
+          <span className="text-[11px] text-muted-foreground">Paste one or more article URLs (one per line) → same scrape + classify pipeline</span>
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <input
-            type="url"
+        <div className="mt-3 flex flex-col gap-2">
+          <textarea
             value={pasteUrl}
             onChange={(e) => setPasteUrl(e.target.value)}
-            placeholder="https://timesofmalta.com/article/..."
-            className="flex-1 min-w-[260px] rounded-md border border-border bg-background px-3 py-2 text-sm"
+            placeholder={"https://timesofmalta.com/article/...\nhttps://maltatoday.com.mt/...\nhttps://lovinmalta.com/..."}
+            rows={4}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm font-mono"
             disabled={pasteScanning}
-            onKeyDown={(e) => { if (e.key === "Enter") void handlePasteScan(); }}
           />
-          <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={pasteForce}
-              onChange={(e) => setPasteForce(e.target.checked)}
-              className="h-3.5 w-3.5"
-            />
-            Re-scan if seen
-          </label>
-          <button
-            onClick={handlePasteScan}
-            disabled={pasteScanning || !pasteUrl.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {pasteScanning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-            {pasteScanning ? "Scanning…" : "Scan URL"}
-          </button>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={pasteForce}
+                onChange={(e) => setPasteForce(e.target.checked)}
+                className="h-3.5 w-3.5"
+              />
+              Re-scan if seen
+            </label>
+            <button
+              onClick={handlePasteScan}
+              disabled={pasteScanning || !pasteUrl.trim()}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {pasteScanning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+              {pasteScanning ? "Scanning…" : "Scan URLs"}
+            </button>
+          </div>
         </div>
         {pasteResult ? (
-          <p className="mt-2 text-xs text-muted-foreground">{pasteResult}</p>
+          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">{pasteResult}</pre>
         ) : (
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Bypasses the freshness gate and per-run caps. Always creates a finding so you can see the AI's verdict, even if low-confidence.
+            Bypasses the freshness gate and per-run caps. URLs are processed one at a time. Always creates a finding so you can see the AI's verdict, even if low-confidence.
           </p>
         )}
       </section>
