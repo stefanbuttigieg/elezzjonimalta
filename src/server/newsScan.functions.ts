@@ -173,25 +173,54 @@ export const convertFinding = createServerFn({ method: "POST" })
       let createdEntity: { type: string; id: string } | null = null;
 
       if (data.target === "new_candidate") {
-        if (!p.full_name) throw new Error("full_name required");
-        const slug = p.slug || slugify(p.full_name) + "-" + Math.random().toString(36).slice(2, 6);
-        const { data: row, error } = await supabaseAdmin
+        // Support either a single candidate (legacy fields on payload) or
+        // a batch via payload.candidates = [{ full_name, ... }].
+        type CandRow = {
+          full_name?: string;
+          slug?: string;
+          party_id?: string;
+          primary_district_id?: string;
+          bio_en?: string;
+          notes?: string;
+        };
+        const batch: CandRow[] = Array.isArray(
+          (data.payload as { candidates?: unknown }).candidates
+        )
+          ? ((data.payload as { candidates: CandRow[] }).candidates)
+          : [
+              {
+                full_name: p.full_name,
+                slug: p.slug,
+                party_id: p.party_id,
+                primary_district_id: p.primary_district_id,
+                bio_en: p.bio_en,
+                notes: p.notes,
+              },
+            ];
+
+        const valid = batch.filter((r) => r.full_name && r.full_name.trim().length > 0);
+        if (valid.length === 0) throw new Error("at least one candidate full_name is required");
+
+        const rows = valid.map((r) => ({
+          full_name: r.full_name!.trim(),
+          slug: r.slug || slugify(r.full_name!) + "-" + Math.random().toString(36).slice(2, 6),
+          party_id: r.party_id || null,
+          primary_district_id: r.primary_district_id || null,
+          bio_en: r.bio_en || null,
+          source_url: sourceUrl,
+          status: "pending_review" as const,
+          imported_from: "news_monitor",
+          notes: r.notes || null,
+        }));
+
+        const { data: inserted, error } = await supabaseAdmin
           .from("candidates")
-          .insert({
-            full_name: p.full_name,
-            slug,
-            party_id: p.party_id || null,
-            primary_district_id: p.primary_district_id || null,
-            bio_en: p.bio_en || null,
-            source_url: sourceUrl,
-            status: "pending_review",
-            imported_from: "news_monitor",
-            notes: p.notes || null,
-          })
-          .select("id")
-          .single();
+          .insert(rows)
+          .select("id");
         if (error) throw new Error(error.message);
-        createdEntity = { type: "candidate", id: row.id };
+        const ids = (inserted ?? []).map((r) => r.id);
+        createdEntity = { type: "candidate", id: ids[0] };
+        (createdEntity as { ids?: string[] }).ids = ids;
       } else if (data.target === "update_candidate") {
         if (!p.candidate_id) throw new Error("candidate_id required");
         const { error } = await supabaseAdmin
