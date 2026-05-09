@@ -696,6 +696,140 @@ export type Database = {
           },
         ]
       }
+      community_authors: {
+        Row: {
+          bio_en: string | null
+          bio_mt: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["community_author_kind"]
+          logo_url: string | null
+          name: string
+          slug: string
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          bio_en?: string | null
+          bio_mt?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["community_author_kind"]
+          logo_url?: string | null
+          name: string
+          slug: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          bio_en?: string | null
+          bio_mt?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["community_author_kind"]
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      community_proposal_links: {
+        Row: {
+          community_proposal_id: string
+          created_at: string
+          id: string
+          party_proposal_id: string
+        }
+        Insert: {
+          community_proposal_id: string
+          created_at?: string
+          id?: string
+          party_proposal_id: string
+        }
+        Update: {
+          community_proposal_id?: string
+          created_at?: string
+          id?: string
+          party_proposal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_proposal_links_community_proposal_id_fkey"
+            columns: ["community_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "community_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_proposal_links_party_proposal_id_fkey"
+            columns: ["party_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_proposals: {
+        Row: {
+          author_id: string
+          category: string | null
+          created_at: string
+          description_en: string | null
+          description_mt: string | null
+          id: string
+          sort_order: number
+          source_url: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          category?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          sort_order?: number
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          category?: string | null
+          created_at?: string
+          description_en?: string | null
+          description_mt?: string | null
+          id?: string
+          sort_order?: number
+          source_url?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          title_en?: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_proposals_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_field_definitions: {
         Row: {
           created_at: string
@@ -1851,6 +1985,14 @@ export type Database = {
         | "interview"
         | "speech"
         | "article"
+      community_author_kind:
+        | "individual"
+        | "ngo"
+        | "union"
+        | "business"
+        | "academic"
+        | "faith"
+        | "other"
       custom_field_entity: "candidate" | "proposal"
       custom_field_type:
         | "text"
@@ -2017,6 +2159,15 @@ export const Constants = {
         "interview",
         "speech",
         "article",
+      ],
+      community_author_kind: [
+        "individual",
+        "ngo",
+        "union",
+        "business",
+        "academic",
+        "faith",
+        "other",
       ],
       custom_field_entity: ["candidate", "proposal"],
       custom_field_type: [
