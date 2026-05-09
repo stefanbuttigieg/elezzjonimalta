@@ -60,6 +60,8 @@ const items: NavItem[] = [
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/community-proposals", label: "Community proposals", icon: Users },
+  { to: "/admin/community-authors", label: "Community authors", icon: Users },
   { to: "/admin/duplicates", label: "Duplicates", icon: FileText },
   { to: "/admin/voting-faqs", label: "Voting FAQs", icon: FileText },
   { to: "/admin/assistant", label: "AI Assistant", icon: Sparkles },

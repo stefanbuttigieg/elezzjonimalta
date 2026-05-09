@@ -47,6 +47,7 @@ import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
 import { Route as LangCompareRouteImport } from './routes/$lang.compare'
+import { Route as LangCommunityProposalsRouteImport } from './routes/$lang.community-proposals'
 import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
 import { Route as LangAskRouteImport } from './routes/$lang.ask'
 import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
@@ -253,6 +254,11 @@ const LangCompareRoute = LangCompareRouteImport.update({
   path: '/compare',
   getParentRoute: () => LangRoute,
 } as any)
+const LangCommunityProposalsRoute = LangCommunityProposalsRouteImport.update({
+  id: '/community-proposals',
+  path: '/community-proposals',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangChangelogRoute = LangChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
@@ -339,6 +345,7 @@ export interface FileRoutesByFullPath {
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
   '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/community-proposals': typeof LangCommunityProposalsRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
@@ -392,6 +399,7 @@ export interface FileRoutesByTo {
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
   '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/community-proposals': typeof LangCommunityProposalsRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
   '/$lang/changelog': typeof LangChangelogRoute
+  '/$lang/community-proposals': typeof LangCommunityProposalsRoute
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
@@ -505,6 +514,7 @@ export interface FileRouteTypes {
     | '/$lang/accessibility'
     | '/$lang/ask'
     | '/$lang/changelog'
+    | '/$lang/community-proposals'
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
@@ -558,6 +568,7 @@ export interface FileRouteTypes {
     | '/$lang/accessibility'
     | '/$lang/ask'
     | '/$lang/changelog'
+    | '/$lang/community-proposals'
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
@@ -613,6 +624,7 @@ export interface FileRouteTypes {
     | '/$lang/accessibility'
     | '/$lang/ask'
     | '/$lang/changelog'
+    | '/$lang/community-proposals'
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
@@ -941,6 +953,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCompareRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/community-proposals': {
+      id: '/$lang/community-proposals'
+      path: '/community-proposals'
+      fullPath: '/$lang/community-proposals'
+      preLoaderRoute: typeof LangCommunityProposalsRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/changelog': {
       id: '/$lang/changelog'
       path: '/changelog'
@@ -1054,6 +1073,7 @@ interface LangRouteChildren {
   LangAccessibilityRoute: typeof LangAccessibilityRoute
   LangAskRoute: typeof LangAskRoute
   LangChangelogRoute: typeof LangChangelogRoute
+  LangCommunityProposalsRoute: typeof LangCommunityProposalsRoute
   LangCompareRoute: typeof LangCompareRoute
   LangContactRoute: typeof LangContactRoute
   LangCookiesRoute: typeof LangCookiesRoute
@@ -1080,6 +1100,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangAccessibilityRoute: LangAccessibilityRoute,
   LangAskRoute: LangAskRoute,
   LangChangelogRoute: LangChangelogRoute,
+  LangCommunityProposalsRoute: LangCommunityProposalsRoute,
   LangCompareRoute: LangCompareRoute,
   LangContactRoute: LangContactRoute,
   LangCookiesRoute: LangCookiesRoute,
