@@ -1083,6 +1083,21 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
           return;
         }
         await onSubmit(target, { proposals: cleaned });
+      } else if (target === "new_candidate") {
+        const cleaned = candidateRows
+          .map((r) => ({
+            full_name: r.full_name.trim(),
+            party_id: r.party_id,
+            primary_district_id: r.primary_district_id,
+            bio_en: r.bio_en.trim(),
+            notes: r.notes.trim(),
+          }))
+          .filter((r) => r.full_name.length > 0);
+        if (cleaned.length === 0) {
+          toast.error("Add at least one candidate name");
+          return;
+        }
+        await onSubmit(target, { candidates: cleaned });
       } else {
         await onSubmit(target, form);
       }
