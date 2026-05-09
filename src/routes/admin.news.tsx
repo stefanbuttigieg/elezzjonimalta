@@ -1165,14 +1165,41 @@ function ConvertDialog({ finding, parties, districts, candidates, categories, on
 
         <form onSubmit={submit} className="mt-4 space-y-3">
           {target === "new_candidate" ? (
-            <>
-              <Field label="Full name *" value={form.full_name ?? ""} onChange={(v) => set("full_name", v)} />
-              <SelectField label="Party" value={form.party_id ?? ""} onChange={(v) => set("party_id", v)}
-                options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
-              <SelectField label="Primary district" value={form.primary_district_id ?? ""} onChange={(v) => set("primary_district_id", v)}
-                options={[{ value: "", label: "— none —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
-              <TextArea label="Bio (EN)" value={form.bio_en ?? ""} onChange={(v) => set("bio_en", v)} />
-            </>
+            <div className="space-y-4">
+              {candidateRows.map((row, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Candidate {i + 1}
+                    </span>
+                    {candidateRows.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeCandidate(i)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent"
+                      >
+                        <X className="h-3 w-3" /> Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <Field label="Full name *" value={row.full_name} onChange={(v) => updateCandidate(i, "full_name", v)} />
+                    <SelectField label="Party" value={row.party_id} onChange={(v) => updateCandidate(i, "party_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...parties.map((p) => ({ value: p.id, label: p.name_en }))]} />
+                    <SelectField label="Primary district" value={row.primary_district_id} onChange={(v) => updateCandidate(i, "primary_district_id", v)}
+                      options={[{ value: "", label: "— none —" }, ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` }))]} />
+                    <TextArea label="Bio (EN)" value={row.bio_en} onChange={(v) => updateCandidate(i, "bio_en", v)} />
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addCandidate}
+                className="w-full rounded-md border border-dashed border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+              >
+                + Add another candidate
+              </button>
+            </div>
           ) : null}
 
           {target === "update_candidate" ? (
