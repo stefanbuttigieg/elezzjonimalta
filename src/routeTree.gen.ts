@@ -27,6 +27,7 @@ import { Route as AdminDuplicatesRouteImport } from './routes/admin.duplicates'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminDisclaimersRouteImport } from './routes/admin.disclaimers'
 import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fields'
+import { Route as AdminCommunityAuthorsRouteImport } from './routes/admin.community-authors'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
@@ -149,6 +150,11 @@ const AdminDisclaimersRoute = AdminDisclaimersRouteImport.update({
 const AdminCustomFieldsRoute = AdminCustomFieldsRouteImport.update({
   id: '/custom-fields',
   path: '/custom-fields',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommunityAuthorsRoute = AdminCommunityAuthorsRouteImport.update({
+  id: '/community-authors',
+  path: '/community-authors',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
@@ -345,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
@@ -396,6 +403,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
@@ -450,6 +458,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/custom-fields': typeof AdminCustomFieldsRoute
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
@@ -505,6 +514,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
+    | '/admin/community-authors'
     | '/admin/custom-fields'
     | '/admin/disclaimers'
     | '/admin/districts'
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
+    | '/admin/community-authors'
     | '/admin/custom-fields'
     | '/admin/disclaimers'
     | '/admin/districts'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidates'
     | '/admin/categories'
+    | '/admin/community-authors'
     | '/admin/custom-fields'
     | '/admin/disclaimers'
     | '/admin/districts'
@@ -775,6 +787,13 @@ declare module '@tanstack/react-router' {
       path: '/custom-fields'
       fullPath: '/admin/custom-fields'
       preLoaderRoute: typeof AdminCustomFieldsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community-authors': {
+      id: '/admin/community-authors'
+      path: '/community-authors'
+      fullPath: '/admin/community-authors'
+      preLoaderRoute: typeof AdminCommunityAuthorsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/categories': {
@@ -1071,6 +1090,7 @@ interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCommunityAuthorsRoute: typeof AdminCommunityAuthorsRoute
   AdminCustomFieldsRoute: typeof AdminCustomFieldsRoute
   AdminDisclaimersRoute: typeof AdminDisclaimersRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
@@ -1093,6 +1113,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCommunityAuthorsRoute: AdminCommunityAuthorsRoute,
   AdminCustomFieldsRoute: AdminCustomFieldsRoute,
   AdminDisclaimersRoute: AdminDisclaimersRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
