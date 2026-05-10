@@ -85,6 +85,7 @@ function AdminCommunityProposalsPage() {
   const [saving, setSaving] = useState(false);
   const [filterAuthor, setFilterAuthor] = useState<string>("all");
   const [linkSearch, setLinkSearch] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
