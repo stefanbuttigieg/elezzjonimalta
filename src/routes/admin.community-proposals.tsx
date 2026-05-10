@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Link2, X, ExternalLink, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Link2, X, ExternalLink, Search, Sparkles } from "lucide-react";
+import { CommunityImportDrawer } from "@/components/admin/CommunityImportDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
