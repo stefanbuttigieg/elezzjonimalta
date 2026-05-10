@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Link2, X, ExternalLink, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Link2, X, ExternalLink, Search, Sparkles } from "lucide-react";
+import { CommunityImportDrawer } from "@/components/admin/CommunityImportDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -84,6 +85,7 @@ function AdminCommunityProposalsPage() {
   const [saving, setSaving] = useState(false);
   const [filterAuthor, setFilterAuthor] = useState<string>("all");
   const [linkSearch, setLinkSearch] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -243,11 +245,22 @@ function AdminCommunityProposalsPage() {
           <Button asChild variant="outline" size="sm">
             <Link to="/admin/community-authors">Manage authors</Link>
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setImportOpen(true)} className="gap-1" disabled={authors.length === 0}>
+            <Sparkles className="h-4 w-4" /> Import from URL/PDF
+          </Button>
           <Button size="sm" onClick={openNew} className="gap-1" disabled={authors.length === 0}>
             <Plus className="h-4 w-4" /> New proposal
           </Button>
         </div>
       </div>
+
+      <CommunityImportDrawer
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        authors={authors.map((a) => ({ id: a.id, name: a.name }))}
+        defaultAuthorId={filterAuthor !== "all" ? filterAuthor : undefined}
+        onApplied={() => void load()}
+      />
 
       {authors.length === 0 ? (
         <Card>

@@ -741,6 +741,71 @@ export type Database = {
         }
         Relationships: []
       }
+      community_imports: {
+        Row: {
+          author_id: string
+          created_at: string
+          error: string | null
+          extracted: Json
+          file_path: string | null
+          finished_at: string | null
+          id: string
+          imported_by: string | null
+          language: string
+          page_count: number | null
+          source_kind: string
+          source_url: string | null
+          stage: string | null
+          status: string
+          summary: Json
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          error?: string | null
+          extracted?: Json
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          language?: string
+          page_count?: number | null
+          source_kind: string
+          source_url?: string | null
+          stage?: string | null
+          status?: string
+          summary?: Json
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          error?: string | null
+          extracted?: Json
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          imported_by?: string | null
+          language?: string
+          page_count?: number | null
+          source_kind?: string
+          source_url?: string | null
+          stage?: string | null
+          status?: string
+          summary?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_imports_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "community_authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_proposal_links: {
         Row: {
           community_proposal_id: string
@@ -781,6 +846,7 @@ export type Database = {
         Row: {
           author_id: string
           category: string | null
+          community_import_id: string | null
           created_at: string
           description_en: string | null
           description_mt: string | null
@@ -795,6 +861,7 @@ export type Database = {
         Insert: {
           author_id: string
           category?: string | null
+          community_import_id?: string | null
           created_at?: string
           description_en?: string | null
           description_mt?: string | null
@@ -809,6 +876,7 @@ export type Database = {
         Update: {
           author_id?: string
           category?: string | null
+          community_import_id?: string | null
           created_at?: string
           description_en?: string | null
           description_mt?: string | null
@@ -826,6 +894,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "community_authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_proposals_community_import_id_fkey"
+            columns: ["community_import_id"]
+            isOneToOne: false
+            referencedRelation: "community_imports"
             referencedColumns: ["id"]
           },
         ]
@@ -1928,6 +2003,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_similar_community_proposals: {
+        Args: {
+          _author_id: string
+          _limit?: number
+          _threshold?: number
+          _title: string
+        }
+        Returns: {
+          description_en: string
+          id: string
+          score: number
+          status: Database["public"]["Enums"]["review_status"]
+          title_en: string
+          title_mt: string
+        }[]
+      }
       find_similar_proposals: {
         Args: {
           _limit?: number
