@@ -245,11 +245,22 @@ function AdminCommunityProposalsPage() {
           <Button asChild variant="outline" size="sm">
             <Link to="/admin/community-authors">Manage authors</Link>
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setImportOpen(true)} className="gap-1" disabled={authors.length === 0}>
+            <Sparkles className="h-4 w-4" /> Import from URL/PDF
+          </Button>
           <Button size="sm" onClick={openNew} className="gap-1" disabled={authors.length === 0}>
             <Plus className="h-4 w-4" /> New proposal
           </Button>
         </div>
       </div>
+
+      <CommunityImportDrawer
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        authors={authors.map((a) => ({ id: a.id, name: a.name }))}
+        defaultAuthorId={filterAuthor !== "all" ? filterAuthor : undefined}
+        onApplied={() => void load()}
+      />
 
       {authors.length === 0 ? (
         <Card>
