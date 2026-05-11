@@ -66,7 +66,7 @@ async function loadProposals({
   let proposalsQuery = supabase
     .from("proposals")
     .select(
-      "id, title_en, title_mt, description_en, description_mt, category, source_url, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+      "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
     )
     .eq("status", "published")
     .order("created_at", { ascending: false });
