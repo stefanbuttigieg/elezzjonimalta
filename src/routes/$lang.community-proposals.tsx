@@ -66,6 +66,7 @@ type CommunityProp = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
   author: Author | null;
   links: {
     party_proposal: {
