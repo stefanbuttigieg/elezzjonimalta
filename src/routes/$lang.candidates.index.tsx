@@ -11,6 +11,7 @@ import { BadgeCheck, ExternalLink, Filter, RotateCcw, Search, UserRound } from "
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const candidateSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
