@@ -219,7 +219,17 @@ function Hero({
 }) {
   return (
     <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-surface to-background">
-      <div className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
+      {/* Animated aurora glows behind hero */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-0">
+        <div
+          className="hero-aurora absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-primary/25 blur-3xl"
+        />
+        <div
+          className="hero-aurora absolute -bottom-32 right-[-10%] h-[360px] w-[360px] rounded-full bg-accent/40 blur-3xl"
+          style={{ animationDelay: "-4s" }}
+        />
+      </div>
+      <div className="container relative mx-auto max-w-6xl px-4 py-16 md:py-24">
         <div className="grid gap-10 md:grid-cols-5 md:items-center">
           <div className="md:col-span-3">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -232,8 +242,16 @@ function Hero({
               {t("home.hero.subtitle")}
             </p>
 
-            <div className="mt-8">
-              <LocalityPicker lang={lang} />
+            <div className="relative mt-10">
+              {/* Nudging "Start here" callout */}
+              <div className="hero-pin-bob pointer-events-none absolute -top-7 left-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-foreground shadow-elevated">
+                <MapPin className="h-3 w-3" />
+                {lang === "mt" ? "Ibda hawn" : "Start here"}
+              </div>
+              {/* Pulsing focus ring around the picker */}
+              <div className="hero-ring rounded-xl ring-1 ring-primary/30">
+                <LocalityPicker lang={lang} />
+              </div>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">

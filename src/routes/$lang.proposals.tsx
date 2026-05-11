@@ -11,6 +11,7 @@ import { ExternalLink, Filter, FileText, Landmark, RotateCcw, Search, UserRound 
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const proposalSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -43,6 +44,7 @@ type ProposalRecord = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
   party: PartyOption | null;
   candidate: CandidateOption | null;
 };
@@ -64,7 +66,7 @@ async function loadProposals({
   let proposalsQuery = supabase
     .from("proposals")
     .select(
-      "id, title_en, title_mt, description_en, description_mt, category, source_url, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+      "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
     )
     .eq("status", "published")
     .order("created_at", { ascending: false });
@@ -373,17 +375,22 @@ function ProposalCard({ proposal, locale }: { proposal: ProposalRecord; locale: 
         </p>
       ) : null}
 
-      {proposal.source_url ? (
-        <a
-          href={proposal.source_url}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:underline"
-        >
-          {t("proposals.viewSource")}
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
-      ) : null}
+      <div className="mt-5 flex items-center justify-between gap-3">
+        {proposal.source_url ? (
+          <a
+            href={proposal.source_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:underline"
+          >
+            {t("proposals.viewSource")}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : <span />}
+        <span className="text-[11px] text-muted-foreground">
+          {locale === "mt" ? "Aġġornat" : "Updated"} {formatUpdatedAt(proposal.updated_at, locale)}
+        </span>
+      </div>
     </article>
   );
 }

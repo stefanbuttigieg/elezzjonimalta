@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Users, Link2, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 export const Route = createFileRoute("/$lang/community-proposals")({
   head: ({ params }) => {
@@ -65,6 +66,7 @@ type CommunityProp = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
   author: Author | null;
   links: {
     party_proposal: {
@@ -90,7 +92,7 @@ function CommunityProposalsPage() {
       const { data, error } = await supabase
         .from("community_proposals")
         .select(
-          "id,title_en,title_mt,description_en,description_mt,category,source_url," +
+          "id,title_en,title_mt,description_en,description_mt,category,source_url,updated_at," +
             "author:community_authors(id,slug,name,kind,bio_en,bio_mt,logo_url,website)," +
             "links:community_proposal_links(party_proposal:proposals(id,title_en,title_mt,party:parties(slug,name_en,name_mt,short_name,color)))",
         )
@@ -248,17 +250,22 @@ function CommunityProposalsPage() {
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
                   ) : null}
 
-                  {r.source_url ? (
-                    <a
-                      href={r.source_url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                    >
-                      {isMt ? "Sors" : "Source"}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : null}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    {r.source_url ? (
+                      <a
+                        href={r.source_url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      >
+                        {isMt ? "Sors" : "Source"}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : <span />}
+                    <span className="text-[11px] text-muted-foreground">
+                      {isMt ? "Aġġornat" : "Updated"} {formatUpdatedAt(r.updated_at, lang)}
+                    </span>
+                  </div>
 
                   {r.links.length > 0 ? (
                     <div className="mt-5 rounded-xl border border-border bg-background/50 p-4">

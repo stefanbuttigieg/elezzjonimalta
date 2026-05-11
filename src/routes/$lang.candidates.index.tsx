@@ -11,6 +11,7 @@ import { BadgeCheck, ExternalLink, Filter, RotateCcw, Search, UserRound } from "
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const candidateSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -44,6 +45,7 @@ type CandidateRecord = {
   website: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  updated_at: string;
   party: PartyOption | null;
   district: DistrictOption | null;
 };
@@ -61,7 +63,7 @@ async function loadCandidates({
   let candidatesQuery = supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
     )
     .eq("status", "published")
     .eq("electoral_confirmed", true)
@@ -327,6 +329,9 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
           </a>
         ) : null}
       </div>
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        {locale === "mt" ? "Aġġornat l-aħħar" : "Last updated"}: {formatUpdatedAt(candidate.updated_at, locale)}
+      </p>
     </article>
   );
 }
