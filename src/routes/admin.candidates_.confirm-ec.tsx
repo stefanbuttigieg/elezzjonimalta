@@ -203,6 +203,54 @@ function ConfirmFromEcPage() {
     setDrafts(nextDrafts);
   };
 
+  // Link an existing candidate (from another district) to the currently selected district,
+  // and mark commission_confirmed so the EC list is captured in one click.
+  const linkToDistrict = async (idx: number, candidate: CandRow) => {
+    if (!districtId) return;
+    const { error: linkErr } = await supabase
+      .from("candidate_districts")
+      .insert({
+        candidate_id: candidate.id,
+        district_id: districtId,
+        election_year: 2026,
+        elected: false,
+      });
+    if (linkErr && linkErr.code !== "23505") {
+      toast.error(linkErr.message);
+      return;
+    }
+    if (!candidate.commission_confirmed) {
+      const { error: updErr } = await supabase
+        .from("candidates")
+        .update({
+          commission_confirmed: true,
+          commission_confirmed_at: new Date().toISOString(),
+        })
+        .eq("id", candidate.id);
+      if (updErr) {
+        toast.error(updErr.message);
+        return;
+      }
+    }
+    const linked: CandRow = { ...candidate, commission_confirmed: true };
+    setCandidates((cs) =>
+      cs.some((c) => c.id === linked.id)
+        ? cs
+        : [...cs, linked].sort((a, b) => a.full_name.localeCompare(b.full_name)),
+    );
+    setMatches((all) =>
+      all.map((m, i) =>
+        i === idx ? { ...m, candidate: linked, scoreVal: 1, externalSuggestions: [] } : m,
+      ),
+    );
+    setDrafts((d) => {
+      const copy = { ...d };
+      delete copy[idx];
+      return copy;
+    });
+    toast.success(`Linked ${candidate.full_name} to this district and confirmed.`);
+  };
+
   const createNewCandidate = async (idx: number) => {
     const draft = drafts[idx];
     if (!draft) return;
