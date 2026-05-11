@@ -166,10 +166,90 @@ function ConfirmFromEcPage() {
     });
     setMatches(result);
     const next: Record<string, boolean> = {};
-    result.forEach((m) => {
+    const nextDrafts: Record<number, { name: string; partyId: string; busy: boolean }> = {};
+    result.forEach((m, idx) => {
       if (m.candidate && !m.candidate.commission_confirmed) next[m.candidate.id] = true;
+      if (!m.candidate) nextDrafts[idx] = { name: m.rawName, partyId: "", busy: false };
     });
     setSelected(next);
+    setDrafts(nextDrafts);
+  };
+
+  const createNewCandidate = async (idx: number) => {
+    const draft = drafts[idx];
+    if (!draft) return;
+    const fullName = draft.name.trim();
+    if (fullName.length < 3) {
+      toast.error("Enter a name (at least 3 characters).");
+      return;
+    }
+    if (!districtId) return;
+    setDrafts((d) => ({ ...d, [idx]: { ...draft, busy: true } }));
+    // Build a unique slug, retrying with a numeric suffix on collision.
+    const baseSlug = slugify(fullName) || `candidate-${Date.now()}`;
+    let slug = baseSlug;
+    let inserted: { id: string; full_name: string } | null = null;
+    let lastErr: string | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { data, error } = await supabase
+        .from("candidates")
+        .insert({
+          full_name: fullName,
+          slug,
+          primary_district_id: districtId,
+          party_id: draft.partyId || null,
+          status: "pending_review",
+          commission_confirmed: true,
+          commission_confirmed_at: new Date().toISOString(),
+          imported_from: "electoral-commission",
+        })
+        .select("id, full_name")
+        .single();
+      if (!error && data) {
+        inserted = data;
+        break;
+      }
+      lastErr = error?.message ?? null;
+      if (error?.code === "23505") {
+        slug = `${baseSlug}-${attempt + 2}`;
+        continue;
+      }
+      break;
+    }
+    if (!inserted) {
+      setDrafts((d) => ({ ...d, [idx]: { ...draft, busy: false } }));
+      toast.error(lastErr ?? "Could not create candidate.");
+      return;
+    }
+    // Link to the district for the 2026 election (mirrors existing pattern).
+    await supabase
+      .from("candidate_districts")
+      .insert({
+        candidate_id: inserted.id,
+        district_id: districtId,
+        election_year: 2026,
+        elected: false,
+      });
+
+    const partyShort = parties.find((p) => p.id === draft.partyId)?.short_name ?? null;
+    const newRow: CandRow = {
+      id: inserted.id,
+      full_name: inserted.full_name,
+      commission_confirmed: true,
+      party_short: partyShort,
+    };
+    setCandidates((cs) =>
+      [...cs, newRow].sort((a, b) => a.full_name.localeCompare(b.full_name)),
+    );
+    setMatches((all) =>
+      all.map((m, i) => (i === idx ? { ...m, candidate: newRow, scoreVal: 1 } : m)),
+    );
+    setDrafts((d) => {
+      const copy = { ...d };
+      delete copy[idx];
+      return copy;
+    });
+    toast.success(`Created ${fullName} and marked as confirmed.`);
   };
 
   const toConfirmIds = useMemo(
