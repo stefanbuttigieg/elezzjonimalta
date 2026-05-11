@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles, UserPlus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, LinkIcon, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,12 +73,15 @@ type Match = {
   candidate: CandRow | null;
   scoreVal: number;
   alternatives: { c: CandRow; s: number }[];
+  externalSuggestions: { c: CandRow; s: number }[];
 };
 
 function ConfirmFromEcPage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<string>("");
   const [candidates, setCandidates] = useState<CandRow[]>([]);
+  // All candidates across districts — used to suggest existing people we can link to this district.
+  const [allCandidates, setAllCandidates] = useState<CandRow[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [pasted, setPasted] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
@@ -90,15 +93,28 @@ function ConfirmFromEcPage() {
 
   useEffect(() => {
     void (async () => {
-      const [{ data: dRows }, { data: pRows }] = await Promise.all([
+      const [{ data: dRows }, { data: pRows }, { data: allRows }] = await Promise.all([
         supabase.from("districts").select("id, number, name_en").order("number"),
         supabase
           .from("parties")
           .select("id, short_name, name_en")
           .order("short_name", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("candidates")
+          .select("id, full_name, commission_confirmed, party:parties(short_name)")
+          .order("full_name", { ascending: true })
+          .limit(2000),
       ]);
       setDistricts((dRows ?? []) as District[]);
       setParties((pRows ?? []) as Party[]);
+      setAllCandidates(
+        ((allRows ?? []) as Array<{ id: string; full_name: string; commission_confirmed: boolean; party: { short_name: string | null } | null }>).map((r) => ({
+          id: r.id,
+          full_name: r.full_name,
+          commission_confirmed: r.commission_confirmed,
+          party_short: r.party?.short_name ?? null,
+        })),
+      );
     })();
   }, []);
 
@@ -152,16 +168,28 @@ function ConfirmFromEcPage() {
       toast.error("No candidates found for this district.");
       return;
     }
+    const inDistrictIds = new Set(candidates.map((c) => c.id));
     const result: Match[] = names.map((rawName) => {
       const ranked = candidates
         .map((c) => ({ c, s: score(rawName, c.full_name) }))
         .sort((a, b) => b.s - a.s);
       const top = ranked[0];
+      const candidate = top && top.s >= 0.5 ? top.c : null;
+      // If no in-district match, look for someone we already have on file in another district.
+      const externalSuggestions = candidate
+        ? []
+        : allCandidates
+            .filter((c) => !inDistrictIds.has(c.id))
+            .map((c) => ({ c, s: score(rawName, c.full_name) }))
+            .filter((r) => r.s >= 0.6)
+            .sort((a, b) => b.s - a.s)
+            .slice(0, 3);
       return {
         rawName,
-        candidate: top && top.s >= 0.5 ? top.c : null,
+        candidate,
         scoreVal: top?.s ?? 0,
         alternatives: ranked.slice(0, 5),
+        externalSuggestions,
       };
     });
     setMatches(result);
@@ -173,6 +201,54 @@ function ConfirmFromEcPage() {
     });
     setSelected(next);
     setDrafts(nextDrafts);
+  };
+
+  // Link an existing candidate (from another district) to the currently selected district,
+  // and mark commission_confirmed so the EC list is captured in one click.
+  const linkToDistrict = async (idx: number, candidate: CandRow) => {
+    if (!districtId) return;
+    const { error: linkErr } = await supabase
+      .from("candidate_districts")
+      .insert({
+        candidate_id: candidate.id,
+        district_id: districtId,
+        election_year: 2026,
+        elected: false,
+      });
+    if (linkErr && linkErr.code !== "23505") {
+      toast.error(linkErr.message);
+      return;
+    }
+    if (!candidate.commission_confirmed) {
+      const { error: updErr } = await supabase
+        .from("candidates")
+        .update({
+          commission_confirmed: true,
+          commission_confirmed_at: new Date().toISOString(),
+        })
+        .eq("id", candidate.id);
+      if (updErr) {
+        toast.error(updErr.message);
+        return;
+      }
+    }
+    const linked: CandRow = { ...candidate, commission_confirmed: true };
+    setCandidates((cs) =>
+      cs.some((c) => c.id === linked.id)
+        ? cs
+        : [...cs, linked].sort((a, b) => a.full_name.localeCompare(b.full_name)),
+    );
+    setMatches((all) =>
+      all.map((m, i) =>
+        i === idx ? { ...m, candidate: linked, scoreVal: 1, externalSuggestions: [] } : m,
+      ),
+    );
+    setDrafts((d) => {
+      const copy = { ...d };
+      delete copy[idx];
+      return copy;
+    });
+    toast.success(`Linked ${candidate.full_name} to this district and confirmed.`);
   };
 
   const createNewCandidate = async (idx: number) => {
@@ -409,6 +485,36 @@ function ConfirmFromEcPage() {
                             .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
                             .join(", ") || "none"}
                         </div>
+                        {m.externalSuggestions.length > 0 ? (
+                          <div className="rounded-md border border-dashed border-border bg-background/50 p-2">
+                            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Already on file in another district — link to this one?
+                            </div>
+                            <ul className="space-y-1">
+                              {m.externalSuggestions.map(({ c, s }) => (
+                                <li key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                                  <span>
+                                    {c.full_name}
+                                    {c.party_short ? (
+                                      <span className="ml-1 text-muted-foreground">({c.party_short})</span>
+                                    ) : null}
+                                    <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px]">
+                                      {(s * 100).toFixed(0)}%
+                                    </span>
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => void linkToDistrict(i, c)}
+                                  >
+                                    <LinkIcon className="mr-1.5 h-3.5 w-3.5" />
+                                    Link to this district
+                                  </Button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
                         {drafts[i] ? (
                           <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-background/50 p-2">
                             <Input
