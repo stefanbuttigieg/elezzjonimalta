@@ -168,16 +168,28 @@ function ConfirmFromEcPage() {
       toast.error("No candidates found for this district.");
       return;
     }
+    const inDistrictIds = new Set(candidates.map((c) => c.id));
     const result: Match[] = names.map((rawName) => {
       const ranked = candidates
         .map((c) => ({ c, s: score(rawName, c.full_name) }))
         .sort((a, b) => b.s - a.s);
       const top = ranked[0];
+      const candidate = top && top.s >= 0.5 ? top.c : null;
+      // If no in-district match, look for someone we already have on file in another district.
+      const externalSuggestions = candidate
+        ? []
+        : allCandidates
+            .filter((c) => !inDistrictIds.has(c.id))
+            .map((c) => ({ c, s: score(rawName, c.full_name) }))
+            .filter((r) => r.s >= 0.6)
+            .sort((a, b) => b.s - a.s)
+            .slice(0, 3);
       return {
         rawName,
-        candidate: top && top.s >= 0.5 ? top.c : null,
+        candidate,
         scoreVal: top?.s ?? 0,
         alternatives: ranked.slice(0, 5),
+        externalSuggestions,
       };
     });
     setMatches(result);
