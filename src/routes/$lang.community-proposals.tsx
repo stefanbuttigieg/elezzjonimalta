@@ -250,17 +250,22 @@ function CommunityProposalsPage() {
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{desc}</p>
                   ) : null}
 
-                  {r.source_url ? (
-                    <a
-                      href={r.source_url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                    >
-                      {isMt ? "Sors" : "Source"}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : null}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    {r.source_url ? (
+                      <a
+                        href={r.source_url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      >
+                        {isMt ? "Sors" : "Source"}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : <span />}
+                    <span className="text-[11px] text-muted-foreground">
+                      {isMt ? "Aġġornat" : "Updated"} {formatUpdatedAt(r.updated_at, lang)}
+                    </span>
+                  </div>
 
                   {r.links.length > 0 ? (
                     <div className="mt-5 rounded-xl border border-border bg-background/50 p-4">
