@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Users, Link2, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 export const Route = createFileRoute("/$lang/community-proposals")({
   head: ({ params }) => {
