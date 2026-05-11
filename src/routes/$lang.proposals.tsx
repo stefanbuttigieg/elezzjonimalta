@@ -11,6 +11,7 @@ import { ExternalLink, Filter, FileText, Landmark, RotateCcw, Search, UserRound 
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const proposalSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
