@@ -79,19 +79,26 @@ function ConfirmFromEcPage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<string>("");
   const [candidates, setCandidates] = useState<CandRow[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
   const [pasted, setPasted] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [loadingCands, setLoadingCands] = useState(false);
+  // Per-unmatched-row draft for quick creation: name + party + busy flag.
+  const [drafts, setDrafts] = useState<Record<number, { name: string; partyId: string; busy: boolean }>>({});
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
-        .from("districts")
-        .select("id, number, name_en")
-        .order("number");
-      setDistricts((data ?? []) as District[]);
+      const [{ data: dRows }, { data: pRows }] = await Promise.all([
+        supabase.from("districts").select("id, number, name_en").order("number"),
+        supabase
+          .from("parties")
+          .select("id, short_name, name_en")
+          .order("short_name", { ascending: true, nullsFirst: false }),
+      ]);
+      setDistricts((dRows ?? []) as District[]);
+      setParties((pRows ?? []) as Party[]);
     })();
   }, []);
 
