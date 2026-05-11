@@ -375,17 +375,22 @@ function ProposalCard({ proposal, locale }: { proposal: ProposalRecord; locale: 
         </p>
       ) : null}
 
-      {proposal.source_url ? (
-        <a
-          href={proposal.source_url}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:underline"
-        >
-          {t("proposals.viewSource")}
-          <ExternalLink className="h-3.5 w-3.5" />
-        </a>
-      ) : null}
+      <div className="mt-5 flex items-center justify-between gap-3">
+        {proposal.source_url ? (
+          <a
+            href={proposal.source_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground hover:underline"
+          >
+            {t("proposals.viewSource")}
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        ) : <span />}
+        <span className="text-[11px] text-muted-foreground">
+          {locale === "mt" ? "Aġġornat" : "Updated"} {formatUpdatedAt(proposal.updated_at, locale)}
+        </span>
+      </div>
     </article>
   );
 }
