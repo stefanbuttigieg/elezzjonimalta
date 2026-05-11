@@ -93,15 +93,28 @@ function ConfirmFromEcPage() {
 
   useEffect(() => {
     void (async () => {
-      const [{ data: dRows }, { data: pRows }] = await Promise.all([
+      const [{ data: dRows }, { data: pRows }, { data: allRows }] = await Promise.all([
         supabase.from("districts").select("id, number, name_en").order("number"),
         supabase
           .from("parties")
           .select("id, short_name, name_en")
           .order("short_name", { ascending: true, nullsFirst: false }),
+        supabase
+          .from("candidates")
+          .select("id, full_name, commission_confirmed, party:parties(short_name)")
+          .order("full_name", { ascending: true })
+          .limit(2000),
       ]);
       setDistricts((dRows ?? []) as District[]);
       setParties((pRows ?? []) as Party[]);
+      setAllCandidates(
+        ((allRows ?? []) as Array<{ id: string; full_name: string; commission_confirmed: boolean; party: { short_name: string | null } | null }>).map((r) => ({
+          id: r.id,
+          full_name: r.full_name,
+          commission_confirmed: r.commission_confirmed,
+          party_short: r.party?.short_name ?? null,
+        })),
+      );
     })();
   }, []);
 
