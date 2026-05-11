@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,10 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { slugify } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin/candidates_/confirm-ec")({
   component: ConfirmFromEcPage,
 });
+
+type Party = { id: string; short_name: string | null; name_en: string };
 
 type District = { id: string; number: number; name_en: string };
 type CandRow = {
@@ -75,19 +79,26 @@ function ConfirmFromEcPage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<string>("");
   const [candidates, setCandidates] = useState<CandRow[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
   const [pasted, setPasted] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [loadingCands, setLoadingCands] = useState(false);
+  // Per-unmatched-row draft for quick creation: name + party + busy flag.
+  const [drafts, setDrafts] = useState<Record<number, { name: string; partyId: string; busy: boolean }>>({});
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
-        .from("districts")
-        .select("id, number, name_en")
-        .order("number");
-      setDistricts((data ?? []) as District[]);
+      const [{ data: dRows }, { data: pRows }] = await Promise.all([
+        supabase.from("districts").select("id, number, name_en").order("number"),
+        supabase
+          .from("parties")
+          .select("id, short_name, name_en")
+          .order("short_name", { ascending: true, nullsFirst: false }),
+      ]);
+      setDistricts((dRows ?? []) as District[]);
+      setParties((pRows ?? []) as Party[]);
     })();
   }, []);
 
@@ -155,10 +166,90 @@ function ConfirmFromEcPage() {
     });
     setMatches(result);
     const next: Record<string, boolean> = {};
-    result.forEach((m) => {
+    const nextDrafts: Record<number, { name: string; partyId: string; busy: boolean }> = {};
+    result.forEach((m, idx) => {
       if (m.candidate && !m.candidate.commission_confirmed) next[m.candidate.id] = true;
+      if (!m.candidate) nextDrafts[idx] = { name: m.rawName, partyId: "", busy: false };
     });
     setSelected(next);
+    setDrafts(nextDrafts);
+  };
+
+  const createNewCandidate = async (idx: number) => {
+    const draft = drafts[idx];
+    if (!draft) return;
+    const fullName = draft.name.trim();
+    if (fullName.length < 3) {
+      toast.error("Enter a name (at least 3 characters).");
+      return;
+    }
+    if (!districtId) return;
+    setDrafts((d) => ({ ...d, [idx]: { ...draft, busy: true } }));
+    // Build a unique slug, retrying with a numeric suffix on collision.
+    const baseSlug = slugify(fullName) || `candidate-${Date.now()}`;
+    let slug = baseSlug;
+    let inserted: { id: string; full_name: string } | null = null;
+    let lastErr: string | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { data, error } = await supabase
+        .from("candidates")
+        .insert({
+          full_name: fullName,
+          slug,
+          primary_district_id: districtId,
+          party_id: draft.partyId || null,
+          status: "pending_review",
+          commission_confirmed: true,
+          commission_confirmed_at: new Date().toISOString(),
+          imported_from: "electoral-commission",
+        })
+        .select("id, full_name")
+        .single();
+      if (!error && data) {
+        inserted = data;
+        break;
+      }
+      lastErr = error?.message ?? null;
+      if (error?.code === "23505") {
+        slug = `${baseSlug}-${attempt + 2}`;
+        continue;
+      }
+      break;
+    }
+    if (!inserted) {
+      setDrafts((d) => ({ ...d, [idx]: { ...draft, busy: false } }));
+      toast.error(lastErr ?? "Could not create candidate.");
+      return;
+    }
+    // Link to the district for the 2026 election (mirrors existing pattern).
+    await supabase
+      .from("candidate_districts")
+      .insert({
+        candidate_id: inserted.id,
+        district_id: districtId,
+        election_year: 2026,
+        elected: false,
+      });
+
+    const partyShort = parties.find((p) => p.id === draft.partyId)?.short_name ?? null;
+    const newRow: CandRow = {
+      id: inserted.id,
+      full_name: inserted.full_name,
+      commission_confirmed: true,
+      party_short: partyShort,
+    };
+    setCandidates((cs) =>
+      [...cs, newRow].sort((a, b) => a.full_name.localeCompare(b.full_name)),
+    );
+    setMatches((all) =>
+      all.map((m, i) => (i === idx ? { ...m, candidate: newRow, scoreVal: 1 } : m)),
+    );
+    setDrafts((d) => {
+      const copy = { ...d };
+      delete copy[idx];
+      return copy;
+    });
+    toast.success(`Created ${fullName} and marked as confirmed.`);
   };
 
   const toConfirmIds = useMemo(
@@ -309,13 +400,56 @@ function ConfirmFromEcPage() {
                         ) : null}
                       </div>
                     ) : (
-                      <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                        No confident match. Top guesses:{" "}
-                        {m.alternatives
-                          .filter((a) => a.s > 0)
-                          .slice(0, 3)
-                          .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
-                          .join(", ") || "none"}
+                      <div className="mt-1 space-y-2">
+                        <div className="text-xs text-amber-700 dark:text-amber-400">
+                          No confident match. Top guesses:{" "}
+                          {m.alternatives
+                            .filter((a) => a.s > 0)
+                            .slice(0, 3)
+                            .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
+                            .join(", ") || "none"}
+                        </div>
+                        {drafts[i] ? (
+                          <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-background/50 p-2">
+                            <Input
+                              value={drafts[i].name}
+                              onChange={(e) =>
+                                setDrafts((d) => ({
+                                  ...d,
+                                  [i]: { ...d[i], name: e.target.value },
+                                }))
+                              }
+                              placeholder="Full name"
+                              className="h-8 max-w-[220px] text-xs"
+                            />
+                            <select
+                              value={drafts[i].partyId}
+                              onChange={(e) =>
+                                setDrafts((d) => ({
+                                  ...d,
+                                  [i]: { ...d[i], partyId: e.target.value },
+                                }))
+                              }
+                              className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                            >
+                              <option value="">— party (optional) —</option>
+                              {parties.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.short_name ?? p.name_en}
+                                </option>
+                              ))}
+                            </select>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={drafts[i].busy}
+                              onClick={() => void createNewCandidate(i)}
+                            >
+                              <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                              {drafts[i].busy ? "Creating…" : "Create new candidate"}
+                            </Button>
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </div>
