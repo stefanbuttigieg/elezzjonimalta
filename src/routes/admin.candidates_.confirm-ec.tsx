@@ -80,6 +80,8 @@ function ConfirmFromEcPage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<string>("");
   const [candidates, setCandidates] = useState<CandRow[]>([]);
+  // All candidates across districts — used to suggest existing people we can link to this district.
+  const [allCandidates, setAllCandidates] = useState<CandRow[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [pasted, setPasted] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
