@@ -92,7 +92,7 @@ function CommunityProposalsPage() {
       const { data, error } = await supabase
         .from("community_proposals")
         .select(
-          "id,title_en,title_mt,description_en,description_mt,category,source_url," +
+          "id,title_en,title_mt,description_en,description_mt,category,source_url,updated_at," +
             "author:community_authors(id,slug,name,kind,bio_en,bio_mt,logo_url,website)," +
             "links:community_proposal_links(party_proposal:proposals(id,title_en,title_mt,party:parties(slug,name_en,name_mt,short_name,color)))",
         )
