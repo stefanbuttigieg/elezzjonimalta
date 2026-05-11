@@ -400,13 +400,56 @@ function ConfirmFromEcPage() {
                         ) : null}
                       </div>
                     ) : (
-                      <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                        No confident match. Top guesses:{" "}
-                        {m.alternatives
-                          .filter((a) => a.s > 0)
-                          .slice(0, 3)
-                          .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
-                          .join(", ") || "none"}
+                      <div className="mt-1 space-y-2">
+                        <div className="text-xs text-amber-700 dark:text-amber-400">
+                          No confident match. Top guesses:{" "}
+                          {m.alternatives
+                            .filter((a) => a.s > 0)
+                            .slice(0, 3)
+                            .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
+                            .join(", ") || "none"}
+                        </div>
+                        {drafts[i] ? (
+                          <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-background/50 p-2">
+                            <Input
+                              value={drafts[i].name}
+                              onChange={(e) =>
+                                setDrafts((d) => ({
+                                  ...d,
+                                  [i]: { ...d[i], name: e.target.value },
+                                }))
+                              }
+                              placeholder="Full name"
+                              className="h-8 max-w-[220px] text-xs"
+                            />
+                            <select
+                              value={drafts[i].partyId}
+                              onChange={(e) =>
+                                setDrafts((d) => ({
+                                  ...d,
+                                  [i]: { ...d[i], partyId: e.target.value },
+                                }))
+                              }
+                              className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                            >
+                              <option value="">— party (optional) —</option>
+                              {parties.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.short_name ?? p.name_en}
+                                </option>
+                              ))}
+                            </select>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={drafts[i].busy}
+                              onClick={() => void createNewCandidate(i)}
+                            >
+                              <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                              {drafts[i].busy ? "Creating…" : "Create new candidate"}
+                            </Button>
+                          </div>
+                        ) : null}
                       </div>
                     )}
                   </div>
