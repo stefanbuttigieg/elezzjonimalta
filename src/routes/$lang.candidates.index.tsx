@@ -62,7 +62,7 @@ async function loadCandidates({
   let candidatesQuery = supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
     )
     .eq("status", "published")
     .eq("electoral_confirmed", true)
