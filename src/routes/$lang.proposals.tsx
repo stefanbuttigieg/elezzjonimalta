@@ -44,6 +44,7 @@ type ProposalRecord = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
   party: PartyOption | null;
   candidate: CandidateOption | null;
 };
