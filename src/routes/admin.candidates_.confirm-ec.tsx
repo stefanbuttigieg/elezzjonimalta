@@ -73,6 +73,7 @@ type Match = {
   candidate: CandRow | null;
   scoreVal: number;
   alternatives: { c: CandRow; s: number }[];
+  externalSuggestions: { c: CandRow; s: number }[];
 };
 
 function ConfirmFromEcPage() {
