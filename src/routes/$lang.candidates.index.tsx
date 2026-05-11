@@ -328,6 +328,9 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
           </a>
         ) : null}
       </div>
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        {locale === "mt" ? "Aġġornat l-aħħar" : "Last updated"}: {formatUpdatedAt(candidate.updated_at, locale)}
+      </p>
     </article>
   );
 }
