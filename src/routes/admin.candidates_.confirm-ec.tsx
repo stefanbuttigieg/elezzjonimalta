@@ -485,6 +485,36 @@ function ConfirmFromEcPage() {
                             .map((a) => `${a.c.full_name} (${(a.s * 100).toFixed(0)}%)`)
                             .join(", ") || "none"}
                         </div>
+                        {m.externalSuggestions.length > 0 ? (
+                          <div className="rounded-md border border-dashed border-border bg-background/50 p-2">
+                            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                              Already on file in another district — link to this one?
+                            </div>
+                            <ul className="space-y-1">
+                              {m.externalSuggestions.map(({ c, s }) => (
+                                <li key={c.id} className="flex items-center justify-between gap-2 text-xs">
+                                  <span>
+                                    {c.full_name}
+                                    {c.party_short ? (
+                                      <span className="ml-1 text-muted-foreground">({c.party_short})</span>
+                                    ) : null}
+                                    <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px]">
+                                      {(s * 100).toFixed(0)}%
+                                    </span>
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => void linkToDistrict(i, c)}
+                                  >
+                                    <LinkIcon className="mr-1.5 h-3.5 w-3.5" />
+                                    Link to this district
+                                  </Button>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
                         {drafts[i] ? (
                           <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-border bg-background/50 p-2">
                             <Input
