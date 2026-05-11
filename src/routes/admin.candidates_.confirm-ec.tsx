@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Sparkles, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,10 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { slugify } from "@/lib/admin";
 
 export const Route = createFileRoute("/admin/candidates_/confirm-ec")({
   component: ConfirmFromEcPage,
 });
+
+type Party = { id: string; short_name: string | null; name_en: string };
 
 type District = { id: string; number: number; name_en: string };
 type CandRow = {
