@@ -44,6 +44,7 @@ type CandidateRecord = {
   website: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  updated_at: string;
   party: PartyOption | null;
   district: DistrictOption | null;
 };
