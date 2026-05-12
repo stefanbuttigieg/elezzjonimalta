@@ -6,4 +6,17 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+// Relax TanStack Start's import-protection file pattern back to the upstream default
+// `**/*.server.*`. Some hosted environments use a stricter `**/server/**` rule that
+// also blocks `src/server/*.functions.ts` server-function files — but those are
+// `createServerFn()` modules that get RPC-bridged at build time and are meant to be
+// imported from the client.
+export default defineConfig({
+  tanstackStart: {
+    importProtection: {
+      client: {
+        files: ["**/*.server.*"],
+      },
+    },
+  },
+});
