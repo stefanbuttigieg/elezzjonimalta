@@ -169,10 +169,23 @@ async function loadDistricts() {
     partyBreakdown[districtId] = entries;
   }
 
+  // Per-district latest proposal update across any party with candidates here.
+  const latestUpdateByDistrict: Record<string, string> = {};
+  for (const [districtId, inner] of breakdown.entries()) {
+    let best: string | null = null;
+    for (const partyKey of inner.keys()) {
+      if (partyKey === "__independent__") continue;
+      const ts = latestUpdateByParty.get(partyKey);
+      if (ts && (!best || ts > best)) best = ts;
+    }
+    if (best) latestUpdateByDistrict[districtId] = best;
+  }
+
   return {
     districts: (districtsResult.data ?? []) as DistrictRecord[],
     candidateCounts: Object.fromEntries(counts) as Record<string, number>,
     partyBreakdown,
+    latestUpdateByDistrict,
   };
 }
 
