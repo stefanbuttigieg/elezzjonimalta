@@ -95,7 +95,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
   const linkedRes = await supabase
     .from("candidate_districts")
     .select(
-      "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
+      "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, commission_confirmed, leadership_role, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
     )
     .eq("district_id", districtTyped.id)
     .eq("election_year", 2026);
