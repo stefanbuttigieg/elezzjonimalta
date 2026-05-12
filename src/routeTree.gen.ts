@@ -23,6 +23,7 @@ import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
 import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
 import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
 import { Route as AdminNewsRouteImport } from './routes/admin.news'
+import { Route as AdminManifestoImportsRouteImport } from './routes/admin.manifesto-imports'
 import { Route as AdminDuplicatesRouteImport } from './routes/admin.duplicates'
 import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
 import { Route as AdminDisclaimersRouteImport } from './routes/admin.disclaimers'
@@ -132,6 +133,11 @@ const AdminPartiesRoute = AdminPartiesRouteImport.update({
 const AdminNewsRoute = AdminNewsRouteImport.update({
   id: '/news',
   path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminManifestoImportsRoute = AdminManifestoImportsRouteImport.update({
+  id: '/manifesto-imports',
+  path: '/manifesto-imports',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDuplicatesRoute = AdminDuplicatesRouteImport.update({
@@ -370,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/duplicates': typeof AdminDuplicatesRoute
+  '/admin/manifesto-imports': typeof AdminManifestoImportsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -424,6 +431,7 @@ export interface FileRoutesByTo {
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/duplicates': typeof AdminDuplicatesRoute
+  '/admin/manifesto-imports': typeof AdminManifestoImportsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -481,6 +489,7 @@ export interface FileRoutesById {
   '/admin/disclaimers': typeof AdminDisclaimersRoute
   '/admin/districts': typeof AdminDistrictsRoute
   '/admin/duplicates': typeof AdminDuplicatesRoute
+  '/admin/manifesto-imports': typeof AdminManifestoImportsRoute
   '/admin/news': typeof AdminNewsRoute
   '/admin/parties': typeof AdminPartiesRoute
   '/admin/proposals': typeof AdminProposalsRoute
@@ -539,6 +548,7 @@ export interface FileRouteTypes {
     | '/admin/disclaimers'
     | '/admin/districts'
     | '/admin/duplicates'
+    | '/admin/manifesto-imports'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -593,6 +603,7 @@ export interface FileRouteTypes {
     | '/admin/disclaimers'
     | '/admin/districts'
     | '/admin/duplicates'
+    | '/admin/manifesto-imports'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/admin/disclaimers'
     | '/admin/districts'
     | '/admin/duplicates'
+    | '/admin/manifesto-imports'
     | '/admin/news'
     | '/admin/parties'
     | '/admin/proposals'
@@ -783,6 +795,13 @@ declare module '@tanstack/react-router' {
       path: '/news'
       fullPath: '/admin/news'
       preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/manifesto-imports': {
+      id: '/admin/manifesto-imports'
+      path: '/manifesto-imports'
+      fullPath: '/admin/manifesto-imports'
+      preLoaderRoute: typeof AdminManifestoImportsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/duplicates': {
@@ -1136,6 +1155,7 @@ interface AdminRouteChildren {
   AdminDisclaimersRoute: typeof AdminDisclaimersRoute
   AdminDistrictsRoute: typeof AdminDistrictsRoute
   AdminDuplicatesRoute: typeof AdminDuplicatesRoute
+  AdminManifestoImportsRoute: typeof AdminManifestoImportsRoute
   AdminNewsRoute: typeof AdminNewsRoute
   AdminPartiesRoute: typeof AdminPartiesRoute
   AdminProposalsRoute: typeof AdminProposalsRoute
@@ -1160,6 +1180,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDisclaimersRoute: AdminDisclaimersRoute,
   AdminDistrictsRoute: AdminDistrictsRoute,
   AdminDuplicatesRoute: AdminDuplicatesRoute,
+  AdminManifestoImportsRoute: AdminManifestoImportsRoute,
   AdminNewsRoute: AdminNewsRoute,
   AdminPartiesRoute: AdminPartiesRoute,
   AdminProposalsRoute: AdminProposalsRoute,
