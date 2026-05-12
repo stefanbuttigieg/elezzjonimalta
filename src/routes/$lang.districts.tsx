@@ -215,7 +215,7 @@ function DistrictsPage() {
   const navigate = useNavigate({ from: "/$lang/districts" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { districts, candidateCounts, partyBreakdown } = Route.useLoaderData();
+  const { districts, candidateCounts, partyBreakdown, latestUpdateByDistrict } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
 
   const updateSearch = (patch: Partial<typeof search>) => {
