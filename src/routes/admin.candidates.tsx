@@ -347,62 +347,62 @@ function CandidatesAdmin() {
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <select
+        <MultiSelectFilter
+          label="Statuses"
+          allLabel="All statuses"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as ReviewStatus | "all")}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All statuses</option>
-          <option value="pending_review">Pending review</option>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
-        </select>
-        <select
+          onChange={setStatusFilter}
+          options={[
+            { value: "pending_review", label: "Pending review" },
+            { value: "draft", label: "Draft" },
+            { value: "published", label: "Published" },
+            { value: "archived", label: "Archived" },
+          ]}
+        />
+        <MultiSelectFilter
+          label="Parties"
+          allLabel="All parties"
           value={partyFilter}
-          onChange={(e) => setPartyFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All parties</option>
-          <option value="none">No party (independent)</option>
-          {parties.map((p) => (
-            <option key={p.id} value={p.id}>{p.name_en}</option>
-          ))}
-        </select>
-        <select
+          onChange={setPartyFilter}
+          options={[
+            { value: "none", label: "No party (independent)" },
+            ...parties.map((p) => ({ value: p.id, label: p.name_en })),
+          ]}
+        />
+        <MultiSelectFilter
+          label="Districts"
+          allLabel="All districts"
           value={districtFilter}
-          onChange={(e) => setDistrictFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All districts</option>
-          <option value="none">No primary district</option>
-          {districts.map((d) => (
-            <option key={d.id} value={d.id}>{d.number} · {d.name_en}</option>
-          ))}
-        </select>
-        <select
+          onChange={setDistrictFilter}
+          options={[
+            { value: "none", label: "No primary district" },
+            ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` })),
+          ]}
+        />
+        <MultiSelectFilter
+          label="Leadership"
+          allLabel="Any leadership"
           value={leadershipFilter}
-          onChange={(e) => setLeadershipFilter(e.target.value as typeof leadershipFilter)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">Any leadership</option>
-          <option value="any">Leader or Deputy</option>
-          <option value="leader">Leader only</option>
-          <option value="deputy_leader">Deputy Leader only</option>
-          <option value="none">No leadership role</option>
-        </select>
-        <select
+          onChange={setLeadershipFilter}
+          options={[
+            { value: "leader", label: "Leader" },
+            { value: "deputy_leader", label: "Deputy Leader" },
+            { value: "none", label: "No leadership role" },
+          ]}
+        />
+        <MultiSelectFilter
+          label="Flags"
+          allLabel="Any flag"
           value={flagFilter}
-          onChange={(e) => setFlagFilter(e.target.value as typeof flagFilter)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">Any flag</option>
-          <option value="mp">Sitting MP</option>
-          <option value="news">Confirmed via news</option>
-          <option value="commission">Confirmed by Commission</option>
-          <option value="unconfirmed">Unconfirmed</option>
-          <option value="not_contesting">Not contesting 2026</option>
-        </select>
+          onChange={setFlagFilter}
+          options={[
+            { value: "mp", label: "Sitting MP" },
+            { value: "news", label: "Confirmed via news" },
+            { value: "commission", label: "Confirmed by Commission" },
+            { value: "unconfirmed", label: "Unconfirmed" },
+            { value: "not_contesting", label: "Not contesting 2026" },
+          ]}
+        />
         {filtersActive ? (
           <button
             onClick={resetFilters}
