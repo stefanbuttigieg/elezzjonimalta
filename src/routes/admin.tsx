@@ -30,6 +30,7 @@ import {
   Sparkles,
   AlertTriangle,
   BookOpen,
+  BookUp,
 } from "lucide-react";
 import {
   Sheet,
@@ -60,6 +61,7 @@ const items: NavItem[] = [
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
+  { to: "/admin/manifesto-imports", label: "Manifesto imports", icon: BookUp },
   { to: "/admin/community-proposals", label: "Community proposals", icon: Users },
   { to: "/admin/community-authors", label: "Community authors", icon: Users },
   { to: "/admin/duplicates", label: "Duplicates", icon: FileText },

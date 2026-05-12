@@ -342,3 +342,32 @@ export const createManifestoUploadUrl = createServerFn({ method: "POST" })
       return { ok: false as const, error: message };
     }
   });
+
+// ---------------------------------------------------------------------------
+// 6. List recent manifesto imports (for the admin job-list page)
+// ---------------------------------------------------------------------------
+
+const ListInput = z.object({
+  limit: z.number().int().min(1).max(200).default(50),
+});
+
+export const listManifestoImports = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => ListInput.parse(input ?? {}))
+  .handler(async ({ data, context }) => {
+    try {
+      await assertStaff(context.supabase as never);
+      const { data: rows, error } = await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .select(
+          "id, party_id, source_url, source_kind, file_path, language, status, stage, progress, error, page_count, created_at, updated_at, finished_at, summary, party:parties(id, name_en, short_name)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(data.limit);
+      if (error) return { ok: false as const, error: error.message };
+      return { ok: true as const, rows: rows ?? [] };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { ok: false as const, error: message };
+    }
+  });
