@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, deleteRow, usePersistentEditor, type ReviewStatus } from "@/lib/admin";
 import {
@@ -25,7 +27,12 @@ import {
 import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 import { bulkCategoriseProposals } from "@/server/bulkCategoriseProposals.functions";
 
+const proposalsSearchSchema = z.object({
+  import: fallback(z.string().uuid().optional(), undefined),
+});
+
 export const Route = createFileRoute("/admin/proposals")({
+  validateSearch: zodValidator(proposalsSearchSchema),
   component: ProposalsAdmin,
 });
 
