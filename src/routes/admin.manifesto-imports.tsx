@@ -2,8 +2,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listManifestoImports } from "@/server/manifestoImport.functions";
-import { CheckCircle2, AlertTriangle, Loader2, FileText, ExternalLink, RefreshCw } from "lucide-react";
+import { cancelManifestoImport, listManifestoImports } from "@/server/manifestoImport.functions";
+import { CheckCircle2, AlertTriangle, Loader2, FileText, ExternalLink, RefreshCw, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/manifesto-imports")({
   component: ManifestoImportsAdmin,
@@ -117,7 +117,7 @@ function ManifestoImportsAdmin() {
                 </td>
               </tr>
             ) : (
-              rows.map((r) => <ImportRow key={r.id} row={r} />)
+              rows.map((r) => <ImportRow key={r.id} row={r} onChanged={() => setRows((prev) => prev.map((x) => x.id === r.id ? { ...x, status: "cancelled", stage: "Cancelled" } : x))} />)
             )}
           </tbody>
         </table>
@@ -126,7 +126,9 @@ function ManifestoImportsAdmin() {
   );
 }
 
-function ImportRow({ row }: { row: Row }) {
+function ImportRow({ row, onChanged }: { row: Row; onChanged: () => void }) {
+  const cancelFn = useServerFn(cancelManifestoImport);
+  const [cancelling, setCancelling] = useState(false);
   const partyLabel = row.party?.short_name || row.party?.name_en || "—";
   const sourceLabel = row.source_url
     ? safeHostname(row.source_url)
@@ -136,6 +138,19 @@ function ImportRow({ row }: { row: Row }) {
   const summary = row.summary && typeof row.summary === "object"
     ? (row.summary as { created?: number; updated?: number; skipped?: number; errors?: unknown[] })
     : null;
+
+  const canCancel = row.status === "processing" || row.status === "ready";
+  const handleCancel = async () => {
+    if (!confirm("Cancel this import? Any extracted rows will be discarded.")) return;
+    setCancelling(true);
+    try {
+      const res = await cancelFn({ data: { importId: row.id } });
+      if (!res.ok) alert(res.error);
+      else onChanged();
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   return (
     <tr className="border-t border-border align-top">
@@ -195,13 +210,26 @@ function ImportRow({ row }: { row: Row }) {
         {row.finished_at ? formatDateTime(row.finished_at) : "—"}
       </td>
       <td className="px-4 py-3 text-right">
-        <Link
-          to="/admin/proposals"
-          search={{ import: row.id }}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold hover:bg-accent"
-        >
-          {row.status === "ready" ? "Review" : row.status === "processing" ? "Open" : "Reopen"}
-        </Link>
+        <div className="inline-flex items-center gap-1.5">
+          {canCancel ? (
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-50"
+            >
+              {cancelling ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
+              Cancel
+            </button>
+          ) : null}
+          <Link
+            to="/admin/proposals"
+            search={{ import: row.id }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold hover:bg-accent"
+          >
+            {row.status === "ready" ? "Review" : row.status === "processing" ? "Open" : "Reopen"}
+          </Link>
+        </div>
       </td>
     </tr>
   );
