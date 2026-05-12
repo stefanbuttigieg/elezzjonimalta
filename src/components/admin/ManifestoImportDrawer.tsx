@@ -382,6 +382,8 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
                 sourceKind={row.source_kind}
                 logs={row.logs}
                 pollError={pollError}
+                onRetry={handleRetry}
+                retrying={retrying}
               />
             ) : (
               <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">
