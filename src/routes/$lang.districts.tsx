@@ -7,11 +7,12 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ExternalLink, Filter, Map as MapIcon, RotateCcw, Search, Users } from "lucide-react";
+import { ExternalLink, Filter, History, Map as MapIcon, RotateCcw, Search, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const districtSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -52,7 +53,7 @@ export type PartyBreakdownEntry = {
 };
 
 async function loadDistricts() {
-  const [districtsResult, candidatesResult, partiesResult, linkedResult] = await Promise.all([
+  const [districtsResult, candidatesResult, partiesResult, linkedResult, proposalsLatestResult] = await Promise.all([
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt, source_url")
@@ -69,6 +70,14 @@ async function loadDistricts() {
       .from("candidate_districts")
       .select("candidate_id, district_id, election_year")
       .eq("election_year", 2026),
+    supabase
+      .from("proposals")
+      .select("party_id, updated_at")
+      .eq("status", "published")
+      .is("merged_into_id", null)
+      .not("party_id", "is", null)
+      .order("updated_at", { ascending: false })
+      .limit(2000),
   ]);
 
   if (districtsResult.error) throw districtsResult.error;
