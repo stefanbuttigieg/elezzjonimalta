@@ -371,11 +371,13 @@ function DistrictCard({
   locale,
   candidateCount,
   partyBreakdown,
+  latestProposalUpdate,
 }: {
   district: DistrictRecord;
   locale: Locale;
   candidateCount: number;
   partyBreakdown: PartyBreakdownEntry[];
+  latestProposalUpdate: string | null;
 }) {
   const t = useT();
   const name =
