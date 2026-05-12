@@ -83,14 +83,16 @@ export const startCommunityImport = createServerFn({ method: "POST" })
         },
       });
 
-      void runCommunityImport({
-        importId,
-        authorId: data.authorId,
-        language: data.language,
-        sourceKind: data.sourceKind,
-        sourceUrl: data.sourceUrl ?? null,
-        filePath: data.uploadedFilePath ?? null,
-      });
+      runInBackground(
+        runCommunityImport({
+          importId,
+          authorId: data.authorId,
+          language: data.language,
+          sourceKind: data.sourceKind,
+          sourceUrl: data.sourceUrl ?? null,
+          filePath: data.uploadedFilePath ?? null,
+        }),
+      );
 
       return { ok: true as const, importId };
     } catch (err) {
