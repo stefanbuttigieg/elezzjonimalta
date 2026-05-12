@@ -1224,3 +1224,79 @@ function FindPhotoRowButton({
     </button>
   );
 }
+
+interface MultiSelectFilterProps {
+  label: string;
+  allLabel: string;
+  value: Set<string>;
+  onChange: (next: Set<string>) => void;
+  options: { value: string; label: string }[];
+}
+
+function MultiSelectFilter({ label, allLabel, value, onChange, options }: MultiSelectFilterProps) {
+  const [open, setOpen] = useState(false);
+  const count = value.size;
+  const summary = count === 0
+    ? allLabel
+    : count === 1
+      ? (options.find((o) => o.value === Array.from(value)[0])?.label ?? `${count} selected`)
+      : `${label}: ${count}`;
+  const toggle = (v: string) => {
+    const next = new Set(value);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChange(next);
+  };
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
+          count > 0
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border bg-background"
+        }`}
+      >
+        <span className="max-w-[14rem] truncate">{summary}</span>
+        {count > 0 ? (
+          <span className="rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+            {count}
+          </span>
+        ) : null}
+      </button>
+      {open ? (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full z-20 mt-1 max-h-72 w-64 overflow-auto rounded-md border border-border bg-popover p-2 shadow-lg">
+            <div className="mb-1 flex items-center justify-between px-1 text-xs text-muted-foreground">
+              <span>{label}</span>
+              {count > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => onChange(new Set())}
+                  className="text-primary hover:underline"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            {options.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+              >
+                <input
+                  type="checkbox"
+                  checked={value.has(opt.value)}
+                  onChange={() => toggle(opt.value)}
+                />
+                <span className="truncate">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
