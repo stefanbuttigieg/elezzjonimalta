@@ -42,6 +42,7 @@ All routes are localised under `/en/...` or `/mt/...`.
 | `/parties` | Party directory |
 | `/parties/:slug` | Party detail: leadership, history, candidates, proposals |
 | `/proposals` | Policy proposals across candidates and parties, with category filters |
+| `/community-proposals` | Election wishlists from NGOs, unions and individuals, linked to party proposals |
 | `/compare` | Side-by-side **candidate comparison** (up to 4 at a time) |
 | `/ask` | AI assistant grounded in the database |
 | `/resources` | Voter guides and external references |
@@ -89,11 +90,14 @@ candidates, and key election developments. Findings are queued for staff
 review with confidence scores and source links, and each can be **converted in
 one click** into a new candidate, an update to an existing candidate, a new
 proposal, or a new party — auto-linking the source URL and writing to the
-admin audit log. Staff can also paste any article URL to scan it on demand.
-The Convert dialog supports **AI auto-fill** — re-scraping the article and
-pre-populating the target form (with valid party/district/candidate IDs from
-existing records) — and lets staff create **multiple proposals from a single
-article** in one batch save when the source contains several pledges.
+admin audit log. Staff can paste **one or more article URLs** (newline / comma
+separated) to scan them on demand; results are summarised per URL with the
+classification kind and confidence. The Convert dialog supports **AI auto-fill**
+— re-scraping the article and pre-populating the target form (with valid
+party/district/candidate IDs from existing records) — and lets staff create
+**multiple proposals or multiple candidates from a single article** in one
+batch save when the source covers several pledges or announces several
+nominations at once.
 
 ### Admin: API Request Logging
 The admin section includes an **API logs viewer** that records every call to
@@ -159,7 +163,48 @@ manifesto PDFs. The Review step shows a split layout — the extracted
 proposals on the left and a live PDF viewer on the right that jumps to
 the source page for the selected row, with the AI's verbatim quote
 displayed above the PDF for side-by-side verification before applying
-changes.
+changes. A dedicated **`/admin/manifesto-imports`** workspace lists every
+import job with live status, a 0–100 % progress bar, page count, source
+link, and per-row **Retry** / **Cancel** actions so stuck or failed jobs
+can be recovered without leaving the admin. Background work is scheduled
+through Cloudflare Workers' `waitUntil` (`runInBackground`) so long
+extractions survive the originating request returning. Failed jobs surface
+a structured error panel with the failure message, the stage at failure,
+source URL / file path, a collapsible stack trace, a chronological
+percentage log, and a one-click "copy full dump" for sharing.
+
+### Community Proposals (NGOs, Unions, Individuals)
+A public **`/community-proposals`** page lists election wishlists authored
+by non-party voices — NGOs, unions, businesses, academics, faith groups
+and individuals — each linked back, where applicable, to the matching
+party proposal so voters can see which existing party promises echo a
+community ask. Two admin workspaces back it: **`/admin/community-authors`**
+(slug, kind, bio, logo, website, source URL, status) and
+**`/admin/community-proposals`** (bilingual title/description, category,
+source URL, links to party proposals, status). Authors and proposals
+follow the same Draft / Pending review / Published / Archived workflow as
+the rest of the site, gated by RLS.
+
+### Community Proposals Import
+Admins can ingest a community author's wishlist from a URL or uploaded
+PDF/HTML file (EN, MT, or both) via a multi-step drawer. Extraction
+streams a live progress bar; the review step opens a table with per-row
+**create / update / skip** decisions, fuzzy-match suggestions against the
+same author's existing entries (PostgreSQL trigram similarity via a
+`find_similar_community_proposals` SQL helper), and a single batch apply
+step. Runs are persisted in `community_imports` with archived source
+files and a chronological progress log for traceability.
+
+### Electoral Commission Confirmation Tool
+The **`/admin/candidates/confirm-ec`** page lets staff paste the official
+EC nominations list for a district and fuzzy-match each name (token
+Jaccard score) against the existing candidate database. From the review
+panel they can confirm matches in bulk, **link candidates already on
+file in another district** to the current one in a single click (writing
+a 2026 `candidate_districts` row and setting `commission_confirmed`), or
+**create brand-new candidates inline** for unmatched names with a party
+selector — all without leaving the page. Each EC confirmation now also
+stamps `commission_confirmed_at` on the candidate record.
 
 ### Automated Candidate Photo Retrieval
 Admins can fill in missing candidate portraits with a bulk "Find missing
@@ -186,6 +231,28 @@ categories or status changed and by whom.
 The admin candidates table supports per-user column selection so staff
 can hide or show fields (status, flags, leadership, district, etc.)
 based on what they're working on; the choice persists across sessions.
+
+### Multi-Select Filters in Admin Candidates
+The candidates admin filter bar (status, party, district, leadership
+role, flags) accepts multiple values per facet through a popover with
+search and "All …" reset, alongside a global "Clear filters" button and
+a live "n of m" result count.
+
+### "Last Updated" Freshness Across the Site
+The homepage stats strip shows the most recent change across candidates,
+proposals, parties, districts and FAQs, and "Last updated" labels appear
+on the candidates index, proposals index, districts list, district
+detail pages and each party's promises pane so voters can see at a
+glance how fresh the data is.
+
+### Robust Candidate Avatars
+A shared `CandidateAvatar` component renders a coloured initials chip
+(or an icon, configurable) whenever a candidate's `photo_url` is missing
+or fails to load, replacing broken-image placeholders across listings,
+district pages and candidate detail views. Candidate tiles on district
+pages also display inline badges for **Leader**, **Deputy Leader** and
+**EC-confirmed** alongside the incumbent / confirmed / prospective
+status text.
 
 ### Fair Party Promises on District Pages
 Each district page's "What parties here are promising" sidebar loads the

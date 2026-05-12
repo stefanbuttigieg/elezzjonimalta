@@ -4,7 +4,103 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-08
+## [Unreleased] — 2026-05-12
+
+### Added
+- **Community proposals (NGOs, unions, individuals).** A new public page
+  at `/community-proposals` lists election wishlists authored by
+  non-party voices — NGOs, unions, businesses, academics, faith groups
+  and individuals — each linked back, where applicable, to the matching
+  party proposal so voters can see who is echoing whose ideas. Two new
+  admin workspaces back it: `/admin/community-authors` (slug, kind, bio,
+  logo, website, source URL, status) and `/admin/community-proposals`
+  (bilingual title/description, category, source URL, links to party
+  proposals, status). Schema covers a `community_authors` table, a
+  `community_proposals` table and a `community_proposal_links` join.
+- **Community proposals import drawer.** Admins can ingest a community
+  author's wishlist from a URL or uploaded PDF/HTML file (EN, MT, or
+  both). The drawer streams extraction progress, then opens a review
+  table with per-row create/update/skip decisions, fuzzy-match
+  suggestions against the same author's existing entries (trigram
+  similarity via a `find_similar_community_proposals` SQL helper) and
+  a single batch apply step. Runs are persisted in `community_imports`
+  with archived source files for traceability.
+- **Manifesto imports admin (`/admin/manifesto-imports`).** New
+  job-list page for the manifesto importer, with live status, stage,
+  page count, progress bar and per-row links back to the source PDF,
+  auto-refreshing every few seconds while any job is running. Each
+  row exposes **Retry** (re-runs a failed/cancelled job) and **Cancel**
+  (frees a stuck "Queued…" job) actions wired to the new
+  `retryManifestoImport` / `cancelManifestoImport` server functions.
+  The same retry/cancel controls are surfaced inside the import drawer.
+- **Import progress bar UI + error-detail panel.** Both the manifesto
+  and community importers now expose a true 0–100 % progress bar driven
+  by a new `progress` column, plus a structured error panel
+  (`ImportErrorDetails`) that shows the failure message, the stage at
+  failure, source URL / file path, a collapsible stack trace, a
+  copy-to-clipboard "full dump", and a chronological log of stages and
+  percentages — all without leaving the drawer.
+- **Background processing for imports (Cloudflare `waitUntil`).** A
+  new `runInBackground` helper hands long-running import promises to
+  the platform's `waitUntil` so jobs no longer get stuck at "Queued…"
+  when the originating request returns. Falls back to unawaited
+  execution in Node dev environments.
+- **EC nomination confirmation tool (`/admin/candidates/confirm-ec`).**
+  Staff can paste an Electoral Commission nominations list for a
+  district and have the tool fuzzy-match each name against existing
+  candidates (token Jaccard score), confirm matches in bulk, and:
+  - **Link candidates already on file in another district** to the
+    current district in one click (writes a `candidate_districts` row
+    for 2026 and sets `commission_confirmed`).
+  - **Create brand-new candidates inline** from unmatched names —
+    enter a party, save, and the row is inserted with a unique slug,
+    `commission_confirmed = true`, `imported_from = 'electoral-commission'`,
+    and a 2026 district link, all without leaving the page.
+  Each candidate now also carries a `commission_confirmed_at`
+  timestamp.
+- **Multi-URL paste-and-scan in News monitor.** The "Scan a URL now"
+  panel now accepts one or more URLs (newline / comma / space
+  separated) and runs them through the same Firecrawl + AI classify
+  pipeline sequentially, reporting a per-URL ✓ / ✗ summary with
+  classification kind and confidence in a scrollable result pane.
+- **Multi-candidate creation from a single news article.** The News
+  monitor's Convert dialog now lets admins add and remove multiple
+  candidate rows (alongside the existing multi-proposal flow) when a
+  single article announces several nominations at once. All conversions
+  share the source URL and are saved in one batch.
+- **Multi-select filters on the admin candidates table.** The status,
+  party, district, leadership and flag filters now each accept multiple
+  values via a `MultiSelectFilter` popover, with an "All …" reset per
+  facet, a "Clear filters" button and a live "n of m" result count.
+- **Aggregate "Last updated" timestamps across the site.** The homepage
+  stats strip surfaces the most recent `updated_at` across candidates,
+  proposals, parties, districts and FAQs, and "Last updated" badges
+  now appear on the candidates index, proposals index, districts list,
+  district detail pages and each party's promises pane on the district
+  page so voters can see data freshness at a glance.
+- **Candidate tags on district cards.** Each candidate tile inside a
+  district page now displays inline badges for **Leader**, **Deputy
+  Leader** and **EC-confirmed**, alongside the existing
+  incumbent / confirmed / prospective status text.
+- **Initials fallback for broken candidate photos.** A new
+  `CandidateAvatar` component renders a coloured initials chip (or an
+  icon, configurable) when a candidate's `photo_url` is missing or
+  fails to load, replacing the previous broken-image placeholder
+  across candidate listings, district pages and detail views.
+
+### Changed
+- **News monitor "Scan a URL" → "Scan URLs".** The single-URL input was
+  replaced with a multi-line textarea and a result pre-pane; the legacy
+  Enter-to-submit shortcut was removed in favour of the explicit
+  "Scan URLs" button.
+
+### Fixed
+- **`/admin/candidates/confirm-ec` routing.** Resolved a routing
+  collision so the EC confirmation page is reachable as a sibling of
+  `/admin/candidates` (uses the `admin.candidates_.confirm-ec` flat
+  route convention).
+
+## [2026-05-08]
 
 ### Added
 - **Resources admin (CRUD).** New `/admin/resources` workspace lets
