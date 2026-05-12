@@ -24,6 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 
 type PartyRef = {
   id: string;
