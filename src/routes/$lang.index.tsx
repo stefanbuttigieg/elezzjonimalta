@@ -344,6 +344,15 @@ function StatsSection({
           <p className="mt-2 text-base leading-relaxed text-muted-foreground">
             {t("home.stats.subtitle")}
           </p>
+          {stats?.lastUpdated ? (
+            <p
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+              title={stats.lastUpdated}
+            >
+              <History className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("home.stats.lastUpdated", { date: formatUpdatedAt(stats.lastUpdated, lang) })}
+            </p>
+          ) : null}
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => {
