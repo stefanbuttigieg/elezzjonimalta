@@ -84,6 +84,18 @@ async function loadDistricts() {
   if (candidatesResult.error) throw candidatesResult.error;
   if (partiesResult.error) throw partiesResult.error;
   if (linkedResult.error) throw linkedResult.error;
+  if (proposalsLatestResult.error) throw proposalsLatestResult.error;
+
+  // Latest proposal updated_at per party.
+  const latestUpdateByParty = new Map<string, string>();
+  for (const row of (proposalsLatestResult.data ?? []) as Array<{
+    party_id: string | null;
+    updated_at: string;
+  }>) {
+    if (!row.party_id) continue;
+    const prev = latestUpdateByParty.get(row.party_id);
+    if (!prev || row.updated_at > prev) latestUpdateByParty.set(row.party_id, row.updated_at);
+  }
 
   const partiesById = new Map<string, PartyRow>();
   for (const party of (partiesResult.data ?? []) as PartyRow[]) {
