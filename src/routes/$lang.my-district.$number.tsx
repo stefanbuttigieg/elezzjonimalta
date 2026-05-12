@@ -258,6 +258,21 @@ function MyDistrictPage() {
     return m;
   }, [proposals]);
 
+  // Latest proposal updated_at per party (and overall) for freshness signal.
+  const latestUpdateByParty = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of proposals) {
+      const key = p.party_id ?? "__ind__";
+      const prev = m.get(key);
+      if (!prev || p.updated_at > prev) m.set(key, p.updated_at);
+    }
+    return m;
+  }, [proposals]);
+  const latestUpdateOverall = useMemo(() => {
+    if (proposals.length === 0) return null;
+    return proposals.reduce((a, b) => (a > b.updated_at ? a : b.updated_at), proposals[0].updated_at);
+  }, [proposals]);
+
   const [proposalQuery, setProposalQuery] = useState("");
   const [proposalParty, setProposalParty] = useState<string>("all");
 
