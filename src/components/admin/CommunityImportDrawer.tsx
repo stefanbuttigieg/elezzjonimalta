@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   applyCommunityImport,
   createCommunityUploadUrl,
+  retryCommunityImport,
   startCommunityImport,
 } from "@/server/communityImport.functions";
 import { useCommunityImport, type CommunityImportRow } from "@/hooks/useCommunityImport";
