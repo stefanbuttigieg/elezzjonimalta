@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
+import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 
 const candidateSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -289,10 +290,8 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
         <CandidateAvatar
           src={candidate.photo_url}
           name={candidate.full_name}
-          fallback="icon"
           className="h-16 w-16 rounded-lg border border-border object-cover"
-          fallbackClassName="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground"
-          iconClassName="h-7 w-7"
+          fallbackClassName="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-accent text-base font-bold text-accent-foreground"
         />
         <div className="min-w-0 flex-1">
           <h2 className="font-serif text-xl font-bold leading-tight text-foreground hover:underline">
