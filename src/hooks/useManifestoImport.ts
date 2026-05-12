@@ -15,6 +15,8 @@ export interface ManifestoImportRow {
   stage: string | null;
   progress: number | null;
   error: string | null;
+  error_stack: string | null;
+  logs: { at: string; pct: number; stage: string }[];
   extracted: unknown[];
   summary: Record<string, unknown>;
 }
