@@ -9,6 +9,7 @@ import {
   runManifestoImport,
   type Decision,
 } from "./manifestoImport.server";
+import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
