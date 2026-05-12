@@ -15,8 +15,9 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { ProposalSourcesSection } from "@/components/admin/ProposalSourcesSection";
 import { ProposalHistorySection } from "@/components/admin/ProposalHistorySection";
-import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages, Sparkles, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, FileText, GitMerge, Layers, BookUp, Languages, Sparkles, Check, FileSpreadsheet } from "lucide-react";
 import { ManifestoImportDrawer } from "@/components/admin/ManifestoImportDrawer";
+import { CsvImportDrawer } from "@/components/admin/CsvImportDrawer";
 import { toast } from "sonner";
 import { findDuplicates } from "@/lib/proposal-dedupe";
 import { mergeProposals } from "@/lib/proposal-merge";
@@ -106,6 +107,7 @@ function ProposalsAdmin() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const [manifestoOpen, setManifestoOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [resumeImportId, setResumeImportId] = useState<string | null>(null);
   useEffect(() => {
     if (search.import) {
@@ -360,6 +362,12 @@ function ProposalsAdmin() {
         </div>
         <div className="flex gap-2">
           <button
+            onClick={() => setCsvImportOpen(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+          >
+            <FileSpreadsheet className="h-4 w-4" /> Import CSV / Excel
+          </button>
+          <button
             onClick={() => setManifestoOpen(true)}
             className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
           >
@@ -386,6 +394,14 @@ function ProposalsAdmin() {
         parties={parties.map((p) => ({ id: p.id, name_en: p.name_en }))}
         onApplied={() => void load()}
         initialImportId={resumeImportId}
+      />
+
+      <CsvImportDrawer
+        open={csvImportOpen}
+        onOpenChange={setCsvImportOpen}
+        parties={parties}
+        candidates={candidates}
+        onApplied={() => void load()}
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
