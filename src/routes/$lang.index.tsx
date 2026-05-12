@@ -21,6 +21,7 @@ import {
   Flag,
   HelpCircle,
   CalendarDays,
+  History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useT } from "@/i18n/useT";
@@ -28,6 +29,7 @@ import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
 import { LocalityPicker } from "@/components/site/LocalityPicker";
 import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
+import { formatUpdatedAt } from "@/lib/formatDate";
 import {
   clearPreferredDistrict,
   getPreferredDistrict,
@@ -44,11 +46,12 @@ type LandingStats = {
   sittingMps: number;
   faqs: number;
   districtCandidateCounts: Record<number, number>;
+  lastUpdated: string | null;
 };
 
 async function loadLandingStats(): Promise<LandingStats> {
   const head = { count: "exact" as const, head: true };
-  const [candidates, parties, proposals, districts, sittingMps, faqs, districtRows, candDistricts] =
+  const [candidates, parties, proposals, districts, sittingMps, faqs, districtRows, candDistricts, latestCandidate, latestProposal, latestParty, latestDistrict, latestFaq] =
     await Promise.all([
       supabase.from("candidates").select("id", head).eq("status", "published").eq("electoral_confirmed", true),
       supabase.from("parties").select("id", head).eq("status", "published"),
@@ -63,6 +66,11 @@ async function loadLandingStats(): Promise<LandingStats> {
         .eq("election_year", 2026)
         .eq("candidate.status", "published")
         .eq("candidate.electoral_confirmed", true),
+      supabase.from("candidates").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("proposals").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("parties").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("districts").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("voting_faqs").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
   const numberById: Record<string, number> = {};
@@ -76,6 +84,13 @@ async function loadLandingStats(): Promise<LandingStats> {
     districtCandidateCounts[num] = (districtCandidateCounts[num] ?? 0) + 1;
   }
 
+  const updates = [latestCandidate, latestProposal, latestParty, latestDistrict, latestFaq]
+    .map((r) => (r.data as { updated_at: string } | null)?.updated_at)
+    .filter((v): v is string => Boolean(v));
+  const lastUpdated = updates.length
+    ? updates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b))
+    : null;
+
   return {
     candidates: candidates.count ?? 0,
     parties: parties.count ?? 0,
@@ -84,6 +99,7 @@ async function loadLandingStats(): Promise<LandingStats> {
     sittingMps: sittingMps.count ?? 0,
     faqs: faqs.count ?? 0,
     districtCandidateCounts,
+    lastUpdated,
   };
 }
 
@@ -328,6 +344,15 @@ function StatsSection({
           <p className="mt-2 text-base leading-relaxed text-muted-foreground">
             {t("home.stats.subtitle")}
           </p>
+          {stats?.lastUpdated ? (
+            <p
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+              title={stats.lastUpdated}
+            >
+              <History className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("home.stats.lastUpdated", { date: formatUpdatedAt(stats.lastUpdated, lang) })}
+            </p>
+          ) : null}
         </div>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => {

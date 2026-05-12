@@ -403,6 +403,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.stats.sittingMps": "Sitting MPs tracked",
     "home.stats.faqs": "Voting FAQs",
     "home.stats.daysToGo": "Days to election",
+    "home.stats.lastUpdated": "Last updated {date}",
 
     "myDistrict.eyebrow": "Your district",
     "myDistrict.heading": "District {number} — {name}",
@@ -863,6 +864,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.stats.sittingMps": "MPs attwali segwiti",
     "home.stats.faqs": "FAQs dwar il-vot",
     "home.stats.daysToGo": "Jiem għall-elezzjoni",
+    "home.stats.lastUpdated": "L-aħħar aġġornament {date}",
 
     "myDistrict.eyebrow": "Id-distrett tiegħek",
     "myDistrict.heading": "Distrett {number} — {name}",
