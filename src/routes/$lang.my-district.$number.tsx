@@ -504,12 +504,17 @@ function MyDistrictPage() {
                         {districtParties.map((p) => {
                           const count = proposalsByParty.get(p.id) ?? 0;
                           const active = proposalParty === p.id;
+                          const lastUp = latestUpdateByParty.get(p.id);
                           return (
                             <button
                               key={p.id}
                               type="button"
                               onClick={() => setProposalParty(p.id)}
-                              title={p.name_en}
+                              title={
+                                lastUp
+                                  ? `${p.name_en} · ${locale === "mt" ? "L-aħħar aġġornament" : "Last update"}: ${formatUpdatedAt(lastUp, locale)}`
+                                  : p.name_en
+                              }
                               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                                 active
                                   ? "border-foreground bg-foreground text-background"
