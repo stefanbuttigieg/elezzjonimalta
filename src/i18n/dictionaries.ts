@@ -413,6 +413,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.candidates.confirmed": "Confirmed candidate",
     "myDistrict.candidates.prospective": "Prospective candidate",
     "myDistrict.candidates.incumbent": "Sitting MP",
+    "myDistrict.candidates.leader": "Party leader",
+    "myDistrict.candidates.deputyLeader": "Deputy leader",
+    "myDistrict.candidates.ecConfirmed": "Confirmed by Electoral Commission",
     "myDistrict.compareCta": "Compare candidates",
     "myDistrict.proposals.title": "What parties here are promising",
     "myDistrict.proposals.empty":
