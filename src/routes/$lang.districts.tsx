@@ -333,9 +333,23 @@ function DistrictsPage() {
           </Link>
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          {t("districts.results", { count: filtered.length })}
-        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
+          <p>{t("districts.results", { count: filtered.length })}</p>
+          {(() => {
+            const stamps: string[] = filtered
+              .map((d: DistrictRecord) => latestUpdateByDistrict[d.id])
+              .filter((s: string | undefined): s is string => Boolean(s));
+            if (stamps.length === 0) return null;
+            const latest = stamps.reduce((a: string, b: string) => (a > b ? a : b));
+            return (
+              <p className="inline-flex items-center gap-1 text-[11px]">
+                <History className="h-3 w-3" />
+                {locale === "mt" ? "L-aħħar aġġornament tal-proposti" : "Last proposal update"}:{" "}
+                {formatUpdatedAt(latest, locale)}
+              </p>
+            );
+          })()}
+        </div>
 
         {filtered.length > 0 ? (
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
