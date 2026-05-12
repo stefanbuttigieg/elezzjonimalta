@@ -49,6 +49,8 @@ type CandidateRow = {
   photo_url: string | null;
   electoral_confirmed: boolean;
   is_incumbent: boolean;
+  commission_confirmed: boolean;
+  leadership_role: "leader" | "deputy_leader" | null;
   party: PartyLite | null;
   primary_district_id: string | null;
 };
