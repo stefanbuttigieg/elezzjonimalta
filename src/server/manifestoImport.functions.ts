@@ -344,7 +344,62 @@ export const createManifestoUploadUrl = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 6. List recent manifesto imports (for the admin job-list page)
+// 6. Cancel a running/queued import — marks the row as cancelled so the
+//    admin UI stops showing it as "Queued…" forever. The background worker
+//    (if still alive) checks this flag between stages and aborts; if it's
+//    already dead (server restarted), the row is just freed up.
+// ---------------------------------------------------------------------------
+
+const CancelInput = z.object({ importId: z.string().uuid() });
+
+export const cancelManifestoImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => CancelInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+
+      const { data: row, error } = await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .select("id, status")
+        .eq("id", data.importId)
+        .maybeSingle();
+      if (error || !row) return { ok: false as const, error: "Import not found" };
+      const r = row as { id: string; status: string };
+      if (r.status !== "processing" && r.status !== "ready") {
+        return { ok: false as const, error: `Import is ${r.status}; cannot cancel` };
+      }
+
+      await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .update({
+          status: "cancelled",
+          stage: "Cancelled",
+          finished_at: new Date().toISOString(),
+        } as never)
+        .eq("id", r.id);
+
+      const email = (claims as { email?: string }).email ?? null;
+      await writeAudit(supabaseAdmin, {
+        entityType: "manifesto_import",
+        entityId: r.id,
+        action: "cancel",
+        actorId: userId,
+        actorEmail: email,
+        metadata: { previous_status: r.status },
+      });
+
+      return { ok: true as const };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("cancelManifestoImport failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// 7. List recent manifesto imports (for the admin job-list page)
 // ---------------------------------------------------------------------------
 
 const ListInput = z.object({
