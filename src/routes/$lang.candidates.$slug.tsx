@@ -49,6 +49,7 @@ type ProposalRow = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
 };
 
 type CandidateDetail = {
@@ -106,10 +107,10 @@ async function loadCandidate(slug: string) {
   const [proposalsRes, sourcesRes] = await Promise.all([
     supabase
       .from("proposals")
-      .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
+      .select("id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at")
       .eq("candidate_id", candidate.id)
       .eq("status", "published")
-      .order("created_at", { ascending: false }),
+      .order("updated_at", { ascending: false }),
     supabase
       .from("candidate_sources")
       .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
