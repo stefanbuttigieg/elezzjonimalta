@@ -259,7 +259,18 @@ export function CommunityImportDrawer({ open, onOpenChange, authors, defaultAuth
                 <>
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
                   <h3 className="font-serif text-lg font-bold">{row?.stage ?? "Starting…"}</h3>
-                  <p className="text-sm text-muted-foreground">Long documents can take 1–2 minutes.</p>
+                  <div className="w-full max-w-sm space-y-1.5">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                        style={{ width: `${row?.progress ?? 0}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
+                      <span>{row?.progress ?? 0}%</span>
+                      <span>You can close this and keep working — it runs in the background.</span>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
