@@ -24,6 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
+import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 
 type PartyRef = {
   id: string;
@@ -187,17 +188,12 @@ function CandidatePage() {
         </Link>
 
         <header className="mt-6 grid gap-6 md:grid-cols-[180px_1fr] md:items-start">
-          {candidate.photo_url ? (
-            <img
-              src={candidate.photo_url}
-              alt={candidate.full_name}
-              className="h-44 w-44 rounded-xl border border-border object-cover"
-            />
-          ) : (
-            <div className="flex h-44 w-44 items-center justify-center rounded-xl border border-border bg-secondary text-muted-foreground">
-              <UserRound className="h-16 w-16" />
-            </div>
-          )}
+          <CandidateAvatar
+            src={candidate.photo_url}
+            name={candidate.full_name}
+            className="h-44 w-44 rounded-xl border border-border object-cover"
+            fallbackClassName="flex h-44 w-44 items-center justify-center rounded-xl border border-border bg-accent text-4xl font-bold text-accent-foreground"
+          />
 
           <div>
             <h1 className="font-serif text-4xl font-bold leading-tight text-foreground md:text-5xl">

@@ -22,6 +22,7 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { setPreferredDistrict } from "@/lib/preferredDistrict";
 import { formatUpdatedAt } from "@/lib/formatDate";
+import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 
 type DistrictRow = {
   id: string;
@@ -391,21 +392,12 @@ function MyDistrictPage() {
                               params={{ lang: locale, slug: c.slug }}
                               className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated"
                             >
-                              <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-bold text-accent-foreground">
-                                {c.photo_url ? (
-                                  <img
-                                    src={c.photo_url}
-                                    alt=""
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  c.full_name
-                                    .split(" ")
-                                    .map((p) => p[0])
-                                    .slice(0, 2)
-                                    .join("")
-                                )}
-                              </span>
+                              <CandidateAvatar
+                                src={c.photo_url}
+                                name={c.full_name}
+                                className="h-12 w-12 shrink-0 overflow-hidden rounded-full object-cover"
+                                fallbackClassName="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-foreground"
+                              />
                               <span className="min-w-0 flex-1">
                                 <span className="block truncate text-sm font-semibold text-foreground">
                                   {c.full_name}
