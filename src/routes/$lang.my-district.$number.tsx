@@ -22,6 +22,7 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { setPreferredDistrict } from "@/lib/preferredDistrict";
 import { formatUpdatedAt } from "@/lib/formatDate";
+import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 
 type DistrictRow = {
   id: string;
