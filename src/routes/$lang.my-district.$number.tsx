@@ -406,7 +406,7 @@ function MyDistrictPage() {
                                     .join("")
                                 )}
                               </span>
-                              <span className="min-w-0">
+                              <span className="min-w-0 flex-1">
                                 <span className="block truncate text-sm font-semibold text-foreground">
                                   {c.full_name}
                                 </span>
@@ -417,6 +417,25 @@ function MyDistrictPage() {
                                     ? t("myDistrict.candidates.confirmed")
                                     : t("myDistrict.candidates.prospective")}
                                 </span>
+                                {(c.leadership_role || c.commission_confirmed) ? (
+                                  <span className="mt-1 flex flex-wrap gap-1">
+                                    {c.leadership_role === "leader" ? (
+                                      <span className="inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+                                        {t("myDistrict.candidates.leader")}
+                                      </span>
+                                    ) : null}
+                                    {c.leadership_role === "deputy_leader" ? (
+                                      <span className="inline-flex rounded-full bg-sky-100 px-1.5 py-0.5 text-[10px] font-semibold text-sky-900 dark:bg-sky-900/40 dark:text-sky-100">
+                                        {t("myDistrict.candidates.deputyLeader")}
+                                      </span>
+                                    ) : null}
+                                    {c.commission_confirmed ? (
+                                      <span className="inline-flex rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100">
+                                        {t("myDistrict.candidates.ecConfirmed")}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                ) : null}
                               </span>
                             </Link>
                           </li>
