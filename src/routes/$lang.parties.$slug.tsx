@@ -5,12 +5,13 @@ import {
   notFound,
   useRouter,
 } from "@tanstack/react-router";
-import { ArrowLeft, ExternalLink, Globe, Users } from "lucide-react";
+import { ArrowLeft, ExternalLink, Globe, History, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { useAuth } from "@/lib/auth";
 import { EditPartyDialog } from "@/components/party/EditPartyDialog";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 type PartyDetail = {
   id: string;
@@ -39,6 +40,7 @@ type ProposalRow = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
 };
 
 type CandidateRow = {
@@ -66,10 +68,10 @@ async function loadParty(slug: string) {
   const [proposalsResult, candidatesResult] = await Promise.all([
     supabase
       .from("proposals")
-      .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
+      .select("id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at")
       .eq("party_id", party.id)
       .eq("status", "published")
-      .order("title_en", { ascending: true })
+      .order("updated_at", { ascending: false })
       .limit(50),
     supabase
       .from("candidates")
