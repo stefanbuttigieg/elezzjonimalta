@@ -357,32 +357,35 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
           )}
 
           {step === 2 && (
-            <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">
-              {row?.status === "failed" ? (
-                <>
-                  <AlertTriangle className="h-10 w-10 text-destructive" />
-                  <h3 className="font-serif text-lg font-bold">Extraction failed</h3>
-                  <p className="text-sm text-muted-foreground">{row.error || pollError}</p>
-                </>
-              ) : (
-                <>
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                  <h3 className="font-serif text-lg font-bold">{row?.stage ?? "Starting…"}</h3>
-                  <div className="w-full max-w-sm space-y-1.5">
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
-                        style={{ width: `${row?.progress ?? 0}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
-                      <span>{row?.progress ?? 0}%</span>
-                      <span>You can close this and keep working — it runs in the background.</span>
-                    </div>
+            row?.status === "failed" ? (
+              <ImportErrorDetails
+                message={row.error}
+                stack={row.error_stack}
+                stage={row.stage}
+                sourceUrl={row.source_url}
+                filePath={row.file_path}
+                sourceKind={row.source_kind}
+                logs={row.logs}
+                pollError={pollError}
+              />
+            ) : (
+              <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <h3 className="font-serif text-lg font-bold">{row?.stage ?? "Starting…"}</h3>
+                <div className="w-full max-w-sm space-y-1.5">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                      style={{ width: `${row?.progress ?? 0}%` }}
+                    />
                   </div>
-                </>
-              )}
-            </div>
+                  <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
+                    <span>{row?.progress ?? 0}%</span>
+                    <span>You can close this and keep working — it runs in the background.</span>
+                  </div>
+                </div>
+              </div>
+            )
           )}
 
           {step === 3 && row && (
