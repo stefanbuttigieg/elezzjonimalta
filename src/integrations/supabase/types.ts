@@ -746,12 +746,14 @@ export type Database = {
           author_id: string
           created_at: string
           error: string | null
+          error_stack: string | null
           extracted: Json
           file_path: string | null
           finished_at: string | null
           id: string
           imported_by: string | null
           language: string
+          logs: Json
           page_count: number | null
           progress: number
           source_kind: string
@@ -765,12 +767,14 @@ export type Database = {
           author_id: string
           created_at?: string
           error?: string | null
+          error_stack?: string | null
           extracted?: Json
           file_path?: string | null
           finished_at?: string | null
           id?: string
           imported_by?: string | null
           language?: string
+          logs?: Json
           page_count?: number | null
           progress?: number
           source_kind: string
@@ -784,12 +788,14 @@ export type Database = {
           author_id?: string
           created_at?: string
           error?: string | null
+          error_stack?: string | null
           extracted?: Json
           file_path?: string | null
           finished_at?: string | null
           id?: string
           imported_by?: string | null
           language?: string
+          logs?: Json
           page_count?: number | null
           progress?: number
           source_kind?: string
@@ -1047,12 +1053,14 @@ export type Database = {
         Row: {
           created_at: string
           error: string | null
+          error_stack: string | null
           extracted: Json
           file_path: string | null
           finished_at: string | null
           id: string
           imported_by: string | null
           language: string
+          logs: Json
           page_count: number | null
           party_id: string
           progress: number
@@ -1066,12 +1074,14 @@ export type Database = {
         Insert: {
           created_at?: string
           error?: string | null
+          error_stack?: string | null
           extracted?: Json
           file_path?: string | null
           finished_at?: string | null
           id?: string
           imported_by?: string | null
           language?: string
+          logs?: Json
           page_count?: number | null
           party_id: string
           progress?: number
@@ -1085,12 +1095,14 @@ export type Database = {
         Update: {
           created_at?: string
           error?: string | null
+          error_stack?: string | null
           extracted?: Json
           file_path?: string | null
           finished_at?: string | null
           id?: string
           imported_by?: string | null
           language?: string
+          logs?: Json
           page_count?: number | null
           party_id?: string
           progress?: number
