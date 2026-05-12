@@ -485,6 +485,14 @@ function DistrictCard({
         )}
       </div>
 
+      {latestProposalUpdate ? (
+        <p className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <History className="h-3 w-3" />
+          {locale === "mt" ? "L-aħħar aġġornament tal-proposti" : "Last proposal update"}:{" "}
+          {formatUpdatedAt(latestProposalUpdate, locale)}
+        </p>
+      ) : null}
+
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">
         <Link
           to="/$lang/candidates"
