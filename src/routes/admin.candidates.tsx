@@ -147,11 +147,11 @@ function CandidatesAdmin() {
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAutofillBusy, setBulkAutofillBusy] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
-  const [partyFilter, setPartyFilter] = useState<string>("all"); // "all" | "none" | partyId
-  const [districtFilter, setDistrictFilter] = useState<string>("all"); // "all" | "none" | districtId
-  const [leadershipFilter, setLeadershipFilter] = useState<"all" | "leader" | "deputy_leader" | "any" | "none">("all");
-  const [flagFilter, setFlagFilter] = useState<"all" | "mp" | "news" | "commission" | "unconfirmed" | "not_contesting">("all");
+  const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set());
+  const [partyFilter, setPartyFilter] = useState<Set<string>>(new Set()); // values: "none" | partyId
+  const [districtFilter, setDistrictFilter] = useState<Set<string>>(new Set()); // values: "none" | districtId
+  const [leadershipFilter, setLeadershipFilter] = useState<Set<string>>(new Set()); // "leader" | "deputy_leader" | "none"
+  const [flagFilter, setFlagFilter] = useState<Set<string>>(new Set()); // "mp" | "news" | "commission" | "unconfirmed" | "not_contesting"
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
