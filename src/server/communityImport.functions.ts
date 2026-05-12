@@ -60,6 +60,7 @@ export const startCommunityImport = createServerFn({ method: "POST" })
           language: data.language,
           status: "processing",
           stage: "Queued…",
+          progress: 0,
           imported_by: userId,
         } as never)
         .select("id")

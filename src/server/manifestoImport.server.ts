@@ -84,7 +84,7 @@ interface RunInput {
 export async function runManifestoImport(input: RunInput): Promise<void> {
   const { importId } = input;
   try {
-    await setStage(importId, "Fetching source…");
+    await setProgress(importId, 5, "Fetching source…");
     const { pages, archivedPath, pageCount } = await loadSource(input);
 
     await supabaseAdmin
@@ -92,17 +92,21 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
       .update({ page_count: pageCount, file_path: archivedPath ?? input.filePath ?? null } as never)
       .eq("id", importId);
 
-    await setStage(importId, `Extracting proposals from ${pageCount} pages…`);
+    await setProgress(importId, 18, `Extracting proposals from ${pageCount} pages…`);
     const chunks = chunkPages(pages);
     const extracted: ExtractedProposal[] = [];
+    const totalChunks = Math.max(chunks.length, 1);
 
     for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_CHUNKS) {
       const slice = chunks.slice(i, i + MAX_CONCURRENT_CHUNKS);
       const results = await Promise.all(slice.map((c) => extractChunk(c, input.language)));
       for (const r of results) extracted.push(...r);
-      await setStage(
+      const done = Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length);
+      const pct = Math.round(20 + (70 * done) / totalChunks);
+      await setProgress(
         importId,
-        `Extracting proposals… (${Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length)}/${chunks.length} chunks, ${extracted.length} proposals so far)`,
+        pct,
+        `Extracting proposals… (${done}/${chunks.length} chunks, ${extracted.length} proposals so far)`,
       );
       if (extracted.length >= MAX_PROPOSALS_PER_IMPORT) break;
     }
@@ -110,7 +114,7 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
     const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
     const deduped = dedupeWithinBatch(capped);
 
-    await setStage(importId, `Matching ${deduped.length} proposals against existing…`);
+    await setProgress(importId, 92, `Matching ${deduped.length} proposals against existing…`);
     const reviewRows = await attachMatches(deduped, input.partyId);
 
     await supabaseAdmin
@@ -118,6 +122,7 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
       .update({
         status: "ready",
         stage: `Ready — ${reviewRows.length} proposals extracted`,
+        progress: 100,
         extracted: reviewRows as never,
         finished_at: new Date().toISOString(),
       } as never)
@@ -131,16 +136,17 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
         status: "failed",
         error: message,
         stage: "Failed",
+        progress: 100,
         finished_at: new Date().toISOString(),
       } as never)
       .eq("id", importId);
   }
 }
 
-async function setStage(importId: string, stage: string) {
+async function setProgress(importId: string, progress: number, stage: string) {
   await supabaseAdmin
     .from("manifesto_imports" as never)
-    .update({ stage } as never)
+    .update({ stage, progress: Math.max(0, Math.min(100, progress)) } as never)
     .eq("id", importId);
 }
 

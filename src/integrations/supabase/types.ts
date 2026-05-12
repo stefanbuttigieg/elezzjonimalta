@@ -753,6 +753,7 @@ export type Database = {
           imported_by: string | null
           language: string
           page_count: number | null
+          progress: number
           source_kind: string
           source_url: string | null
           stage: string | null
@@ -771,6 +772,7 @@ export type Database = {
           imported_by?: string | null
           language?: string
           page_count?: number | null
+          progress?: number
           source_kind: string
           source_url?: string | null
           stage?: string | null
@@ -789,6 +791,7 @@ export type Database = {
           imported_by?: string | null
           language?: string
           page_count?: number | null
+          progress?: number
           source_kind?: string
           source_url?: string | null
           stage?: string | null
@@ -1052,6 +1055,7 @@ export type Database = {
           language: string
           page_count: number | null
           party_id: string
+          progress: number
           source_kind: string
           source_url: string | null
           stage: string | null
@@ -1070,6 +1074,7 @@ export type Database = {
           language?: string
           page_count?: number | null
           party_id: string
+          progress?: number
           source_kind: string
           source_url?: string | null
           stage?: string | null
@@ -1088,6 +1093,7 @@ export type Database = {
           language?: string
           page_count?: number | null
           party_id?: string
+          progress?: number
           source_kind?: string
           source_url?: string | null
           stage?: string | null
