@@ -13,6 +13,7 @@ export interface ManifestoImportRow {
   page_count: number | null;
   status: "processing" | "ready" | "applied" | "failed" | "cancelled";
   stage: string | null;
+  progress: number | null;
   error: string | null;
   extracted: unknown[];
   summary: Record<string, unknown>;
