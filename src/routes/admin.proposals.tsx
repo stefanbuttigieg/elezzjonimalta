@@ -103,7 +103,16 @@ function ProposalsAdmin() {
   const [filterLink, setFilterLink] = useState<string>("all"); // all | party | candidate | both | none
   const [filterTranslation, setFilterTranslation] = useState<string>("all"); // all | complete | missing
   const [filterCategorised, setFilterCategorised] = useState<string>("all"); // all | yes | no
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [manifestoOpen, setManifestoOpen] = useState(false);
+  const [resumeImportId, setResumeImportId] = useState<string | null>(null);
+  useEffect(() => {
+    if (search.import) {
+      setResumeImportId(search.import);
+      setManifestoOpen(true);
+    }
+  }, [search.import]);
   const [editing, setEditing, clearEditing] = usePersistentEditor<Proposal>("admin:editor:proposals");
   const [loading, setLoading] = useState(true);
   const [bulkTranslating, setBulkTranslating] = useState(false);
@@ -367,9 +376,16 @@ function ProposalsAdmin() {
 
       <ManifestoImportDrawer
         open={manifestoOpen}
-        onOpenChange={setManifestoOpen}
+        onOpenChange={(o) => {
+          setManifestoOpen(o);
+          if (!o) {
+            setResumeImportId(null);
+            if (search.import) void navigate({ search: { import: undefined }, replace: true });
+          }
+        }}
         parties={parties.map((p) => ({ id: p.id, name_en: p.name_en }))}
         onApplied={() => void load()}
+        initialImportId={resumeImportId}
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
