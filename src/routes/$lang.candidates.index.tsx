@@ -286,18 +286,14 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
         params={{ lang: locale, slug: candidate.slug }}
         className="flex items-start gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
-        {candidate.photo_url ? (
-          <img
-            src={candidate.photo_url}
-            alt={candidate.full_name}
-            className="h-16 w-16 rounded-lg border border-border object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground">
-            <UserRound className="h-7 w-7" />
-          </div>
-        )}
+        <CandidateAvatar
+          src={candidate.photo_url}
+          name={candidate.full_name}
+          fallback="icon"
+          className="h-16 w-16 rounded-lg border border-border object-cover"
+          fallbackClassName="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground"
+          iconClassName="h-7 w-7"
+        />
         <div className="min-w-0 flex-1">
           <h2 className="font-serif text-xl font-bold leading-tight text-foreground hover:underline">
             {candidate.full_name}
