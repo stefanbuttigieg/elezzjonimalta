@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Filter,
   GitCompareArrows,
+  History,
   Map as MapIcon,
   Search,
   Sparkles,
@@ -20,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { setPreferredDistrict } from "@/lib/preferredDistrict";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 type DistrictRow = {
   id: string;
@@ -60,6 +62,7 @@ type ProposalRow = {
   category: string | null;
   source_url: string | null;
   party_id: string | null;
+  updated_at: string;
 };
 
 async function loadMyDistrict(rawNumber: string): Promise<{
@@ -136,12 +139,12 @@ async function loadMyDistrict(rawNumber: string): Promise<{
         const { data, error } = await supabase
           .from("proposals")
           .select(
-            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id"
+            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at"
           )
           .eq("status", "published")
           .eq("party_id", pid)
           .is("merged_into_id", null)
-          .order("created_at", { ascending: false })
+          .order("updated_at", { ascending: false })
           .limit(25);
         if (error) throw error;
         return (data ?? []) as ProposalRow[];
