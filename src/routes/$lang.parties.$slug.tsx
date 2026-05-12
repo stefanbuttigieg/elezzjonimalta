@@ -231,6 +231,16 @@ function PartyDetailPage() {
                   {t("parties.viewAllProposals")} →
                 </Link>
               </div>
+              {proposals.length > 0 ? (
+                <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <History className="h-3 w-3" />
+                  {locale === "mt" ? "L-aħħar aġġornament" : "Last proposal update"}:{" "}
+                  {formatUpdatedAt(
+                    proposals.reduce((a: string, b: ProposalRow) => (a > b.updated_at ? a : b.updated_at), proposals[0].updated_at),
+                    locale,
+                  )}
+                </p>
+              ) : null}
               {proposals.length === 0 ? (
                 <p className="mt-4 text-sm text-muted-foreground">
                   {t("parties.proposals.empty")}
