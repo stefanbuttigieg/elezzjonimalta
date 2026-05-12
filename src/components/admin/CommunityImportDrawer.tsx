@@ -50,6 +50,20 @@ export function CommunityImportDrawer({ open, onOpenChange, authors, defaultAuth
   const startFn = useServerFn(startCommunityImport);
   const applyFn = useServerFn(applyCommunityImport);
   const uploadUrlFn = useServerFn(createCommunityUploadUrl);
+  const retryFn = useServerFn(retryCommunityImport);
+  const [retrying, setRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (!importId) return;
+    setRetrying(true);
+    try {
+      const res = await retryFn({ data: { importId } });
+      if (!res.ok) toast.error(res.error);
+      else toast.success("Retrying import…");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const [authorId, setAuthorId] = useState<string>("");
   const [sourceMode, setSourceMode] = useState<"url" | "upload">("url");
