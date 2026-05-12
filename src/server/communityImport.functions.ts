@@ -9,6 +9,7 @@ import {
   runCommunityImport,
   type Decision,
 } from "./communityImport.server";
+import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
