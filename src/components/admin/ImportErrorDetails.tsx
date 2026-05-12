@@ -28,6 +28,8 @@ export function ImportErrorDetails({
   sourceKind,
   logs,
   pollError,
+  onRetry,
+  retrying,
 }: ImportErrorDetailsProps) {
   const [showStack, setShowStack] = useState(false);
   const [showLogs, setShowLogs] = useState(true);
