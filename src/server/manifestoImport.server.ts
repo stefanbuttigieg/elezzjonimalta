@@ -83,8 +83,13 @@ interface RunInput {
 
 export async function runManifestoImport(input: RunInput): Promise<void> {
   const { importId } = input;
+  const logs: { at: string; pct: number; stage: string }[] = [];
+  const log = async (pct: number, stage: string) => {
+    logs.push({ at: new Date().toISOString(), pct, stage });
+    await setProgress(importId, pct, stage, logs);
+  };
   try {
-    await setProgress(importId, 5, "Fetching source…");
+    await log(5, "Fetching source…");
     const { pages, archivedPath, pageCount } = await loadSource(input);
 
     await supabaseAdmin
@@ -92,7 +97,7 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
       .update({ page_count: pageCount, file_path: archivedPath ?? input.filePath ?? null } as never)
       .eq("id", importId);
 
-    await setProgress(importId, 18, `Extracting proposals from ${pageCount} pages…`);
+    await log(18, `Extracting proposals from ${pageCount} pages…`);
     const chunks = chunkPages(pages);
     const extracted: ExtractedProposal[] = [];
     const totalChunks = Math.max(chunks.length, 1);
@@ -103,8 +108,7 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
       for (const r of results) extracted.push(...r);
       const done = Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length);
       const pct = Math.round(20 + (70 * done) / totalChunks);
-      await setProgress(
-        importId,
+      await log(
         pct,
         `Extracting proposals… (${done}/${chunks.length} chunks, ${extracted.length} proposals so far)`,
       );
@@ -114,9 +118,10 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
     const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
     const deduped = dedupeWithinBatch(capped);
 
-    await setProgress(importId, 92, `Matching ${deduped.length} proposals against existing…`);
+    await log(92, `Matching ${deduped.length} proposals against existing…`);
     const reviewRows = await attachMatches(deduped, input.partyId);
 
+    logs.push({ at: new Date().toISOString(), pct: 100, stage: `Ready — ${reviewRows.length} proposals extracted` });
     await supabaseAdmin
       .from("manifesto_imports" as never)
       .update({
@@ -124,29 +129,41 @@ export async function runManifestoImport(input: RunInput): Promise<void> {
         stage: `Ready — ${reviewRows.length} proposals extracted`,
         progress: 100,
         extracted: reviewRows as never,
+        logs: logs as never,
         finished_at: new Date().toISOString(),
       } as never)
       .eq("id", importId);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("manifesto import failed:", message);
+    const stack = err instanceof Error ? err.stack ?? null : null;
+    console.error("manifesto import failed:", message, stack);
+    logs.push({ at: new Date().toISOString(), pct: -1, stage: `ERROR: ${message}` });
     await supabaseAdmin
       .from("manifesto_imports" as never)
       .update({
         status: "failed",
         error: message,
+        error_stack: stack,
         stage: "Failed",
         progress: 100,
+        logs: logs as never,
         finished_at: new Date().toISOString(),
       } as never)
       .eq("id", importId);
   }
 }
 
-async function setProgress(importId: string, progress: number, stage: string) {
+async function setProgress(
+  importId: string,
+  progress: number,
+  stage: string,
+  logs?: { at: string; pct: number; stage: string }[],
+) {
+  const patch: Record<string, unknown> = { stage, progress: Math.max(0, Math.min(100, progress)) };
+  if (logs) patch.logs = logs;
   await supabaseAdmin
     .from("manifesto_imports" as never)
-    .update({ stage, progress: Math.max(0, Math.min(100, progress)) } as never)
+    .update(patch as never)
     .eq("id", importId);
 }
 
