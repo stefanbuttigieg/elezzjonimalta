@@ -336,11 +336,11 @@ function DistrictsPage() {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <p>{t("districts.results", { count: filtered.length })}</p>
           {(() => {
-            const stamps = filtered
+            const stamps: string[] = filtered
               .map((d: DistrictRecord) => latestUpdateByDistrict[d.id])
-              .filter((s): s is string => Boolean(s));
+              .filter((s: string | undefined): s is string => Boolean(s));
             if (stamps.length === 0) return null;
-            const latest = stamps.reduce((a, b) => (a > b ? a : b));
+            const latest = stamps.reduce((a: string, b: string) => (a > b ? a : b));
             return (
               <p className="inline-flex items-center gap-1 text-[11px]">
                 <History className="h-3 w-3" />
