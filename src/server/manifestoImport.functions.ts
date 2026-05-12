@@ -9,6 +9,7 @@ import {
   runManifestoImport,
   type Decision,
 } from "./manifestoImport.server";
+import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
@@ -85,14 +86,16 @@ export const startManifestoImport = createServerFn({ method: "POST" })
       });
 
       // Fire-and-forget; updates the row as it progresses.
-      void runManifestoImport({
-        importId,
-        partyId: data.partyId,
-        language: data.language,
-        sourceKind: data.sourceKind,
-        sourceUrl: data.sourceUrl ?? null,
-        filePath: data.uploadedFilePath ?? null,
-      });
+      runInBackground(
+        runManifestoImport({
+          importId,
+          partyId: data.partyId,
+          language: data.language,
+          sourceKind: data.sourceKind,
+          sourceUrl: data.sourceUrl ?? null,
+          filePath: data.uploadedFilePath ?? null,
+        }),
+      );
 
       return { ok: true as const, importId };
     } catch (err) {
