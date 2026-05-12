@@ -44,11 +44,12 @@ type LandingStats = {
   sittingMps: number;
   faqs: number;
   districtCandidateCounts: Record<number, number>;
+  lastUpdated: string | null;
 };
 
 async function loadLandingStats(): Promise<LandingStats> {
   const head = { count: "exact" as const, head: true };
-  const [candidates, parties, proposals, districts, sittingMps, faqs, districtRows, candDistricts] =
+  const [candidates, parties, proposals, districts, sittingMps, faqs, districtRows, candDistricts, latestCandidate, latestProposal, latestParty, latestDistrict, latestFaq] =
     await Promise.all([
       supabase.from("candidates").select("id", head).eq("status", "published").eq("electoral_confirmed", true),
       supabase.from("parties").select("id", head).eq("status", "published"),
@@ -63,6 +64,11 @@ async function loadLandingStats(): Promise<LandingStats> {
         .eq("election_year", 2026)
         .eq("candidate.status", "published")
         .eq("candidate.electoral_confirmed", true),
+      supabase.from("candidates").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("proposals").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("parties").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("districts").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("voting_faqs").select("updated_at").eq("status", "published").order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
   const numberById: Record<string, number> = {};
@@ -76,6 +82,13 @@ async function loadLandingStats(): Promise<LandingStats> {
     districtCandidateCounts[num] = (districtCandidateCounts[num] ?? 0) + 1;
   }
 
+  const updates = [latestCandidate, latestProposal, latestParty, latestDistrict, latestFaq]
+    .map((r) => (r.data as { updated_at: string } | null)?.updated_at)
+    .filter((v): v is string => Boolean(v));
+  const lastUpdated = updates.length
+    ? updates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b))
+    : null;
+
   return {
     candidates: candidates.count ?? 0,
     parties: parties.count ?? 0,
@@ -84,6 +97,7 @@ async function loadLandingStats(): Promise<LandingStats> {
     sittingMps: sittingMps.count ?? 0,
     faqs: faqs.count ?? 0,
     districtCandidateCounts,
+    lastUpdated,
   };
 }
 
