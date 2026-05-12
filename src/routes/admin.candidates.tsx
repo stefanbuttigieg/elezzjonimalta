@@ -147,11 +147,11 @@ function CandidatesAdmin() {
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkAutofillBusy, setBulkAutofillBusy] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
-  const [partyFilter, setPartyFilter] = useState<string>("all"); // "all" | "none" | partyId
-  const [districtFilter, setDistrictFilter] = useState<string>("all"); // "all" | "none" | districtId
-  const [leadershipFilter, setLeadershipFilter] = useState<"all" | "leader" | "deputy_leader" | "any" | "none">("all");
-  const [flagFilter, setFlagFilter] = useState<"all" | "mp" | "news" | "commission" | "unconfirmed" | "not_contesting">("all");
+  const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set());
+  const [partyFilter, setPartyFilter] = useState<Set<string>>(new Set()); // values: "none" | partyId
+  const [districtFilter, setDistrictFilter] = useState<Set<string>>(new Set()); // values: "none" | districtId
+  const [leadershipFilter, setLeadershipFilter] = useState<Set<string>>(new Set()); // "leader" | "deputy_leader" | "none"
+  const [flagFilter, setFlagFilter] = useState<Set<string>>(new Set()); // "mp" | "news" | "commission" | "unconfirmed" | "not_contesting"
   const [q, setQ] = useState("");
   const [editing, setEditing, clearEditing] = usePersistentEditor<Candidate>("admin:editor:candidates");
   const [loading, setLoading] = useState(true);
@@ -265,20 +265,30 @@ function CandidatesAdmin() {
   const filtered = useMemo(
     () =>
       rows.filter((r) => {
-        if (statusFilter !== "all" && r.status !== statusFilter) return false;
-        if (partyFilter === "none" && r.party_id) return false;
-        if (partyFilter !== "all" && partyFilter !== "none" && r.party_id !== partyFilter) return false;
-        if (districtFilter === "none" && r.primary_district_id) return false;
-        if (districtFilter !== "all" && districtFilter !== "none" && r.primary_district_id !== districtFilter) return false;
-        if (leadershipFilter === "leader" && r.leadership_role !== "leader") return false;
-        if (leadershipFilter === "deputy_leader" && r.leadership_role !== "deputy_leader") return false;
-        if (leadershipFilter === "any" && !r.leadership_role) return false;
-        if (leadershipFilter === "none" && r.leadership_role) return false;
-        if (flagFilter === "mp" && !r.is_incumbent) return false;
-        if (flagFilter === "news" && !r.electoral_confirmed) return false;
-        if (flagFilter === "commission" && !r.commission_confirmed) return false;
-        if (flagFilter === "unconfirmed" && (r.electoral_confirmed || r.commission_confirmed)) return false;
-        if (flagFilter === "not_contesting" && !r.not_contesting_2026) return false;
+        if (statusFilter.size > 0 && !statusFilter.has(r.status)) return false;
+        if (partyFilter.size > 0) {
+          const key = r.party_id ?? "none";
+          if (!partyFilter.has(key)) return false;
+        }
+        if (districtFilter.size > 0) {
+          const key = r.primary_district_id ?? "none";
+          if (!districtFilter.has(key)) return false;
+        }
+        if (leadershipFilter.size > 0) {
+          const key = r.leadership_role ?? "none";
+          if (!leadershipFilter.has(key)) return false;
+        }
+        if (flagFilter.size > 0) {
+          const matches = Array.from(flagFilter).some((f) => {
+            if (f === "mp") return r.is_incumbent;
+            if (f === "news") return r.electoral_confirmed;
+            if (f === "commission") return r.commission_confirmed;
+            if (f === "unconfirmed") return !r.electoral_confirmed && !r.commission_confirmed;
+            if (f === "not_contesting") return r.not_contesting_2026;
+            return false;
+          });
+          if (!matches) return false;
+        }
         if (!q) return true;
         return r.full_name.toLowerCase().includes(q.toLowerCase());
       }),
@@ -286,19 +296,19 @@ function CandidatesAdmin() {
   );
 
   const resetFilters = () => {
-    setStatusFilter("all");
-    setPartyFilter("all");
-    setDistrictFilter("all");
-    setLeadershipFilter("all");
-    setFlagFilter("all");
+    setStatusFilter(new Set());
+    setPartyFilter(new Set());
+    setDistrictFilter(new Set());
+    setLeadershipFilter(new Set());
+    setFlagFilter(new Set());
     setQ("");
   };
   const filtersActive =
-    statusFilter !== "all" ||
-    partyFilter !== "all" ||
-    districtFilter !== "all" ||
-    leadershipFilter !== "all" ||
-    flagFilter !== "all" ||
+    statusFilter.size > 0 ||
+    partyFilter.size > 0 ||
+    districtFilter.size > 0 ||
+    leadershipFilter.size > 0 ||
+    flagFilter.size > 0 ||
     q !== "";
 
   return (
@@ -337,62 +347,62 @@ function CandidatesAdmin() {
             className="w-full rounded-md border border-border bg-background py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <select
+        <MultiSelectFilter
+          label="Statuses"
+          allLabel="All statuses"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as ReviewStatus | "all")}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All statuses</option>
-          <option value="pending_review">Pending review</option>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
-        </select>
-        <select
+          onChange={setStatusFilter}
+          options={[
+            { value: "pending_review", label: "Pending review" },
+            { value: "draft", label: "Draft" },
+            { value: "published", label: "Published" },
+            { value: "archived", label: "Archived" },
+          ]}
+        />
+        <MultiSelectFilter
+          label="Parties"
+          allLabel="All parties"
           value={partyFilter}
-          onChange={(e) => setPartyFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All parties</option>
-          <option value="none">No party (independent)</option>
-          {parties.map((p) => (
-            <option key={p.id} value={p.id}>{p.name_en}</option>
-          ))}
-        </select>
-        <select
+          onChange={setPartyFilter}
+          options={[
+            { value: "none", label: "No party (independent)" },
+            ...parties.map((p) => ({ value: p.id, label: p.name_en })),
+          ]}
+        />
+        <MultiSelectFilter
+          label="Districts"
+          allLabel="All districts"
           value={districtFilter}
-          onChange={(e) => setDistrictFilter(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All districts</option>
-          <option value="none">No primary district</option>
-          {districts.map((d) => (
-            <option key={d.id} value={d.id}>{d.number} · {d.name_en}</option>
-          ))}
-        </select>
-        <select
+          onChange={setDistrictFilter}
+          options={[
+            { value: "none", label: "No primary district" },
+            ...districts.map((d) => ({ value: d.id, label: `${d.number} · ${d.name_en}` })),
+          ]}
+        />
+        <MultiSelectFilter
+          label="Leadership"
+          allLabel="Any leadership"
           value={leadershipFilter}
-          onChange={(e) => setLeadershipFilter(e.target.value as typeof leadershipFilter)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">Any leadership</option>
-          <option value="any">Leader or Deputy</option>
-          <option value="leader">Leader only</option>
-          <option value="deputy_leader">Deputy Leader only</option>
-          <option value="none">No leadership role</option>
-        </select>
-        <select
+          onChange={setLeadershipFilter}
+          options={[
+            { value: "leader", label: "Leader" },
+            { value: "deputy_leader", label: "Deputy Leader" },
+            { value: "none", label: "No leadership role" },
+          ]}
+        />
+        <MultiSelectFilter
+          label="Flags"
+          allLabel="Any flag"
           value={flagFilter}
-          onChange={(e) => setFlagFilter(e.target.value as typeof flagFilter)}
-          className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">Any flag</option>
-          <option value="mp">Sitting MP</option>
-          <option value="news">Confirmed via news</option>
-          <option value="commission">Confirmed by Commission</option>
-          <option value="unconfirmed">Unconfirmed</option>
-          <option value="not_contesting">Not contesting 2026</option>
-        </select>
+          onChange={setFlagFilter}
+          options={[
+            { value: "mp", label: "Sitting MP" },
+            { value: "news", label: "Confirmed via news" },
+            { value: "commission", label: "Confirmed by Commission" },
+            { value: "unconfirmed", label: "Unconfirmed" },
+            { value: "not_contesting", label: "Not contesting 2026" },
+          ]}
+        />
         {filtersActive ? (
           <button
             onClick={resetFilters}
@@ -1212,5 +1222,81 @@ function FindPhotoRowButton({
     >
       <ImagePlus className="h-3 w-3" /> {busy ? "Searching…" : "Find photo"}
     </button>
+  );
+}
+
+interface MultiSelectFilterProps {
+  label: string;
+  allLabel: string;
+  value: Set<string>;
+  onChange: (next: Set<string>) => void;
+  options: { value: string; label: string }[];
+}
+
+function MultiSelectFilter({ label, allLabel, value, onChange, options }: MultiSelectFilterProps) {
+  const [open, setOpen] = useState(false);
+  const count = value.size;
+  const summary = count === 0
+    ? allLabel
+    : count === 1
+      ? (options.find((o) => o.value === Array.from(value)[0])?.label ?? `${count} selected`)
+      : `${label}: ${count}`;
+  const toggle = (v: string) => {
+    const next = new Set(value);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChange(next);
+  };
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
+          count > 0
+            ? "border-primary bg-primary/10 text-foreground"
+            : "border-border bg-background"
+        }`}
+      >
+        <span className="max-w-[14rem] truncate">{summary}</span>
+        {count > 0 ? (
+          <span className="rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+            {count}
+          </span>
+        ) : null}
+      </button>
+      {open ? (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full z-20 mt-1 max-h-72 w-64 overflow-auto rounded-md border border-border bg-popover p-2 shadow-lg">
+            <div className="mb-1 flex items-center justify-between px-1 text-xs text-muted-foreground">
+              <span>{label}</span>
+              {count > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => onChange(new Set())}
+                  className="text-primary hover:underline"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            {options.map((opt) => (
+              <label
+                key={opt.value}
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+              >
+                <input
+                  type="checkbox"
+                  checked={value.has(opt.value)}
+                  onChange={() => toggle(opt.value)}
+                />
+                <span className="truncate">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }
