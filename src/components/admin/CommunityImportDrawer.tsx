@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   applyCommunityImport,
   createCommunityUploadUrl,
+  retryCommunityImport,
   startCommunityImport,
 } from "@/server/communityImport.functions";
 import { useCommunityImport, type CommunityImportRow } from "@/hooks/useCommunityImport";
@@ -49,6 +50,20 @@ export function CommunityImportDrawer({ open, onOpenChange, authors, defaultAuth
   const startFn = useServerFn(startCommunityImport);
   const applyFn = useServerFn(applyCommunityImport);
   const uploadUrlFn = useServerFn(createCommunityUploadUrl);
+  const retryFn = useServerFn(retryCommunityImport);
+  const [retrying, setRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (!importId) return;
+    setRetrying(true);
+    try {
+      const res = await retryFn({ data: { importId } });
+      if (!res.ok) toast.error(res.error);
+      else toast.success("Retrying import…");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const [authorId, setAuthorId] = useState<string>("");
   const [sourceMode, setSourceMode] = useState<"url" | "upload">("url");
@@ -259,6 +274,8 @@ export function CommunityImportDrawer({ open, onOpenChange, authors, defaultAuth
                 sourceKind={row.source_kind}
                 logs={row.logs}
                 pollError={pollError}
+                onRetry={handleRetry}
+                retrying={retrying}
               />
             ) : (
               <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">

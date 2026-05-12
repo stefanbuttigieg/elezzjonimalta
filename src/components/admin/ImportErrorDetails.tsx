@@ -3,7 +3,7 @@
 // archived file path), and the chronological log so admins can debug quickly
 // without leaving the drawer.
 import { useState } from "react";
-import { AlertTriangle, Copy, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { AlertTriangle, Copy, ChevronDown, ChevronRight, ExternalLink, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface ImportErrorDetailsProps {
@@ -15,6 +15,8 @@ export interface ImportErrorDetailsProps {
   sourceKind?: string | null;
   logs?: { at: string; pct: number; stage: string }[];
   pollError?: string | null;
+  onRetry?: () => Promise<void> | void;
+  retrying?: boolean;
 }
 
 export function ImportErrorDetails({
@@ -26,6 +28,8 @@ export function ImportErrorDetails({
   sourceKind,
   logs,
   pollError,
+  onRetry,
+  retrying,
 }: ImportErrorDetailsProps) {
   const [showStack, setShowStack] = useState(false);
   const [showLogs, setShowLogs] = useState(true);
@@ -69,13 +73,26 @@ export function ImportErrorDetails({
               </p>
             )}
           </div>
-          <button
-            onClick={() => copy(fullDump, "Full report")}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-accent"
-            title="Copy full diagnostic report"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copy report
-          </button>
+          <div className="flex shrink-0 flex-col gap-1.5">
+            {onRetry && (
+              <button
+                onClick={() => void onRetry()}
+                disabled={retrying}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                title="Re-run this import using the same source"
+              >
+                {retrying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                {retrying ? "Retrying…" : "Retry"}
+              </button>
+            )}
+            <button
+              onClick={() => copy(fullDump, "Full report")}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-accent"
+              title="Copy full diagnostic report"
+            >
+              <Copy className="h-3.5 w-3.5" /> Copy
+            </button>
+          </div>
         </div>
       </div>
 

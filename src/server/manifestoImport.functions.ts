@@ -131,6 +131,76 @@ export const getManifestoImportStatus = createServerFn({ method: "POST" })
     }
   });
 
+export const retryManifestoImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => StatusInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      const { supabase, userId, claims } = context;
+      await assertStaff(supabase as never);
+
+      const { data: row, error } = await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .select("id, party_id, source_url, source_kind, file_path, language, status")
+        .eq("id", data.importId)
+        .maybeSingle();
+      if (error || !row) return { ok: false as const, error: "Import not found" };
+      const r = row as {
+        id: string;
+        party_id: string;
+        source_url: string | null;
+        source_kind: "pdf" | "html" | "upload";
+        file_path: string | null;
+        language: "en" | "mt" | "both";
+        status: string;
+      };
+      if (r.status === "processing") {
+        return { ok: false as const, error: "Import is already running" };
+      }
+
+      await supabaseAdmin
+        .from("manifesto_imports" as never)
+        .update({
+          status: "processing",
+          stage: "Retrying…",
+          progress: 0,
+          error: null,
+          error_stack: null,
+          logs: [] as never,
+          extracted: [] as never,
+          finished_at: null,
+        } as never)
+        .eq("id", r.id);
+
+      const email = (claims as { email?: string }).email ?? null;
+      await writeAudit(supabaseAdmin, {
+        entityType: "manifesto_import",
+        entityId: r.id,
+        action: "retry",
+        actorId: userId,
+        actorEmail: email,
+        metadata: { source_kind: r.source_kind, source_url: r.source_url },
+      });
+
+      runInBackground(
+        runManifestoImport({
+          importId: r.id,
+          partyId: r.party_id,
+          language: r.language,
+          sourceKind: r.source_kind,
+          sourceUrl: r.source_url,
+          filePath: r.file_path,
+        }),
+      );
+
+      return { ok: true as const, importId: r.id };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("retryManifestoImport failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // 3. Apply decisions — bulk create/update/skip in one call
 // ---------------------------------------------------------------------------

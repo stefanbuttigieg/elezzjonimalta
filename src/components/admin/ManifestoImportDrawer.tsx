@@ -14,6 +14,7 @@ import {
   applyManifestoImport,
   createManifestoUploadUrl,
   getManifestoPdfUrl,
+  retryManifestoImport,
   startManifestoImport,
 } from "@/server/manifestoImport.functions";
 import { useManifestoImport, type ManifestoImportRow } from "@/hooks/useManifestoImport";
@@ -54,6 +55,20 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
   const applyFn = useServerFn(applyManifestoImport);
   const uploadUrlFn = useServerFn(createManifestoUploadUrl);
   const pdfUrlFn = useServerFn(getManifestoPdfUrl);
+  const retryFn = useServerFn(retryManifestoImport);
+  const [retrying, setRetrying] = useState(false);
+
+  const handleRetry = async () => {
+    if (!importId) return;
+    setRetrying(true);
+    try {
+      const res = await retryFn({ data: { importId } });
+      if (!res.ok) toast.error(res.error);
+      else toast.success("Retrying import…");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const [partyId, setPartyId] = useState<string>("");
   const [sourceMode, setSourceMode] = useState<"url" | "upload">("url");
@@ -367,6 +382,8 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
                 sourceKind={row.source_kind}
                 logs={row.logs}
                 pollError={pollError}
+                onRetry={handleRetry}
+                retrying={retrying}
               />
             ) : (
               <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">
