@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ExternalLink, Filter, FileText, Landmark, RotateCcw, Search, UserRound } from "lucide-react";
+import { ExternalLink, Filter, FileText, History, Landmark, RotateCcw, Search, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
@@ -256,8 +256,21 @@ function ProposalsPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <p>{t("proposals.results", { count: proposals.length })}</p>
+          {proposals.length > 0 ? (
+            <p className="inline-flex items-center gap-1 text-[11px]">
+              <History className="h-3 w-3" />
+              {locale === "mt" ? "L-aħħar aġġornament" : "Last update"}:{" "}
+              {formatUpdatedAt(
+                proposals.reduce(
+                  (a: string, b: ProposalRecord) => (a > b.updated_at ? a : b.updated_at),
+                  proposals[0].updated_at,
+                ),
+                locale,
+              )}
+            </p>
+          ) : null}
         </div>
 
         {proposals.length > 0 ? (

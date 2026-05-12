@@ -49,6 +49,7 @@ type ProposalRow = {
   description_mt: string | null;
   category: string | null;
   source_url: string | null;
+  updated_at: string;
 };
 
 type CandidateDetail = {
@@ -106,10 +107,10 @@ async function loadCandidate(slug: string) {
   const [proposalsRes, sourcesRes] = await Promise.all([
     supabase
       .from("proposals")
-      .select("id, title_en, title_mt, description_en, description_mt, category, source_url")
+      .select("id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at")
       .eq("candidate_id", candidate.id)
       .eq("status", "published")
-      .order("created_at", { ascending: false }),
+      .order("updated_at", { ascending: false }),
     supabase
       .from("candidate_sources")
       .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
@@ -298,6 +299,15 @@ function CandidatePage() {
               <h2 className="font-serif text-2xl font-bold text-foreground">
                 {t("candidate.section.proposals")}
               </h2>
+              {proposals.length > 0 ? (
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <History className="h-3 w-3" />
+                  {locale === "mt" ? "L-aħħar aġġornament" : "Last proposal update"}: {formatDate(
+                    proposals.reduce((a: string, b: ProposalRow) => (a > b.updated_at ? a : b.updated_at), proposals[0].updated_at),
+                    locale,
+                  )}
+                </p>
+              ) : null}
               {proposals.length > 0 ? (
                 <ul className="mt-3 space-y-3">
                   {proposals.map((p: ProposalRow) => {

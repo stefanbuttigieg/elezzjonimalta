@@ -7,11 +7,12 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ExternalLink, Filter, Map as MapIcon, RotateCcw, Search, Users } from "lucide-react";
+import { ExternalLink, Filter, History, Map as MapIcon, RotateCcw, Search, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 const districtSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -52,7 +53,7 @@ export type PartyBreakdownEntry = {
 };
 
 async function loadDistricts() {
-  const [districtsResult, candidatesResult, partiesResult, linkedResult] = await Promise.all([
+  const [districtsResult, candidatesResult, partiesResult, linkedResult, proposalsLatestResult] = await Promise.all([
     supabase
       .from("districts")
       .select("id, number, name_en, name_mt, localities_en, localities_mt, source_url")
@@ -69,12 +70,32 @@ async function loadDistricts() {
       .from("candidate_districts")
       .select("candidate_id, district_id, election_year")
       .eq("election_year", 2026),
+    supabase
+      .from("proposals")
+      .select("party_id, updated_at")
+      .eq("status", "published")
+      .is("merged_into_id", null)
+      .not("party_id", "is", null)
+      .order("updated_at", { ascending: false })
+      .limit(2000),
   ]);
 
   if (districtsResult.error) throw districtsResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
   if (partiesResult.error) throw partiesResult.error;
   if (linkedResult.error) throw linkedResult.error;
+  if (proposalsLatestResult.error) throw proposalsLatestResult.error;
+
+  // Latest proposal updated_at per party.
+  const latestUpdateByParty = new Map<string, string>();
+  for (const row of (proposalsLatestResult.data ?? []) as Array<{
+    party_id: string | null;
+    updated_at: string;
+  }>) {
+    if (!row.party_id) continue;
+    const prev = latestUpdateByParty.get(row.party_id);
+    if (!prev || row.updated_at > prev) latestUpdateByParty.set(row.party_id, row.updated_at);
+  }
 
   const partiesById = new Map<string, PartyRow>();
   for (const party of (partiesResult.data ?? []) as PartyRow[]) {
@@ -148,10 +169,23 @@ async function loadDistricts() {
     partyBreakdown[districtId] = entries;
   }
 
+  // Per-district latest proposal update across any party with candidates here.
+  const latestUpdateByDistrict: Record<string, string> = {};
+  for (const [districtId, inner] of breakdown.entries()) {
+    let best: string | null = null;
+    for (const partyKey of inner.keys()) {
+      if (partyKey === "__independent__") continue;
+      const ts = latestUpdateByParty.get(partyKey);
+      if (ts && (!best || ts > best)) best = ts;
+    }
+    if (best) latestUpdateByDistrict[districtId] = best;
+  }
+
   return {
     districts: (districtsResult.data ?? []) as DistrictRecord[],
     candidateCounts: Object.fromEntries(counts) as Record<string, number>,
     partyBreakdown,
+    latestUpdateByDistrict,
   };
 }
 
@@ -181,7 +215,7 @@ function DistrictsPage() {
   const navigate = useNavigate({ from: "/$lang/districts" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { districts, candidateCounts, partyBreakdown } = Route.useLoaderData();
+  const { districts, candidateCounts, partyBreakdown, latestUpdateByDistrict } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
 
   const updateSearch = (patch: Partial<typeof search>) => {
@@ -312,6 +346,7 @@ function DistrictsPage() {
                 locale={locale}
                 candidateCount={candidateCounts[district.id] ?? 0}
                 partyBreakdown={partyBreakdown[district.id] ?? []}
+                latestProposalUpdate={latestUpdateByDistrict[district.id] ?? null}
               />
             ))}
           </div>
@@ -336,11 +371,13 @@ function DistrictCard({
   locale,
   candidateCount,
   partyBreakdown,
+  latestProposalUpdate,
 }: {
   district: DistrictRecord;
   locale: Locale;
   candidateCount: number;
   partyBreakdown: PartyBreakdownEntry[];
+  latestProposalUpdate: string | null;
 }) {
   const t = useT();
   const name =
@@ -447,6 +484,14 @@ function DistrictCard({
           </p>
         )}
       </div>
+
+      {latestProposalUpdate ? (
+        <p className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <History className="h-3 w-3" />
+          {locale === "mt" ? "L-aħħar aġġornament tal-proposti" : "Last proposal update"}:{" "}
+          {formatUpdatedAt(latestProposalUpdate, locale)}
+        </p>
+      ) : null}
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">
         <Link

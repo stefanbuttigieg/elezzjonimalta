@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Filter,
   GitCompareArrows,
+  History,
   Map as MapIcon,
   Search,
   Sparkles,
@@ -20,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { setPreferredDistrict } from "@/lib/preferredDistrict";
+import { formatUpdatedAt } from "@/lib/formatDate";
 
 type DistrictRow = {
   id: string;
@@ -60,6 +62,7 @@ type ProposalRow = {
   category: string | null;
   source_url: string | null;
   party_id: string | null;
+  updated_at: string;
 };
 
 async function loadMyDistrict(rawNumber: string): Promise<{
@@ -136,12 +139,12 @@ async function loadMyDistrict(rawNumber: string): Promise<{
         const { data, error } = await supabase
           .from("proposals")
           .select(
-            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id"
+            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at"
           )
           .eq("status", "published")
           .eq("party_id", pid)
           .is("merged_into_id", null)
-          .order("created_at", { ascending: false })
+          .order("updated_at", { ascending: false })
           .limit(25);
         if (error) throw error;
         return (data ?? []) as ProposalRow[];
@@ -253,6 +256,21 @@ function MyDistrictPage() {
       m.set(key, (m.get(key) ?? 0) + 1);
     }
     return m;
+  }, [proposals]);
+
+  // Latest proposal updated_at per party (and overall) for freshness signal.
+  const latestUpdateByParty = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of proposals) {
+      const key = p.party_id ?? "__ind__";
+      const prev = m.get(key);
+      if (!prev || p.updated_at > prev) m.set(key, p.updated_at);
+    }
+    return m;
+  }, [proposals]);
+  const latestUpdateOverall = useMemo(() => {
+    if (proposals.length === 0) return null;
+    return proposals.reduce((a, b) => (a > b.updated_at ? a : b.updated_at), proposals[0].updated_at);
   }, [proposals]);
 
   const [proposalQuery, setProposalQuery] = useState("");
@@ -438,6 +456,13 @@ function MyDistrictPage() {
                   <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
                     {t("myDistrict.proposals.fairness")}
                   </p>
+                  {latestUpdateOverall ? (
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <History className="h-3 w-3" />
+                      {locale === "mt" ? "L-aħħar aġġornament" : "Last update"}:{" "}
+                      {formatUpdatedAt(latestUpdateOverall, locale)}
+                    </p>
+                  ) : null}
                 </div>
                 <span className="shrink-0 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-semibold text-foreground">
                   {proposals.length}
@@ -479,12 +504,17 @@ function MyDistrictPage() {
                         {districtParties.map((p) => {
                           const count = proposalsByParty.get(p.id) ?? 0;
                           const active = proposalParty === p.id;
+                          const lastUp = latestUpdateByParty.get(p.id);
                           return (
                             <button
                               key={p.id}
                               type="button"
                               onClick={() => setProposalParty(p.id)}
-                              title={p.name_en}
+                              title={
+                                lastUp
+                                  ? `${p.name_en} · ${locale === "mt" ? "L-aħħar aġġornament" : "Last update"}: ${formatUpdatedAt(lastUp, locale)}`
+                                  : p.name_en
+                              }
                               className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                                 active
                                   ? "border-foreground bg-foreground text-background"
