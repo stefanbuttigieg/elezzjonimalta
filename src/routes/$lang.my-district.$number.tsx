@@ -456,6 +456,13 @@ function MyDistrictPage() {
                   <p className="mt-0.5 text-[11px] font-medium text-muted-foreground">
                     {t("myDistrict.proposals.fairness")}
                   </p>
+                  {latestUpdateOverall ? (
+                    <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <History className="h-3 w-3" />
+                      {locale === "mt" ? "L-aħħar aġġornament" : "Last update"}:{" "}
+                      {formatUpdatedAt(latestUpdateOverall, locale)}
+                    </p>
+                  ) : null}
                 </div>
                 <span className="shrink-0 rounded-full border border-border bg-background px-2 py-0.5 text-[11px] font-semibold text-foreground">
                   {proposals.length}
