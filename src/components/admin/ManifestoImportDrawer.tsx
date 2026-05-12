@@ -48,9 +48,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   parties: PartyOption[];
   onApplied?: () => void;
+  /** When provided, opens the drawer directly into the progress/review view for this existing import. */
+  initialImportId?: string | null;
 }
 
-export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }: Props) {
+export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied, initialImportId }: Props) {
   const startFn = useServerFn(startManifestoImport);
   const applyFn = useServerFn(applyManifestoImport);
   const uploadUrlFn = useServerFn(createManifestoUploadUrl);
@@ -87,7 +89,7 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
 
   const { row, error: pollError } = useManifestoImport(importId);
 
-  // Reset on close
+  // Reset on close; hydrate with initialImportId on open.
   useEffect(() => {
     if (!open) {
       setPartyId("");
@@ -101,8 +103,10 @@ export function ManifestoImportDrawer({ open, onOpenChange, parties, onApplied }
       setPdfUrl(null);
       setPdfError(null);
       setSelectedIdx(null);
+    } else if (initialImportId) {
+      setImportId(initialImportId);
     }
-  }, [open]);
+  }, [open, initialImportId]);
 
   // Hydrate decisions when extraction lands
   useEffect(() => {
