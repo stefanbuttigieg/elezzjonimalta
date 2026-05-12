@@ -30,6 +30,7 @@ import {
   Sparkles,
   AlertTriangle,
   BookOpen,
+  BookUp,
 } from "lucide-react";
 import {
   Sheet,
