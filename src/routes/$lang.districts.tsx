@@ -346,6 +346,7 @@ function DistrictsPage() {
                 locale={locale}
                 candidateCount={candidateCounts[district.id] ?? 0}
                 partyBreakdown={partyBreakdown[district.id] ?? []}
+                latestProposalUpdate={latestUpdateByDistrict[district.id] ?? null}
               />
             ))}
           </div>
