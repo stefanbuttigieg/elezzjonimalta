@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { BadgeCheck, ExternalLink, Filter, RotateCcw, Search, UserRound } from "lucide-react";
+import { BadgeCheck, ExternalLink, Filter, History, RotateCcw, Search, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
@@ -198,8 +198,21 @@ function CandidatesPage() {
           </Link>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
           <p>{t("candidates.results", { count: candidates.length })}</p>
+          {candidates.length > 0 ? (
+            <p className="inline-flex items-center gap-1 text-[11px]">
+              <History className="h-3 w-3" />
+              {locale === "mt" ? "L-aħħar aġġornament" : "Last update"}:{" "}
+              {formatUpdatedAt(
+                candidates.reduce(
+                  (a: string, b: CandidateRecord) => (a > b.updated_at ? a : b.updated_at),
+                  candidates[0].updated_at,
+                ),
+                locale,
+              )}
+            </p>
+          ) : null}
         </div>
 
         {candidates.length > 0 ? (
