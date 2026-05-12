@@ -3,7 +3,7 @@
 // archived file path), and the chronological log so admins can debug quickly
 // without leaving the drawer.
 import { useState } from "react";
-import { AlertTriangle, Copy, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { AlertTriangle, Copy, ChevronDown, ChevronRight, ExternalLink, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface ImportErrorDetailsProps {
@@ -15,6 +15,8 @@ export interface ImportErrorDetailsProps {
   sourceKind?: string | null;
   logs?: { at: string; pct: number; stage: string }[];
   pollError?: string | null;
+  onRetry?: () => Promise<void> | void;
+  retrying?: boolean;
 }
 
 export function ImportErrorDetails({
