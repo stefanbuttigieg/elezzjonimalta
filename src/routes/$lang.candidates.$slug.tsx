@@ -300,6 +300,15 @@ function CandidatePage() {
                 {t("candidate.section.proposals")}
               </h2>
               {proposals.length > 0 ? (
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <History className="h-3 w-3" />
+                  {locale === "mt" ? "L-aħħar aġġornament" : "Last proposal update"}: {formatDate(
+                    proposals.reduce((a: string, b: ProposalRow) => (a > b.updated_at ? a : b.updated_at), proposals[0].updated_at),
+                    locale,
+                  )}
+                </p>
+              ) : null}
+              {proposals.length > 0 ? (
                 <ul className="mt-3 space-y-3">
                   {proposals.map((p: ProposalRow) => {
                     const title =
