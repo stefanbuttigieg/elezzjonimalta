@@ -11,6 +11,7 @@
 // getManifestoImportStatus until status flips to 'ready' or 'failed'.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { tagProposalsBatch } from "@/server/proposalGeoTag.server";
 
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
