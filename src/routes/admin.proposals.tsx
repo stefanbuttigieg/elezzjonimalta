@@ -138,21 +138,28 @@ function ProposalsAdmin() {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   // Column visibility (persisted). Title + Actions always shown.
-  type ColKey = "linked" | "category" | "status";
+  type ColKey = "linked" | "category" | "status" | "geo";
   const ALL_COLS: { key: ColKey; label: string }[] = [
     { key: "linked", label: "Linked to" },
     { key: "category", label: "Category" },
     { key: "status", label: "Status" },
+    { key: "geo", label: "Geo tag" },
   ];
+  const defaultCols: Record<ColKey, boolean> = {
+    linked: true,
+    category: true,
+    status: true,
+    geo: false,
+  };
   const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
-    if (typeof window === "undefined") return { linked: true, category: true, status: true };
+    if (typeof window === "undefined") return defaultCols;
     try {
       const raw = window.localStorage.getItem("admin:proposals:cols");
-      if (raw) return { linked: true, category: true, status: true, ...JSON.parse(raw) };
+      if (raw) return { ...defaultCols, ...JSON.parse(raw) };
     } catch {
       /* ignore */
     }
-    return { linked: true, category: true, status: true };
+    return defaultCols;
   });
   useEffect(() => {
     try {
