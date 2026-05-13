@@ -13,6 +13,8 @@ export function formatUpdatedAt(iso: string | null | undefined, locale: Locale):
       day: "numeric",
       month: "short",
       year: "numeric",
+      // Pin to Malta TZ so SSR (UTC) and client (local) render the same day.
+      timeZone: "Europe/Malta",
     }).format(d);
   } catch {
     return d.toISOString().slice(0, 10);
