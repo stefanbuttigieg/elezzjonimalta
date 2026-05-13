@@ -66,6 +66,9 @@ type ProposalRow = {
   source_url: string | null;
   party_id: string | null;
   updated_at: string;
+  geo_scope: "national" | "regional" | "local";
+  localities: string[];
+  district_ids: string[];
 };
 
 async function loadMyDistrict(rawNumber: string): Promise<{
@@ -142,7 +145,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
         const { data, error } = await supabase
           .from("proposals")
           .select(
-            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at"
+            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at, geo_scope, localities, district_ids"
           )
           .eq("status", "published")
           .eq("party_id", pid)
@@ -278,10 +281,30 @@ function MyDistrictPage() {
 
   const [proposalQuery, setProposalQuery] = useState("");
   const [proposalParty, setProposalParty] = useState<string>("all");
+  type GeoTab = "local" | "district" | "national" | "all";
+  const [geoTab, setGeoTab] = useState<GeoTab>("all");
+
+  const geoCounts = useMemo(() => {
+    let local = 0, dist = 0, national = 0;
+    for (const p of proposals) {
+      const inDistrict = p.district_ids?.includes(district.id);
+      if (inDistrict && p.geo_scope === "local") local++;
+      if (inDistrict && p.geo_scope !== "national") dist++;
+      if (p.geo_scope === "national") national++;
+    }
+    return { local, district: dist, national, all: proposals.length };
+  }, [proposals, district.id]);
 
   const filteredProposals = useMemo(() => {
     const q = proposalQuery.trim().toLowerCase();
     return proposals.filter((p) => {
+      if (geoTab === "local") {
+        if (!(p.district_ids?.includes(district.id) && p.geo_scope === "local")) return false;
+      } else if (geoTab === "district") {
+        if (!(p.district_ids?.includes(district.id) && p.geo_scope !== "national")) return false;
+      } else if (geoTab === "national") {
+        if (p.geo_scope !== "national") return false;
+      }
       if (proposalParty !== "all") {
         const key = p.party_id ?? "__ind__";
         if (key !== proposalParty) return false;
@@ -299,7 +322,7 @@ function MyDistrictPage() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [proposals, proposalQuery, proposalParty]);
+  }, [proposals, proposalQuery, proposalParty, geoTab, district.id]);
 
 
   return (
@@ -498,6 +521,32 @@ function MyDistrictPage() {
                         className="w-full bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
                       />
                     </label>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {([
+                        ["local", locale === "mt" ? "Lokali" : "Local", geoCounts.local],
+                        ["district", locale === "mt" ? "Distrett" : "District", geoCounts.district],
+                        ["national", locale === "mt" ? "Nazzjonali" : "National", geoCounts.national],
+                        ["all", locale === "mt" ? "Kollha" : "All", geoCounts.all],
+                      ] as Array<[GeoTab, string, number]>).map(([key, label, count]) => {
+                        const active = geoTab === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setGeoTab(key)}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            {label}
+                            <span className="opacity-70">{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     {districtParties.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">

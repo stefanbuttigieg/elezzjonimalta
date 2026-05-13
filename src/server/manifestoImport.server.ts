@@ -11,6 +11,7 @@
 // getManifestoImportStatus until status flips to 'ready' or 'failed'.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { tagProposalsBatch } from "@/server/proposalGeoTag.server";
 
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -469,6 +470,7 @@ export async function applyManifestoDecisions(args: {
 }): Promise<ApplyResult> {
   const { importId, partyId, sourceUrl, decisions, actorId } = args;
   const result: ApplyResult = { created: 0, updated: 0, skipped: 0, errors: [] };
+  const touchedProposalIds: string[] = [];
 
   for (const d of decisions) {
     if (d.action === "skip") {
@@ -499,6 +501,7 @@ export async function applyManifestoDecisions(args: {
         if (error) throw error;
         proposalId = (data as { id: string }).id;
         result.created++;
+        touchedProposalIds.push(proposalId);
       } else if (d.action === "update") {
         if (!d.targetId) throw new Error("update action missing targetId");
         // Validate target exists and belongs to the same party.
@@ -526,6 +529,7 @@ export async function applyManifestoDecisions(args: {
         if (error) throw error;
         proposalId = d.targetId;
         result.updated++;
+        touchedProposalIds.push(proposalId);
       }
 
       // Append the manifesto as a source row (no duplicate URLs per proposal).
@@ -553,6 +557,19 @@ export async function applyManifestoDecisions(args: {
       const message = err instanceof Error ? err.message : String(err);
       console.error("manifesto apply row failed", message);
       result.errors.push(message);
+    }
+  }
+
+  // Auto-tag newly created/updated proposals with geo (scope + localities).
+  // Best-effort: never fail the apply step if tagging errors out.
+  if (touchedProposalIds.length > 0) {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (apiKey) {
+      try {
+        await tagProposalsBatch(apiKey, touchedProposalIds);
+      } catch (err) {
+        console.error("manifesto apply geo-tag batch failed:", err);
+      }
     }
   }
 
