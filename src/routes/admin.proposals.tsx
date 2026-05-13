@@ -28,7 +28,6 @@ import { suggestProposalCategories } from "@/server/proposalCategorySuggest.func
 import { bulkCategoriseProposals } from "@/server/bulkCategoriseProposals.functions";
 import {
   bulkTagProposalsGeo,
-  tagUntaggedProposalsGeo,
 } from "@/server/proposalGeoTag.functions";
 
 const proposalsSearchSchema = z.object({
