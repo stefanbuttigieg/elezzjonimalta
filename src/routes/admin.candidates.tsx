@@ -806,6 +806,9 @@ function CandidateEditor({
         not_contesting_note_en: v.not_contesting_note_en || null,
         not_contesting_note_mt: v.not_contesting_note_mt || null,
         custom_fields: v.custom_fields ?? {},
+        profession: v.profession || null,
+        profession_code: v.profession_code || null,
+        profession_bucket: v.profession_bucket || null,
       };
       let candidateId = v.id;
       if (isNew) {
