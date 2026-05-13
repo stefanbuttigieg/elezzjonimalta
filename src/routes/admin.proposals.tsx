@@ -664,134 +664,142 @@ function ProposalsAdmin() {
       ) : null}
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="w-10 px-4 py-3">
-                <input
-                  type="checkbox"
-                  aria-label="Select all"
-                  checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelected(new Set(filtered.map((r) => r.id)));
-                    } else {
-                      setSelected(new Set());
-                    }
-                  }}
-                />
-              </th>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Linked to</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead className="bg-muted/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  Loading…
-                </td>
+                <th className="w-10 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all"
+                    checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelected(new Set(filtered.map((r) => r.id)));
+                      } else {
+                        setSelected(new Set());
+                      }
+                    }}
+                  />
+                </th>
+                <th className="px-4 py-3">Title</th>
+                {visibleCols.linked ? <th className="px-4 py-3">Linked to</th> : null}
+                {visibleCols.category ? <th className="px-4 py-3">Category</th> : null}
+                {visibleCols.status ? <th className="px-4 py-3">Status</th> : null}
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  <FileText className="mx-auto mb-2 h-6 w-6" />
-                  No proposals yet. Create the first one.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="px-4 py-3 align-top">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${r.title_en}`}
-                      checked={selected.has(r.id)}
-                      onChange={() => toggleOne(r.id)}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium text-foreground">{r.title_en}</div>
-                      {r.merged_into_id ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-                          <GitMerge className="h-3 w-3" /> Merged
-                        </span>
-                      ) : null}
-                    </div>
-                    {r.title_mt ? (
-                      <div className="text-xs text-muted-foreground">{r.title_mt}</div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    <div className="flex flex-col gap-0.5">
-                      {r.party ? (
-                        <span>🏛 {r.party.short_name ?? r.party.name_en}</span>
-                      ) : null}
-                      {r.candidate ? <span>👤 {r.candidate.full_name}</span> : null}
-                      {!r.party && !r.candidate ? "—" : null}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.category_ids.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {r.category_ids.slice(0, 3).map((cid) => {
-                          const cat = categories.find((c) => c.id === cid);
-                          if (!cat) return null;
-                          return (
-                            <span
-                              key={cid}
-                              className="inline-flex rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium"
-                            >
-                              {cat.name_en}
-                            </span>
-                          );
-                        })}
-                        {r.category_ids.length > 3 ? (
-                          <span className="text-[11px]">+{r.category_ids.length - 3}</span>
-                        ) : null}
-                      </div>
-                    ) : r.category ? (
-                      <span className="text-xs italic">{r.category}</span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={r.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => setEditing(r)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
-                    >
-                      <Pencil className="h-3 w-3" /> Edit
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!confirm(`Delete "${r.title_en}"? This cannot be undone.`))
-                          return;
-                        try {
-                          await deleteRow("proposals", r.id);
-                          toast.success("Deleted");
-                          void load();
-                        } catch (e) {
-                          toast.error(e instanceof Error ? e.message : "Delete failed");
-                        }
-                      }}
-                      className="ml-2 inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={visibleColCount} className="px-4 py-8 text-center text-muted-foreground">
+                    Loading…
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={visibleColCount} className="px-4 py-8 text-center text-muted-foreground">
+                    <FileText className="mx-auto mb-2 h-6 w-6" />
+                    No proposals yet. Create the first one.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((r) => (
+                  <tr key={r.id} className="border-t border-border">
+                    <td className="px-4 py-3 align-top">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${r.title_en}`}
+                        checked={selected.has(r.id)}
+                        onChange={() => toggleOne(r.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-foreground">{r.title_en}</div>
+                        {r.merged_into_id ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                            <GitMerge className="h-3 w-3" /> Merged
+                          </span>
+                        ) : null}
+                      </div>
+                      {r.title_mt ? (
+                        <div className="text-xs text-muted-foreground">{r.title_mt}</div>
+                      ) : null}
+                    </td>
+                    {visibleCols.linked ? (
+                      <td className="px-4 py-3 text-muted-foreground">
+                        <div className="flex flex-col gap-0.5">
+                          {r.party ? (
+                            <span>🏛 {r.party.short_name ?? r.party.name_en}</span>
+                          ) : null}
+                          {r.candidate ? <span>👤 {r.candidate.full_name}</span> : null}
+                          {!r.party && !r.candidate ? "—" : null}
+                        </div>
+                      </td>
+                    ) : null}
+                    {visibleCols.category ? (
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {r.category_ids.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {r.category_ids.slice(0, 3).map((cid) => {
+                              const cat = categories.find((c) => c.id === cid);
+                              if (!cat) return null;
+                              return (
+                                <span
+                                  key={cid}
+                                  className="inline-flex rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium"
+                                >
+                                  {cat.name_en}
+                                </span>
+                              );
+                            })}
+                            {r.category_ids.length > 3 ? (
+                              <span className="text-[11px]">+{r.category_ids.length - 3}</span>
+                            ) : null}
+                          </div>
+                        ) : r.category ? (
+                          <span className="text-xs italic">{r.category}</span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    ) : null}
+                    {visibleCols.status ? (
+                      <td className="px-4 py-3">
+                        <StatusBadge status={r.status} />
+                      </td>
+                    ) : null}
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
+                      <button
+                        onClick={() => setEditing(r)}
+                        className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+                      >
+                        <Pencil className="h-3 w-3" /> Edit
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Delete "${r.title_en}"? This cannot be undone.`))
+                            return;
+                          try {
+                            await deleteRow("proposals", r.id);
+                            toast.success("Deleted");
+                            void load();
+                          } catch (e) {
+                            toast.error(e instanceof Error ? e.message : "Delete failed");
+                          }
+                        }}
+                        className="ml-2 inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {editing ? (
