@@ -582,6 +582,8 @@ export type Database = {
           photo_url: string | null
           primary_district_id: string | null
           profession: string | null
+          profession_bucket: string | null
+          profession_code: string | null
           slug: string
           source_url: string | null
           status: Database["public"]["Enums"]["review_status"]
@@ -626,6 +628,8 @@ export type Database = {
           photo_url?: string | null
           primary_district_id?: string | null
           profession?: string | null
+          profession_bucket?: string | null
+          profession_code?: string | null
           slug: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
@@ -670,6 +674,8 @@ export type Database = {
           photo_url?: string | null
           primary_district_id?: string | null
           profession?: string | null
+          profession_bucket?: string | null
+          profession_code?: string | null
           slug?: string
           source_url?: string | null
           status?: Database["public"]["Enums"]["review_status"]
@@ -693,6 +699,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "districts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidates_profession_bucket_fkey"
+            columns: ["profession_bucket"]
+            isOneToOne: false
+            referencedRelation: "profession_buckets"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "candidates_profession_code_fkey"
+            columns: ["profession_code"]
+            isOneToOne: false
+            referencedRelation: "profession_codes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1480,6 +1500,80 @@ export type Database = {
           wikipedia_url?: string | null
         }
         Relationships: []
+      }
+      profession_buckets: {
+        Row: {
+          created_at: string
+          description_en: string | null
+          icon: string | null
+          label_en: string
+          label_mt: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description_en?: string | null
+          icon?: string | null
+          label_en: string
+          label_mt?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description_en?: string | null
+          icon?: string | null
+          label_en?: string
+          label_mt?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profession_codes: {
+        Row: {
+          active: boolean
+          bucket: string | null
+          code: string
+          created_at: string
+          major_group: string | null
+          title_en: string
+          title_mt: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          bucket?: string | null
+          code: string
+          created_at?: string
+          major_group?: string | null
+          title_en: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          bucket?: string | null
+          code?: string
+          created_at?: string
+          major_group?: string | null
+          title_en?: string
+          title_mt?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profession_codes_bucket_fkey"
+            columns: ["bucket"]
+            isOneToOne: false
+            referencedRelation: "profession_buckets"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       profiles: {
         Row: {
