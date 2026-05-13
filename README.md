@@ -362,9 +362,51 @@ Single-key shortcuts are disabled while typing in inputs, textareas, or
 contenteditable fields, and ignore key combinations with `Ctrl`, `Cmd`, or
 `Alt` (so they don't conflict with `⌘K`).
 
+### Candidate Categorisation (Profession, Roles, Experience)
+Every candidate can be tagged with a standardised **ISCO-08 profession
+code** (~120 curated occupations from the ILO classification) and a
+plain-language **profession bucket** (~40 groupings such as *lawyer*,
+*doctor*, *entrepreneur*, *teacher*, *trade unionist*) for fast
+filtering. The candidate editor exposes an ISCO combobox with title
+search and an **Apply ISCO suggestion** button that calls Lovable AI
+to propose a code from the candidate's bio. Cabinet and parliamentary
+roles on `candidate_positions` are structured via a `position_kind`
+enum (minister, parliamentary secretary, PM, deputy PM, opposition
+leader, speaker, whip, committee chair, shadow minister, cabinet
+member, MEP, …) with a separate `portfolio` field, plus a Gemini-backed
+backfill action for legacy free-text titles. A new
+`candidate_local_council_terms` table (with mayor / deputy mayor /
+councillor / … roles) and matching `local_council_imports` staging
+tables back the upcoming `electoral.gov.mt` scraper. A
+`candidate_experience_summary` view aggregates parliament, cabinet and
+local-council history per candidate (e.g. `has_ever_been_minister`,
+`local_council_terms_count`) so public filters and detail pages can
+query a single source of truth.
+
+### SEO & Discoverability
+- `public/robots.txt` allows public crawling and disallows `/admin`,
+  `/auth`, and `/api`.
+- `/sitemap.xml` is a server-rendered route that enumerates every
+  public page in both locales plus all published candidates, parties
+  and the 13 districts (with `lastmod` from each row's `updated_at`).
+- The site root ships JSON-LD for `Organization` and `WebSite` (with
+  a `SearchAction`), `og:site_name`, and default Open Graph / Twitter
+  images.
+- Hreflang alternates on the `$lang` layout are absolute URLs, and key
+  leaf routes (`/`, `/candidates`, `/candidates/:slug`, `/parties`,
+  `/parties/:slug`, `/proposals`) emit `<link rel="canonical">`,
+  `og:url` and `twitter:url`. Candidate and party detail pages also
+  set `og:type: profile` with the candidate photo / party logo as the
+  share image.
+- Admin routes carry `<meta name="robots" content="noindex, nofollow">`
+  so the staff UI stays out of search results.
+- `src/lib/seo.ts` centralises `SITE_URL`, canonical and hreflang
+  construction for new routes.
+
 ---
 
 ## Tech Stack
+
 
 - **Framework:** TanStack Start v1 (React 19, Vite 7, file-based routing, SSR)
 - **Styling:** Tailwind CSS v4 with semantic design tokens in `src/styles.css`
