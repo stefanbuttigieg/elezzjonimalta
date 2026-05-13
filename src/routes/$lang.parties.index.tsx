@@ -38,13 +38,17 @@ export const Route = createFileRoute("/$lang/parties/")({
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title = translate(lang, "parties.meta.title");
     const description = translate(lang, "parties.meta.description");
+    const url = `https://elezzjoni.app/${lang}/parties`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { name: "twitter:url", content: url },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   errorComponent: PartiesError,

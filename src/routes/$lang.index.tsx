@@ -112,13 +112,17 @@ export const Route = createFileRoute("/$lang/")({
         ? "Elezzjoni — Ivvota b'għarfien"
         : "Elezzjoni — Make an informed vote";
     const description = translate(lang, "site.description");
+    const url = `https://elezzjoni.app/${lang}`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { name: "twitter:url", content: url },
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   component: HomePage,

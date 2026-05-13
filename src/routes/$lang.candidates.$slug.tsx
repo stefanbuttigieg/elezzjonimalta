@@ -141,12 +141,16 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
         ? candidate?.bio_mt || candidate?.bio_en
         : candidate?.bio_en || candidate?.bio_mt;
     const description = bio?.slice(0, 160) ?? translate(lang, "candidates.meta.description");
+    const url = `https://elezzjoni.app/${lang}/candidates/${params.slug}`;
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
+        { property: "og:type", content: "profile" },
+        { property: "og:url", content: url },
+        { name: "twitter:url", content: url },
         ...(candidate?.photo_url
           ? [
               { property: "og:image", content: candidate.photo_url },
@@ -154,6 +158,7 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
             ]
           : []),
       ],
+      links: [{ rel: "canonical", href: url }],
     };
   },
   errorComponent: CandidateError,

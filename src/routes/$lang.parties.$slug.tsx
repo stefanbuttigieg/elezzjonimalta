@@ -99,9 +99,16 @@ export const Route = createFileRoute("/$lang/parties/$slug")({
   loader: ({ params }) => loadParty(params.slug),
   head: ({ params, loaderData }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
+    const url = `https://elezzjoni.app/${lang}/parties/${params.slug}`;
     const party = loaderData?.party;
     if (!party) {
-      return { meta: [{ title: translate(lang, "parties.meta.title") }] };
+      return {
+        meta: [
+          { title: translate(lang, "parties.meta.title") },
+          { property: "og:url", content: url },
+        ],
+        links: [{ rel: "canonical", href: url }],
+      };
     }
     const name = lang === "mt" && party.name_mt ? party.name_mt : party.name_en;
     const desc =
@@ -113,12 +120,15 @@ export const Route = createFileRoute("/$lang/parties/$slug")({
       { name: "description", content: desc },
       { property: "og:title", content: name },
       { property: "og:description", content: desc },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: url },
+      { name: "twitter:url", content: url },
     ];
     if (ogImage) {
       metaTags.push({ property: "og:image", content: ogImage });
       metaTags.push({ name: "twitter:image", content: ogImage });
     }
-    return { meta: metaTags };
+    return { meta: metaTags, links: [{ rel: "canonical", href: url }] };
   },
   errorComponent: PartyError,
   notFoundComponent: () => <PartyNotFound />,
