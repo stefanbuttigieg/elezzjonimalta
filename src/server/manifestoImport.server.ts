@@ -1,14 +1,23 @@
-// Server-only manifesto ingestion pipeline.
+// Server-only manifesto ingestion pipeline — TICK-BASED state machine.
 //
-// Flow:
-//   1. Resolve source: PDF URL → download | uploaded file → fetch from storage | HTML page.
-//   2. Extract text per page (pdfjs-dist) OR scrape markdown (Firecrawl) for HTML.
-//   3. Chunk by section, send each chunk to Gemini for structured proposal extraction.
-//   4. Deduplicate within batch + against existing proposals (pg_trgm via RPC).
-//   5. Persist progress + final extracted[] on the manifesto_imports row.
+// Why a state machine instead of one long background job?
+// On Cloudflare Workers (the runtime TanStack Start ships to) there is no
+// reliable way to keep an unawaited promise alive past the HTTP response,
+// and a single multi-minute job blows past the Worker's CPU/wall-clock cap
+// anyway. So we split the pipeline into small steps, persist state to the
+// `manifesto_imports` row between steps, and let the admin UI drive the
+// pipeline forward by polling a `tickManifestoImport` server fn.
 //
-// Heavy work runs inside startManifestoImport (server function) so the UI just polls
-// getManifestoImportStatus until status flips to 'ready' or 'failed'.
+// Phases (stored in `summary.pipeline.phase`):
+//   queued      → row just created, no work done yet.
+//   loading     → download/scrape source, extract pages, build chunks.
+//   extracting  → per tick, process ONE chunk through Gemini and append.
+//   matching    → dedupe + pg_trgm fuzzy match against existing proposals.
+//   done        → row.status = 'ready', summary.pipeline cleared.
+//
+// Each tick has a soft wall-clock budget of ~18s and only does ONE unit of
+// work, so it always finishes well inside Worker limits. If the Worker is
+// killed mid-tick, the next tick simply re-runs that one step (idempotent).
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { tagProposalsBatch } from "@/server/proposalGeoTag.server";
@@ -16,12 +25,15 @@ import { tagProposalsBatch } from "@/server/proposalGeoTag.server";
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-// Hard caps to protect cost + DB.
 const MAX_PROPOSALS_PER_IMPORT = 500;
 const MAX_PAGES = 200;
-const MAX_CHARS_PER_CHUNK = 28_000; // ~7k tokens, leaves headroom for prompt + JSON output
-const MAX_CONCURRENT_CHUNKS = 2;
-const SIMILARITY_THRESHOLD_AUTO_UPDATE = 0.78; // exact-ish title → auto pre-select Update existing
+const MAX_CHARS_PER_CHUNK = 28_000;
+const SIMILARITY_THRESHOLD_AUTO_UPDATE = 0.78;
+
+// How many chunks to process per `extracting` tick. Each chunk is one Gemini
+// call (~10–25s); keep this at 1 so a single tick never approaches the
+// Worker's timeout, even on a slow upstream.
+const CHUNKS_PER_TICK = 1;
 
 const SYSTEM_PROMPT = `You are a strictly neutral, non-partisan extraction agent for Maltese political party manifestos.
 
@@ -64,121 +76,354 @@ interface MatchSuggestion {
 
 export interface ReviewRow extends ExtractedProposal {
   matches: MatchSuggestion[];
-  // Default action the UI will pre-select.
   suggested_action: "create" | "update" | "skip";
   suggested_target_id: string | null;
 }
-
-interface RunInput {
-  importId: string;
-  partyId: string;
-  language: "en" | "mt" | "both";
-  sourceKind: "pdf" | "html" | "upload";
-  sourceUrl?: string | null;
-  filePath?: string | null; // path inside `manifestos` bucket for uploaded PDFs
-}
-
-// ---------------------------------------------------------------------------
-// Public entry point — runs the whole pipeline and updates the row in place.
-// ---------------------------------------------------------------------------
-
-export async function runManifestoImport(input: RunInput): Promise<void> {
-  const { importId } = input;
-  const logs: { at: string; pct: number; stage: string }[] = [];
-  const log = async (pct: number, stage: string) => {
-    logs.push({ at: new Date().toISOString(), pct, stage });
-    await setProgress(importId, pct, stage, logs);
-  };
-  try {
-    await log(5, "Fetching source…");
-    const { pages, archivedPath, pageCount } = await loadSource(input);
-
-    await supabaseAdmin
-      .from("manifesto_imports" as never)
-      .update({ page_count: pageCount, file_path: archivedPath ?? input.filePath ?? null } as never)
-      .eq("id", importId);
-
-    await log(18, `Extracting proposals from ${pageCount} pages…`);
-    const chunks = chunkPages(pages);
-    const extracted: ExtractedProposal[] = [];
-    const totalChunks = Math.max(chunks.length, 1);
-
-    for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_CHUNKS) {
-      const slice = chunks.slice(i, i + MAX_CONCURRENT_CHUNKS);
-      const results = await Promise.all(slice.map((c) => extractChunk(c, input.language)));
-      for (const r of results) extracted.push(...r);
-      const done = Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length);
-      const pct = Math.round(20 + (70 * done) / totalChunks);
-      await log(
-        pct,
-        `Extracting proposals… (${done}/${chunks.length} chunks, ${extracted.length} proposals so far)`,
-      );
-      if (extracted.length >= MAX_PROPOSALS_PER_IMPORT) break;
-    }
-
-    const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
-    const deduped = dedupeWithinBatch(capped);
-
-    await log(92, `Matching ${deduped.length} proposals against existing…`);
-    const reviewRows = await attachMatches(deduped, input.partyId);
-
-    logs.push({ at: new Date().toISOString(), pct: 100, stage: `Ready — ${reviewRows.length} proposals extracted` });
-    await supabaseAdmin
-      .from("manifesto_imports" as never)
-      .update({
-        status: "ready",
-        stage: `Ready — ${reviewRows.length} proposals extracted`,
-        progress: 100,
-        extracted: reviewRows as never,
-        logs: logs as never,
-        finished_at: new Date().toISOString(),
-      } as never)
-      .eq("id", importId);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? err.stack ?? null : null;
-    console.error("manifesto import failed:", message, stack);
-    logs.push({ at: new Date().toISOString(), pct: -1, stage: `ERROR: ${message}` });
-    await supabaseAdmin
-      .from("manifesto_imports" as never)
-      .update({
-        status: "failed",
-        error: message,
-        error_stack: stack,
-        stage: "Failed",
-        progress: 100,
-        logs: logs as never,
-        finished_at: new Date().toISOString(),
-      } as never)
-      .eq("id", importId);
-  }
-}
-
-async function setProgress(
-  importId: string,
-  progress: number,
-  stage: string,
-  logs?: { at: string; pct: number; stage: string }[],
-) {
-  const patch: Record<string, unknown> = { stage, progress: Math.max(0, Math.min(100, progress)) };
-  if (logs) patch.logs = logs;
-  await supabaseAdmin
-    .from("manifesto_imports" as never)
-    .update(patch as never)
-    .eq("id", importId);
-}
-
-// ---------------------------------------------------------------------------
-// Source loading
-// ---------------------------------------------------------------------------
 
 interface PageText {
   page: number | null;
   text: string;
 }
 
+interface Chunk {
+  text: string;
+  firstPage: number | null;
+}
+
+type Phase = "queued" | "loading" | "extracting" | "matching" | "done";
+
+interface PipelineState {
+  phase: Phase;
+  chunks?: Chunk[];
+  nextChunkIndex?: number;
+  extracted?: ExtractedProposal[];
+}
+
+export interface TickResult {
+  status: "processing" | "ready" | "failed" | "cancelled";
+  stage: string;
+  progress: number;
+  done: boolean;
+}
+
+interface ImportRow {
+  id: string;
+  party_id: string;
+  source_url: string | null;
+  source_kind: "pdf" | "html" | "upload";
+  file_path: string | null;
+  language: "en" | "mt" | "both";
+  status: "processing" | "ready" | "applied" | "failed" | "cancelled";
+  stage: string | null;
+  progress: number | null;
+  logs: { at: string; pct: number; stage: string }[] | null;
+  summary: Record<string, unknown> | null;
+}
+
+// ---------------------------------------------------------------------------
+// Public entry — advance the pipeline by ONE step. Caller polls this until
+// the returned `done` flag is true.
+// ---------------------------------------------------------------------------
+
+export async function runManifestoImportStep(importId: string): Promise<TickResult> {
+  const row = await loadRow(importId);
+  if (!row) throw new Error("Import row not found");
+
+  // Terminal states: do nothing.
+  if (row.status === "ready" || row.status === "applied" || row.status === "failed" || row.status === "cancelled") {
+    return {
+      status: row.status === "applied" ? "ready" : row.status,
+      stage: row.stage ?? row.status,
+      progress: row.progress ?? 100,
+      done: true,
+    };
+  }
+
+  const summary = (row.summary ?? {}) as Record<string, unknown>;
+  const pipeline = ((summary.pipeline as PipelineState | undefined) ?? { phase: "queued" }) as PipelineState;
+  const logs = Array.isArray(row.logs) ? [...row.logs] : [];
+
+  try {
+    switch (pipeline.phase) {
+      case "queued":
+        return await stepStartLoading(row, summary, logs);
+      case "loading":
+        return await stepLoading(row, summary, logs);
+      case "extracting":
+        return await stepExtracting(row, summary, pipeline, logs);
+      case "matching":
+        return await stepMatching(row, summary, pipeline, logs);
+      case "done":
+        return { status: "ready", stage: row.stage ?? "Ready", progress: 100, done: true };
+    }
+  } catch (err) {
+    return await failRow(importId, err, logs);
+  }
+}
+
+// Reset the row back to queued so the next tick re-runs from scratch.
+// Used by the retry server fn — keeps the row id so the UI link still works.
+export async function resetManifestoImport(importId: string): Promise<void> {
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      status: "processing",
+      stage: "Queued…",
+      progress: 0,
+      error: null,
+      error_stack: null,
+      logs: [] as never,
+      extracted: [] as never,
+      summary: { pipeline: { phase: "queued" } } as never,
+      finished_at: null,
+    } as never)
+    .eq("id", importId);
+}
+
+// ---------------------------------------------------------------------------
+// Phase: queued → loading
+// Just flip the phase + write a starting log line. Cheap; client immediately
+// re-ticks into the actual loading work.
+// ---------------------------------------------------------------------------
+
+async function stepStartLoading(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  logs.push({ at: new Date().toISOString(), pct: 5, stage: "Fetching source…" });
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      stage: "Fetching source…",
+      progress: 5,
+      logs: logs as never,
+      summary: { ...summary, pipeline: { phase: "loading" } } as never,
+    } as never)
+    .eq("id", row.id);
+  return { status: "processing", stage: "Fetching source…", progress: 5, done: false };
+}
+
+// ---------------------------------------------------------------------------
+// Phase: loading
+// Download / scrape the source, extract pages, build chunks. Persist the
+// chunk array on the row so subsequent ticks don't redo this work.
+// ---------------------------------------------------------------------------
+
+async function stepLoading(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const { pages, archivedPath, pageCount } = await loadSource({
+    sourceKind: row.source_kind,
+    sourceUrl: row.source_url,
+    filePath: row.file_path,
+    partyId: row.party_id,
+  });
+
+  const chunks = chunkPages(pages);
+  const stage = `Extracting proposals from ${pageCount} pages (0/${chunks.length} chunks)…`;
+  logs.push({ at: new Date().toISOString(), pct: 18, stage });
+
+  const newPipeline: PipelineState = {
+    phase: "extracting",
+    chunks,
+    nextChunkIndex: 0,
+    extracted: [],
+  };
+
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      stage,
+      progress: 18,
+      page_count: pageCount,
+      file_path: archivedPath ?? row.file_path ?? null,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "processing", stage, progress: 18, done: false };
+}
+
+// ---------------------------------------------------------------------------
+// Phase: extracting
+// Per tick, run AI on `CHUNKS_PER_TICK` chunks, append results, advance the
+// index. When all chunks are done, flip phase to 'matching'.
+// ---------------------------------------------------------------------------
+
+async function stepExtracting(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  pipeline: PipelineState,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const chunks = pipeline.chunks ?? [];
+  const extracted = pipeline.extracted ? [...pipeline.extracted] : [];
+  let nextIndex = pipeline.nextChunkIndex ?? 0;
+  const totalChunks = Math.max(chunks.length, 1);
+
+  // No chunks at all → straight to matching.
+  if (chunks.length === 0) {
+    return await flipToMatching(row, summary, extracted, logs);
+  }
+
+  const end = Math.min(nextIndex + CHUNKS_PER_TICK, chunks.length);
+  for (let i = nextIndex; i < end; i++) {
+    const items = await extractChunk(chunks[i], row.language);
+    extracted.push(...items);
+    if (extracted.length >= MAX_PROPOSALS_PER_IMPORT) {
+      nextIndex = chunks.length; // stop early
+      break;
+    }
+  }
+  if (nextIndex < chunks.length) nextIndex = end;
+
+  const isDone = nextIndex >= chunks.length || extracted.length >= MAX_PROPOSALS_PER_IMPORT;
+  const pct = Math.round(20 + (70 * Math.min(nextIndex, chunks.length)) / totalChunks);
+  const stage = `Extracting proposals… (${Math.min(nextIndex, chunks.length)}/${chunks.length} chunks, ${extracted.length} so far)`;
+  logs.push({ at: new Date().toISOString(), pct, stage });
+
+  if (isDone) {
+    return await flipToMatching(row, summary, extracted, logs);
+  }
+
+  const newPipeline: PipelineState = {
+    phase: "extracting",
+    chunks,
+    nextChunkIndex: nextIndex,
+    extracted,
+  };
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      stage,
+      progress: pct,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "processing", stage, progress: pct, done: false };
+}
+
+async function flipToMatching(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  extracted: ExtractedProposal[],
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
+  const deduped = dedupeWithinBatch(capped);
+  const stage = `Matching ${deduped.length} proposals against existing…`;
+  logs.push({ at: new Date().toISOString(), pct: 92, stage });
+
+  const newPipeline: PipelineState = {
+    phase: "matching",
+    extracted: deduped,
+  };
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      stage,
+      progress: 92,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "processing", stage, progress: 92, done: false };
+}
+
+// ---------------------------------------------------------------------------
+// Phase: matching → ready
+// Single tick: run the trgm RPC for every deduped proposal and persist the
+// final ReviewRow[] as `extracted` for the review UI.
+// ---------------------------------------------------------------------------
+
+async function stepMatching(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  pipeline: PipelineState,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const deduped = pipeline.extracted ?? [];
+  const reviewRows = await attachMatches(deduped, row.party_id);
+  const stage = `Ready — ${reviewRows.length} proposals extracted`;
+  logs.push({ at: new Date().toISOString(), pct: 100, stage });
+
+  const cleanedSummary = { ...summary };
+  delete (cleanedSummary as Record<string, unknown>).pipeline;
+
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      status: "ready",
+      stage,
+      progress: 100,
+      extracted: reviewRows as never,
+      logs: logs as never,
+      summary: cleanedSummary as never,
+      finished_at: new Date().toISOString(),
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "ready", stage, progress: 100, done: true };
+}
+
+// ---------------------------------------------------------------------------
+// Failure path — write the error to the row and surface it to the UI.
+// ---------------------------------------------------------------------------
+
+async function failRow(
+  importId: string,
+  err: unknown,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const message = err instanceof Error ? err.message : String(err);
+  const stack = err instanceof Error ? err.stack ?? null : null;
+  console.error("manifesto import step failed:", message, stack);
+  logs.push({ at: new Date().toISOString(), pct: -1, stage: `ERROR: ${message}` });
+  await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .update({
+      status: "failed",
+      error: message,
+      error_stack: stack,
+      stage: "Failed",
+      progress: 100,
+      logs: logs as never,
+      finished_at: new Date().toISOString(),
+    } as never)
+    .eq("id", importId);
+  return { status: "failed", stage: "Failed", progress: 100, done: true };
+}
+
+async function loadRow(importId: string): Promise<ImportRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("manifesto_imports" as never)
+    .select("id, party_id, source_url, source_kind, file_path, language, status, stage, progress, logs, summary")
+    .eq("id", importId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as ImportRow | null;
+}
+
+// ---------------------------------------------------------------------------
+// Source loading (download / archive / OCR fallback)
+// ---------------------------------------------------------------------------
+
+interface LoadSourceInput {
+  sourceKind: "pdf" | "html" | "upload";
+  sourceUrl: string | null;
+  filePath: string | null;
+  partyId: string;
+}
+
 async function loadSource(
-  input: RunInput,
+  input: LoadSourceInput,
 ): Promise<{ pages: PageText[]; archivedPath: string | null; pageCount: number }> {
   if (input.sourceKind === "html") {
     if (!input.sourceUrl) throw new Error("HTML source requires a URL");
@@ -186,7 +431,6 @@ async function loadSource(
     return { pages: [{ page: null, text: md }], archivedPath: null, pageCount: 1 };
   }
 
-  // PDF — either upload (already in storage) or URL (download then archive).
   let pdfBytes: Uint8Array;
   let archivedPath: string | null = null;
 
@@ -205,7 +449,6 @@ async function loadSource(
     });
     if (!res.ok) throw new Error(`Failed to download PDF (${res.status})`);
     pdfBytes = new Uint8Array(await res.arrayBuffer());
-    // Archive a copy so the source survives party site changes.
     const path = `${input.partyId}/${Date.now()}-${safeFilename(input.sourceUrl)}.pdf`;
     const { error: upErr } = await supabaseAdmin.storage
       .from("manifestos")
@@ -214,15 +457,12 @@ async function loadSource(
   }
 
   const pages = await extractPdfPages(pdfBytes);
-
-  // OCR fallback when extraction yielded almost nothing — typical of scanned PDFs.
   const totalChars = pages.reduce((s, p) => s + p.text.length, 0);
   if (totalChars < 500 && input.sourceUrl) {
     console.warn(`PDF text extraction returned only ${totalChars} chars — falling back to Firecrawl OCR`);
     const md = await firecrawlScrapePdf(input.sourceUrl);
     return { pages: [{ page: null, text: md }], archivedPath, pageCount: pages.length || 1 };
   }
-
   return { pages, archivedPath, pageCount: pages.length };
 }
 
@@ -235,9 +475,7 @@ function safeFilename(url: string): string {
 // ---------------------------------------------------------------------------
 
 async function extractPdfPages(bytes: Uint8Array): Promise<PageText[]> {
-  // Use legacy build — pure JS, no DOM/Canvas dependencies.
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // Disable worker — we run in a single-threaded Worker context already.
   const loadingTask = pdfjs.getDocument({
     data: bytes,
     useWorkerFetch: false,
@@ -294,13 +532,8 @@ async function firecrawlScrapePdf(url: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Chunking — keep page markers so the model can populate page_number
+// Chunking
 // ---------------------------------------------------------------------------
-
-interface Chunk {
-  text: string;
-  firstPage: number | null;
-}
 
 function chunkPages(pages: PageText[]): Chunk[] {
   const chunks: Chunk[] = [];
@@ -326,7 +559,7 @@ function chunkPages(pages: PageText[]): Chunk[] {
 // AI extraction
 // ---------------------------------------------------------------------------
 
-async function extractChunk(chunk: Chunk, language: RunInput["language"]): Promise<ExtractedProposal[]> {
+async function extractChunk(chunk: Chunk, language: ImportRow["language"]): Promise<ExtractedProposal[]> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 
@@ -369,7 +602,6 @@ ${chunk.text}
     return [];
   }
   const list = Array.isArray(parsed.proposals) ? parsed.proposals : [];
-  // Backfill page_number from chunk hint if model didn't populate it.
   return list
     .filter((p) => p && typeof p.title_en === "string" && p.title_en.trim().length > 0)
     .map((p) => ({
@@ -380,7 +612,7 @@ ${chunk.text}
 }
 
 // ---------------------------------------------------------------------------
-// Within-batch dedupe — collapse near-identical EN/MT pairs from the same chunk
+// Within-batch dedupe
 // ---------------------------------------------------------------------------
 
 function normaliseTitle(s: string): string {
@@ -398,7 +630,6 @@ function dedupeWithinBatch(items: ExtractedProposal[]): ExtractedProposal[] {
     if (!existing) {
       seen.set(key, p);
     } else {
-      // Merge — keep first, fill missing language from second.
       seen.set(key, {
         ...existing,
         title_mt: existing.title_mt ?? p.title_mt,
@@ -437,7 +668,7 @@ async function attachMatches(items: ExtractedProposal[], partyId: string): Promi
 }
 
 // ---------------------------------------------------------------------------
-// Apply step — called after staff confirm decisions in the review table
+// Apply step — unchanged.
 // ---------------------------------------------------------------------------
 
 export interface Decision {
@@ -504,7 +735,6 @@ export async function applyManifestoDecisions(args: {
         touchedProposalIds.push(proposalId);
       } else if (d.action === "update") {
         if (!d.targetId) throw new Error("update action missing targetId");
-        // Validate target exists and belongs to the same party.
         const { data: target, error: tErr } = await supabaseAdmin
           .from("proposals")
           .select("id, party_id")
@@ -532,7 +762,6 @@ export async function applyManifestoDecisions(args: {
         touchedProposalIds.push(proposalId);
       }
 
-      // Append the manifesto as a source row (no duplicate URLs per proposal).
       if (proposalId && sourceUrl) {
         const { data: existingSource } = await supabaseAdmin
           .from("proposal_sources")
@@ -560,8 +789,6 @@ export async function applyManifestoDecisions(args: {
     }
   }
 
-  // Auto-tag newly created/updated proposals with geo (scope + localities).
-  // Best-effort: never fail the apply step if tagging errors out.
   if (touchedProposalIds.length > 0) {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (apiKey) {
