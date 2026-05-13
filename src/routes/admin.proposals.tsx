@@ -137,6 +137,34 @@ function ProposalsAdmin() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
 
+  // Column visibility (persisted). Title + Actions always shown.
+  type ColKey = "linked" | "category" | "status";
+  const ALL_COLS: { key: ColKey; label: string }[] = [
+    { key: "linked", label: "Linked to" },
+    { key: "category", label: "Category" },
+    { key: "status", label: "Status" },
+  ];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
+    if (typeof window === "undefined") return { linked: true, category: true, status: true };
+    try {
+      const raw = window.localStorage.getItem("admin:proposals:cols");
+      if (raw) return { linked: true, category: true, status: true, ...JSON.parse(raw) };
+    } catch {
+      /* ignore */
+    }
+    return { linked: true, category: true, status: true };
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("admin:proposals:cols", JSON.stringify(visibleCols));
+    } catch {
+      /* ignore */
+    }
+  }, [visibleCols]);
+  const [colsMenuOpen, setColsMenuOpen] = useState(false);
+  const visibleColCount =
+    1 /* checkbox */ + 1 /* title */ + Object.values(visibleCols).filter(Boolean).length + 1; /* actions */
+
   const toggleOne = (id: string) =>
     setSelected((prev) => {
       const next = new Set(prev);
