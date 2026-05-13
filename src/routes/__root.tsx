@@ -75,6 +75,36 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content:
           "Independent, bilingual tool to research candidates and parties in Malta's 2026 General Election.",
       },
+      { property: "og:site_name", content: "Elezzjoni" },
+      { property: "og:image", content: "https://elezzjoni.app/og-default.png" },
+      { name: "twitter:image", content: "https://elezzjoni.app/og-default.png" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Elezzjoni",
+              url: "https://elezzjoni.app",
+              logo: "https://elezzjoni.app/og-default.png",
+            },
+            {
+              "@type": "WebSite",
+              name: "Elezzjoni",
+              url: "https://elezzjoni.app",
+              inLanguage: ["en", "mt"],
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://elezzjoni.app/en/search?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ],
+        }),
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

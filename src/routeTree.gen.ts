@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
@@ -65,6 +66,11 @@ import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -402,6 +409,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -460,6 +468,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$lang': typeof LangRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/$lang/about': typeof LangAboutRoute
   '/$lang/accessibility': typeof LangAccessibilityRoute
   '/$lang/ask': typeof LangAskRoute
@@ -519,6 +528,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$lang'
     | '/admin'
+    | '/sitemap.xml'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/sitemap.xml'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$lang'
     | '/admin'
+    | '/sitemap.xml'
     | '/$lang/about'
     | '/$lang/accessibility'
     | '/$lang/ask'
@@ -689,6 +701,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LangRoute: typeof LangRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthLoginRoute: typeof AuthLoginRoute
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
@@ -699,6 +712,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -1199,6 +1219,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LangRoute: LangRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthLoginRoute: AuthLoginRoute,
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,

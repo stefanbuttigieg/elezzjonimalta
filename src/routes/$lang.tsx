@@ -31,9 +31,9 @@ export const Route = createFileRoute("/$lang")({
         { property: "og:locale", content: lang === "mt" ? "mt_MT" : "en_GB" },
       ],
       links: [
-        { rel: "alternate", hrefLang: "en", href: "/en" },
-        { rel: "alternate", hrefLang: "mt", href: "/mt" },
-        { rel: "alternate", hrefLang: "x-default", href: "/en" },
+        { rel: "alternate", hrefLang: "en", href: "https://elezzjoni.app/en" },
+        { rel: "alternate", hrefLang: "mt", href: "https://elezzjoni.app/mt" },
+        { rel: "alternate", hrefLang: "x-default", href: "https://elezzjoni.app/en" },
       ],
     };
   },
