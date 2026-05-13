@@ -1,78 +1,118 @@
-## What we're building
+# Candidate Categorisation
 
-Tag every proposal with:
-- a **scope**: `national` | `regional` | `local`
-- a list of **localities** (only names that exist in `districts.localities_*`)
-- the derived **districts** those localities belong to
+Four pieces, shipped in one round but in safe order so each step is usable on its own.
 
-Then surface those tags on `/my-district/<n>` as filter tabs (**Local · District · National · All**) so a voter sees the most relevant promises first.
+---
 
-## Database
+## 1. Profession — ISCO code + curated bucket
 
-New columns on `proposals`:
-- `geo_scope` enum (`national | regional | local`), default `national`
-- `localities text[]` — canonical locality strings (validated against the registry)
-- `district_ids uuid[]` — derived from localities, plus any explicit district picks
-- `geo_tagged_at timestamptz`, `geo_tagged_by text` (`ai` | `human` | `null`)
-- GIN indexes on `localities` and `district_ids` for fast filtering
+**New tables**
 
-A SQL helper `app_private.proposal_district_ids(localities text[])` resolves locality strings → district ids using `districts.localities_en/mt`.
+- `profession_codes` — seed data
+  - `code` (text, PK) — ISCO‑08 4‑digit code (e.g. `2611`)
+  - `title_en`, `title_mt`
+  - `bucket` (text) — short-list slug (`lawyer`, `doctor`, `educator`, `entrepreneur`, …)
+  - `major_group` (text) — ISCO 1‑digit group
+  - `active` (bool)
+- `profession_buckets` — curated short list (~40 rows)
+  - `slug` (PK), `label_en`, `label_mt`, `icon`, `sort_order`, `description_en`
 
-## Locality registry
+**Schema change on `candidates`**
 
-A small server helper `getLocalityRegistry()` parses `districts.localities_en` + `localities_mt` once per request and returns `{ canonical: string, aliases: string[], districtId: uuid, districtNumber }[]`. The AI is given this list as the only allowed values, and writes are validated server-side against it.
+- `profession_code` text → FK `profession_codes.code` (nullable)
+- `profession_bucket` text → FK `profession_buckets.slug` (nullable, derivable but stored for filter speed)
+- Keep existing free-text `profession` as fallback / display override.
 
-## AI tagging
+**Seed data**: ship a curated subset of ISCO‑08 (~120 codes that actually appear in Maltese politics) + ~40 buckets, pre-mapped. Source: ILO ISCO‑08 official list.
 
-Server function `tagProposalGeo(proposalId)`:
-1. Loads proposal title + description (en + mt) + the locality registry.
-2. Calls Lovable AI Gateway (`google/gemini-3-flash-preview`) with **structured output** (Zod schema for `{ scope, localities[] }`).
-3. Drops any locality not in the registry, derives `district_ids`, persists with `geo_tagged_by = 'ai'`.
+**Admin UX** (`admin.candidates.tsx` editor):
+- Combobox: type to search ISCO title, picks code; bucket auto-fills from mapping (editable).
+- "Apply ISCO suggestion" button calls AI server fn that reads `profession` free text + `bio_en` and proposes a code.
 
-Triggers:
-- **Auto** at the end of the manifesto-import "Apply decisions" step for every newly created/updated proposal (sequential, with small delay so we don't hammer the gateway).
-- **Manual** "Re-tag with AI" button per proposal in `/admin/proposals`.
-- **Bulk** "Tag untagged with AI" action in `/admin/proposals` toolbar (background job, progress toast).
+---
 
-## Admin UI (`/admin/proposals`)
+## 2. Position kind — structured cabinet/parliamentary roles
 
-New compact "Geo" cell per row:
-- Pills showing scope + locality count (tooltip lists localities + districts).
-- Inline editor: scope select, multi-select localities (typeahead from registry), "Re-tag with AI" button.
-- Bulk action in toolbar: "AI-tag untagged".
+**Schema change on `candidate_positions`**
 
-## Public prioritisation
+- New enum `position_kind`: `minister`, `parliamentary_secretary`, `prime_minister`, `deputy_pm`, `opposition_leader`, `speaker`, `deputy_speaker`, `whip`, `committee_chair`, `committee_member`, `shadow_minister`, `cabinet_member`, `other`
+- Column `position_kind position_kind not null default 'other'`
+- Optional `portfolio` text (e.g. "Health", "Foreign Affairs") split out from free-text `title`
 
-`/my-district/$number` gets tabs above the proposals list:
+**Server fn** `backfillPositionKinds`:
+- Reads all `candidate_positions` rows
+- Calls Lovable AI Gateway (`google/gemini-2.5-flash`) with the title + body, asks for `{kind, portfolio}` JSON
+- Updates rows in batches of 50, persists progress in `summary.pipeline` like manifesto importer (tick pattern, Worker-safe)
+
+**Admin UI** (`admin.candidates.tsx`): position editor gets a `<select>` for `position_kind`; "AI classify all" button on the candidate page.
+
+---
+
+## 3. Local council experience
+
+**New table `candidate_local_council_terms`**
+- `candidate_id` FK
+- `council_name` text — free for now
+- `locality` text — references `districts.localities_*` for cross-link
+- `role` enum (`mayor`, `deputy_mayor`, `councillor`, `co_opted`)
+- `party_id` FK nullable
+- `election_year` int
+- `start_date`, `end_date` date
+- `votes_first_count` int nullable
+- `source_url` text
+- RLS: same shape as `candidate_positions` (public read on published candidates, staff write).
+
+**electoral.gov.mt scraper**
+
+The site publishes per-council results (PDFs and HTML tables) at `https://electoral.gov.mt/ElectionResults/Local`. Approach:
+- Server fn `scrapeLocalCouncilResults({ year })` using **Firecrawl** (already wired into the project as a connector) to pull the results page + linked PDFs.
+- AI extraction (`google/gemini-2.5-pro`, JSON mode) → list of `{council, candidate_name, party, votes, elected, role}` rows.
+- Match candidate names against `candidates.full_name` with fuzzy match (existing helper in `proposal-dedupe`); unresolved rows go into a staging table for manual confirm.
+- New admin page `/admin/local-council-imports` lists runs, their staging rows, and a confirm/merge UI — same drawer pattern as manifesto imports.
+
+**Note**: scraping electoral.gov.mt PDFs is the riskiest piece. Fallback is fully manual entry while the scraper is iterated.
+
+---
+
+## 4. Experience summary + public filters
+
+**Computed view `candidate_experience_summary`** (Postgres view, refreshed on demand):
+- `parliamentary_terms_count`, `first_elected_year`, `currently_sitting`
+- `cabinet_terms_count`, `current_minister_portfolio`
+- `local_council_terms_count`, `is_current_mayor`
+
+**Public UI**:
+- `$lang.candidates.$slug.tsx` — new "Experience" section showing terms, portfolios, council roles with timeline.
+- `$lang.candidates.index.tsx` — add filter chips:
+  - Profession bucket (multi)
+  - Has parliamentary experience (yes/no/MEP)
+  - Has cabinet experience
+  - Has local council experience
+  - First-time candidate
+
+---
+
+## Migrations / order of execution
 
 ```text
-[ Local · District · National · All ]
+1. Migration A: profession_codes + profession_buckets tables, seed data,
+   candidates.profession_code/bucket columns
+2. Migration B: position_kind enum, column on candidate_positions
+3. Migration C: candidate_local_council_terms + staging table + RLS
+4. Migration D: candidate_experience_summary view
+5. Server fns + admin UI for #1, #2, #3
+6. AI backfill + scraper runs (manual trigger from admin)
+7. Public filters on /candidates
 ```
 
-- **Local** = proposals whose `localities` include any locality that maps to this district (default tab when district has any local proposals).
-- **District** = `district_ids @> {thisDistrictId}` AND `geo_scope <> 'national'`.
-- **National** = `geo_scope = 'national'`.
-- **All** = unfiltered.
+Each migration is independent; if any later step is rejected we still have the data model.
 
-Counts shown on each tab. Existing sorting/cards unchanged.
+---
 
-## Out of scope (this turn)
+## What I need from you before starting
 
-- Locality picker on `/proposals` (general listing) — keep as today.
-- Backfill of every existing proposal — admin can run the bulk "AI-tag untagged" action when ready.
+1. **Confirm the ~40 profession buckets** — I'll draft a list and ask you to edit it before seeding.
+2. **Firecrawl connector** is already linked in the project — re-confirm or I'll request reconnect.
+3. **Scope of legislatures** for backfill: all historical, or only post‑2008?
 
-## Quick housekeeping
-
-Fix hydration mismatch in `formatUpdatedAt` (server UTC vs client Malta TZ flips the day near midnight) by forcing `timeZone: "Europe/Malta"`.
-
-## Files
-
-- migration: new columns, indexes, SQL helper
-- `src/lib/localityRegistry.server.ts` — parse + cache registry
-- `src/lib/proposalGeoTag.functions.ts` — `tagProposalGeo`, `bulkTagUntagged`, `setProposalGeo` (manual save)
-- `src/components/admin/ProposalGeoCell.tsx` — admin row UI
-- `src/routes/admin.proposals.tsx` — wire cell + bulk button
-- `src/server/manifestoImport.server.ts` — kick off geo tagging after apply
-- `src/routes/$lang.my-district.$number.tsx` — tabs + filtered query
-- `src/lib/formatDate.ts` — pin Malta TZ
-- i18n: 4 new strings (Local / District / National / All)
+Reply with any answer or "go" to start with Migration A + the bucket draft.
