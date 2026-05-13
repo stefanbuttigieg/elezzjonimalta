@@ -26,6 +26,10 @@ import {
 } from "@/server/translateProposal.functions";
 import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
 import { bulkCategoriseProposals } from "@/server/bulkCategoriseProposals.functions";
+import {
+  bulkTagProposalsGeo,
+  tagUntaggedProposalsGeo,
+} from "@/server/proposalGeoTag.functions";
 
 const proposalsSearchSchema = z.object({
   import: fallback(z.string().uuid().optional(), undefined),
