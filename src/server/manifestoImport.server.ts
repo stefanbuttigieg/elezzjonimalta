@@ -560,5 +560,18 @@ export async function applyManifestoDecisions(args: {
     }
   }
 
+  // Auto-tag newly created/updated proposals with geo (scope + localities).
+  // Best-effort: never fail the apply step if tagging errors out.
+  if (touchedProposalIds.length > 0) {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (apiKey) {
+      try {
+        await tagProposalsBatch(apiKey, touchedProposalIds);
+      } catch (err) {
+        console.error("manifesto apply geo-tag batch failed:", err);
+      }
+    }
+  }
+
   return result;
 }
