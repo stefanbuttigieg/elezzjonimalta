@@ -4,9 +4,62 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-12
+## [Unreleased] — 2026-05-13
 
 ### Added
+- **SEO foundations.** New `/robots.txt` (allows public, disallows
+  `/admin`, `/auth`, `/api`) and a dynamic `/sitemap.xml` server route
+  that enumerates every public page in both locales plus all published
+  candidates, parties and the 13 districts (with `lastmod` from each
+  row's `updated_at`). The site root now ships JSON-LD for
+  `Organization` and `WebSite` (with a `SearchAction` pointing at
+  `/en/search`), `og:site_name`, and default `og:image` /
+  `twitter:image`. Hreflang alternates on the `$lang` layout are now
+  absolute URLs (Google requirement). Key leaf routes — `/`,
+  `/candidates`, `/candidates/:slug`, `/parties`, `/parties/:slug`,
+  `/proposals` — emit `<link rel="canonical">`, `og:url` and
+  `twitter:url`; candidate and party detail pages also set
+  `og:type: profile`. Admin routes carry
+  `<meta name="robots" content="noindex, nofollow">` so the staff UI
+  stays out of search results. A small `src/lib/seo.ts` helper
+  centralises `SITE_URL`, canonical and hreflang construction for
+  future routes.
+- **Candidate categorisation: profession + position kind.** Candidates
+  can now be tagged with a standardised **ISCO-08 profession code**
+  (~120 curated occupations from the ILO classification) and a
+  **profession bucket** (~40 plain-language groupings such as
+  *lawyer*, *doctor*, *entrepreneur*, *teacher*, *trade unionist*) for
+  fast filtering. Two new tables — `profession_codes` and
+  `profession_buckets` — back the picker, and the `candidates` table
+  gained `profession_code` / `profession_bucket` foreign keys. The
+  candidate editor exposes an ISCO combobox with title search and an
+  **Apply ISCO suggestion** button that calls Lovable AI to propose a
+  code from the candidate's bio. Cabinet/parliamentary roles on
+  `candidate_positions` are now structured via a new `position_kind`
+  enum (`minister`, `parliamentary_secretary`, `prime_minister`,
+  `deputy_pm`, `opposition_leader`, `speaker`, `whip`,
+  `committee_chair`, `shadow_minister`, `cabinet_member`, `mep`,
+  `other`) with a separate `portfolio` text field, plus a
+  `backfillPositionKinds` server function that uses Gemini to classify
+  legacy free-text titles in batches.
+- **Local council experience schema.** New
+  `candidate_local_council_terms` table (with a role enum covering
+  mayor, deputy mayor, councillor, …) plus `local_council_imports` and
+  `local_council_import_rows` staging tables to support the upcoming
+  `electoral.gov.mt` scraper (all council elections since 1993). RLS
+  is enabled across the new tables.
+- **Candidate experience summary view.** New
+  `candidate_experience_summary` view aggregates parliament, cabinet
+  and local-council history per candidate (e.g.
+  `has_ever_been_minister`, `local_council_terms_count`) so public
+  filters and detail pages can query a single source of truth.
+- **Proposal list: column picker + horizontal scroll on mobile.**
+  `/admin/proposals` is now wrapped in a horizontally scrollable shell
+  on narrow screens and exposes a column-visibility popover so staff
+  can pick which columns (including the new geotag column) to show.
+
+### Added (previous batch — 2026-05-12)
+
 - **Community proposals (NGOs, unions, individuals).** A new public page
   at `/community-proposals` lists election wishlists authored by
   non-party voices — NGOs, unions, businesses, academics, faith groups
