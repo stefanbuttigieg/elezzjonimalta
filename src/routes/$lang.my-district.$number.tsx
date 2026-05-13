@@ -66,6 +66,9 @@ type ProposalRow = {
   source_url: string | null;
   party_id: string | null;
   updated_at: string;
+  geo_scope: "national" | "regional" | "local";
+  localities: string[];
+  district_ids: string[];
 };
 
 async function loadMyDistrict(rawNumber: string): Promise<{
