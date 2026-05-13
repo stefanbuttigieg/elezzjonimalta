@@ -6,10 +6,10 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "./auditLog.server";
 import {
   applyCommunityDecisions,
-  runCommunityImport,
+  resetCommunityImport,
+  runCommunityImportStep,
   type Decision,
 } from "./communityImport.server";
-import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
