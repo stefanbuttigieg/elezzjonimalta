@@ -1642,7 +1642,12 @@ export type Database = {
           custom_fields: Json
           description_en: string | null
           description_mt: string | null
+          district_ids: string[]
+          geo_scope: Database["public"]["Enums"]["proposal_geo_scope"]
+          geo_tagged_at: string | null
+          geo_tagged_by: string | null
           id: string
+          localities: string[]
           manifesto_import_id: string | null
           merge_note: string | null
           merged_at: string | null
@@ -1663,7 +1668,12 @@ export type Database = {
           custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
+          district_ids?: string[]
+          geo_scope?: Database["public"]["Enums"]["proposal_geo_scope"]
+          geo_tagged_at?: string | null
+          geo_tagged_by?: string | null
           id?: string
+          localities?: string[]
           manifesto_import_id?: string | null
           merge_note?: string | null
           merged_at?: string | null
@@ -1684,7 +1694,12 @@ export type Database = {
           custom_fields?: Json
           description_en?: string | null
           description_mt?: string | null
+          district_ids?: string[]
+          geo_scope?: Database["public"]["Enums"]["proposal_geo_scope"]
+          geo_tagged_at?: string | null
+          geo_tagged_by?: string | null
           id?: string
+          localities?: string[]
           manifesto_import_id?: string | null
           merge_note?: string | null
           merged_at?: string | null
@@ -2118,6 +2133,7 @@ export type Database = {
         | "not_relevant"
       news_finding_status: "pending" | "accepted" | "dismissed" | "reviewed"
       news_scan_trigger: "cron" | "manual"
+      proposal_geo_scope: "national" | "regional" | "local"
       resource_icon:
         | "globe"
         | "landmark"
@@ -2296,6 +2312,7 @@ export const Constants = {
       ],
       news_finding_status: ["pending", "accepted", "dismissed", "reviewed"],
       news_scan_trigger: ["cron", "manual"],
+      proposal_geo_scope: ["national", "regional", "local"],
       resource_icon: [
         "globe",
         "landmark",
