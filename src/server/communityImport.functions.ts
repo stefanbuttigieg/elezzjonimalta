@@ -84,16 +84,7 @@ export const startCommunityImport = createServerFn({ method: "POST" })
         },
       });
 
-      runInBackground(
-        runCommunityImport({
-          importId,
-          authorId: data.authorId,
-          language: data.language,
-          sourceKind: data.sourceKind,
-          sourceUrl: data.sourceUrl ?? null,
-          filePath: data.uploadedFilePath ?? null,
-        }),
-      );
+      // Pipeline is driven from the client via tickCommunityImport.
 
       return { ok: true as const, importId };
     } catch (err) {
