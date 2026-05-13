@@ -15,6 +15,8 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { CompletionMeter } from "@/components/admin/CompletionMeter";
 import { CandidatePhotoField } from "@/components/admin/CandidatePhotoField";
+import { ProfessionPicker } from "@/components/admin/ProfessionPicker";
+import { CandidatePositionsSection } from "@/components/admin/CandidatePositionsSection";
 import {
   findMissingCandidatePhotos,
   findPhotoForCandidateById,
@@ -66,6 +68,8 @@ interface Candidate {
   not_contesting_note_mt: string | null;
   custom_fields: Record<string, unknown>;
   profession: string | null;
+  profession_code: string | null;
+  profession_bucket: string | null;
   date_of_birth: string | null;
   created_at: string;
 }
@@ -104,6 +108,8 @@ const empty: Candidate = {
   not_contesting_note_mt: "",
   custom_fields: {},
   profession: "",
+  profession_code: null,
+  profession_bucket: null,
   date_of_birth: null,
   created_at: "",
 };
