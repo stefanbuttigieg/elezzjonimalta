@@ -285,16 +285,15 @@ function MyDistrictPage() {
   const [geoTab, setGeoTab] = useState<GeoTab>("all");
 
   const geoCounts = useMemo(() => {
-    let local = 0, district = 0, national = 0;
+    let local = 0, dist = 0, national = 0;
     for (const p of proposals) {
-      const inDistrict = p.district_ids?.includes(district_id_for_count);
+      const inDistrict = p.district_ids?.includes(district.id);
       if (inDistrict && p.geo_scope === "local") local++;
-      if (inDistrict && p.geo_scope !== "national") district++;
+      if (inDistrict && p.geo_scope !== "national") dist++;
       if (p.geo_scope === "national") national++;
     }
-    return { local, district, national, all: proposals.length };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [proposals]);
+    return { local, district: dist, national, all: proposals.length };
+  }, [proposals, district.id]);
 
   const filteredProposals = useMemo(() => {
     const q = proposalQuery.trim().toLowerCase();
