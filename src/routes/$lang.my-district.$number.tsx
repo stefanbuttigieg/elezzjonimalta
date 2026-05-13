@@ -145,7 +145,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
         const { data, error } = await supabase
           .from("proposals")
           .select(
-            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at"
+            "id, title_en, title_mt, description_en, description_mt, category, source_url, party_id, updated_at, geo_scope, localities, district_ids"
           )
           .eq("status", "published")
           .eq("party_id", pid)
