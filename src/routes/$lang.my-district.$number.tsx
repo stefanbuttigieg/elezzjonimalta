@@ -522,6 +522,32 @@ function MyDistrictPage() {
                       />
                     </label>
 
+                    <div className="flex flex-wrap gap-1.5">
+                      {([
+                        ["local", locale === "mt" ? "Lokali" : "Local", geoCounts.local],
+                        ["district", locale === "mt" ? "Distrett" : "District", geoCounts.district],
+                        ["national", locale === "mt" ? "Nazzjonali" : "National", geoCounts.national],
+                        ["all", locale === "mt" ? "Kollha" : "All", geoCounts.all],
+                      ] as Array<[GeoTab, string, number]>).map(([key, label, count]) => {
+                        const active = geoTab === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setGeoTab(key)}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors ${
+                              active
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            {label}
+                            <span className="opacity-70">{count}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     {districtParties.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         <button
