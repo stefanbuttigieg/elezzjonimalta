@@ -455,6 +455,8 @@ export type Database = {
           id: string
           is_current: boolean
           legislature_number: number | null
+          portfolio: string | null
+          position_kind: Database["public"]["Enums"]["position_kind"]
           source_url: string | null
           start_date: string | null
           title: string
@@ -468,6 +470,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           legislature_number?: number | null
+          portfolio?: string | null
+          position_kind?: Database["public"]["Enums"]["position_kind"]
           source_url?: string | null
           start_date?: string | null
           title: string
@@ -481,6 +485,8 @@ export type Database = {
           id?: string
           is_current?: boolean
           legislature_number?: number | null
+          portfolio?: string | null
+          position_kind?: Database["public"]["Enums"]["position_kind"]
           source_url?: string | null
           start_date?: string | null
           title?: string
@@ -2227,6 +2233,21 @@ export type Database = {
         | "not_relevant"
       news_finding_status: "pending" | "accepted" | "dismissed" | "reviewed"
       news_scan_trigger: "cron" | "manual"
+      position_kind:
+        | "prime_minister"
+        | "deputy_pm"
+        | "minister"
+        | "parliamentary_secretary"
+        | "cabinet_member"
+        | "opposition_leader"
+        | "shadow_minister"
+        | "speaker"
+        | "deputy_speaker"
+        | "whip"
+        | "committee_chair"
+        | "committee_member"
+        | "mep"
+        | "other"
       proposal_geo_scope: "national" | "regional" | "local"
       resource_icon:
         | "globe"
@@ -2406,6 +2427,22 @@ export const Constants = {
       ],
       news_finding_status: ["pending", "accepted", "dismissed", "reviewed"],
       news_scan_trigger: ["cron", "manual"],
+      position_kind: [
+        "prime_minister",
+        "deputy_pm",
+        "minister",
+        "parliamentary_secretary",
+        "cabinet_member",
+        "opposition_leader",
+        "shadow_minister",
+        "speaker",
+        "deputy_speaker",
+        "whip",
+        "committee_chair",
+        "committee_member",
+        "mep",
+        "other",
+      ],
       proposal_geo_scope: ["national", "regional", "local"],
       resource_icon: [
         "globe",
