@@ -693,6 +693,7 @@ function ProposalsAdmin() {
                 {visibleCols.linked ? <th className="px-4 py-3">Linked to</th> : null}
                 {visibleCols.category ? <th className="px-4 py-3">Category</th> : null}
                 {visibleCols.status ? <th className="px-4 py-3">Status</th> : null}
+                {visibleCols.geo ? <th className="px-4 py-3">Geo tag</th> : null}
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
