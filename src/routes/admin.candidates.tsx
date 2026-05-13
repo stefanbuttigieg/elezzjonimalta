@@ -1164,6 +1164,7 @@ function CandidateEditor({
         values={(v.custom_fields ?? {}) as Record<string, unknown>}
         onChange={(next) => setV({ ...v, custom_fields: next })}
       />
+      {!isNew && v.id ? <CandidatePositionsSection candidateId={v.id} /> : null}
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );
