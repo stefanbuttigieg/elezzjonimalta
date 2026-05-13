@@ -529,6 +529,7 @@ export async function applyManifestoDecisions(args: {
         if (error) throw error;
         proposalId = d.targetId;
         result.updated++;
+        touchedProposalIds.push(proposalId);
       }
 
       // Append the manifesto as a source row (no duplicate URLs per proposal).
