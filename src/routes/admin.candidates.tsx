@@ -15,6 +15,8 @@ import {
 import { CustomFieldsSection } from "@/components/admin/CustomFieldsSection";
 import { CompletionMeter } from "@/components/admin/CompletionMeter";
 import { CandidatePhotoField } from "@/components/admin/CandidatePhotoField";
+import { ProfessionPicker } from "@/components/admin/ProfessionPicker";
+import { CandidatePositionsSection } from "@/components/admin/CandidatePositionsSection";
 import {
   findMissingCandidatePhotos,
   findPhotoForCandidateById,
@@ -66,6 +68,8 @@ interface Candidate {
   not_contesting_note_mt: string | null;
   custom_fields: Record<string, unknown>;
   profession: string | null;
+  profession_code: string | null;
+  profession_bucket: string | null;
   date_of_birth: string | null;
   created_at: string;
 }
@@ -104,6 +108,8 @@ const empty: Candidate = {
   not_contesting_note_mt: "",
   custom_fields: {},
   profession: "",
+  profession_code: null,
+  profession_bucket: null,
   date_of_birth: null,
   created_at: "",
 };
@@ -800,6 +806,9 @@ function CandidateEditor({
         not_contesting_note_en: v.not_contesting_note_en || null,
         not_contesting_note_mt: v.not_contesting_note_mt || null,
         custom_fields: v.custom_fields ?? {},
+        profession: v.profession || null,
+        profession_code: v.profession_code || null,
+        profession_bucket: v.profession_bucket || null,
       };
       let candidateId = v.id;
       if (isNew) {
@@ -1044,6 +1053,21 @@ function CandidateEditor({
             onChange={(x) => setV({ ...v, parlament_mt_url: x })}
           />
         </Field>
+        <Field label="Profession" full>
+          <ProfessionPicker
+            code={v.profession_code}
+            bucket={v.profession_bucket}
+            freeText={v.profession}
+            onChange={(next) =>
+              setV({
+                ...v,
+                profession_code: next.code,
+                profession_bucket: next.bucket,
+                profession: next.freeText,
+              })
+            }
+          />
+        </Field>
         <Field label="Bio (EN)" full>
           <Textarea value={v.bio_en ?? ""} onChange={(x) => setV({ ...v, bio_en: x })} />
         </Field>
@@ -1143,6 +1167,7 @@ function CandidateEditor({
         values={(v.custom_fields ?? {}) as Record<string, unknown>}
         onChange={(next) => setV({ ...v, custom_fields: next })}
       />
+      {!isNew && v.id ? <CandidatePositionsSection candidateId={v.id} /> : null}
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
   );
