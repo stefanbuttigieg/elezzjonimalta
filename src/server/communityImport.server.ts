@@ -1,6 +1,5 @@
-// Server-only community-proposal ingestion pipeline.
-// Mirrors manifestoImport.server.ts but writes into community_proposals
-// for a given community_author instead of party manifesto proposals.
+// Server-only community-proposal ingestion pipeline — TICK-BASED.
+// Mirrors manifestoImport.server.ts. See that file's header for rationale.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -10,8 +9,8 @@ const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MAX_PROPOSALS_PER_IMPORT = 500;
 const MAX_PAGES = 200;
 const MAX_CHARS_PER_CHUNK = 28_000;
-const MAX_CONCURRENT_CHUNKS = 2;
 const SIMILARITY_THRESHOLD_AUTO_UPDATE = 0.78;
+const CHUNKS_PER_TICK = 1;
 
 const SYSTEM_PROMPT = `You are a strictly neutral extraction agent. The text provided is a wishlist or position document published by a Maltese civil-society entity (NGO, union, individual, business association, faith group, or similar) ahead of a general election.
 
@@ -58,102 +57,281 @@ export interface ReviewRow extends ExtractedProposal {
   suggested_target_id: string | null;
 }
 
-interface RunInput {
-  importId: string;
-  authorId: string;
-  language: "en" | "mt" | "both";
-  sourceKind: "pdf" | "html" | "upload";
-  sourceUrl?: string | null;
-  filePath?: string | null;
+interface PageText { page: number | null; text: string }
+interface Chunk { text: string; firstPage: number | null }
+type Phase = "queued" | "loading" | "extracting" | "matching" | "done";
+
+interface PipelineState {
+  phase: Phase;
+  chunks?: Chunk[];
+  nextChunkIndex?: number;
+  extracted?: ExtractedProposal[];
 }
 
-export async function runCommunityImport(input: RunInput): Promise<void> {
-  const { importId } = input;
-  const logs: { at: string; pct: number; stage: string }[] = [];
-  const log = async (pct: number, stage: string) => {
-    logs.push({ at: new Date().toISOString(), pct, stage });
-    await setProgress(importId, pct, stage, logs);
-  };
+export interface TickResult {
+  status: "processing" | "ready" | "failed" | "cancelled";
+  stage: string;
+  progress: number;
+  done: boolean;
+}
+
+interface ImportRow {
+  id: string;
+  author_id: string;
+  source_url: string | null;
+  source_kind: "pdf" | "html" | "upload";
+  file_path: string | null;
+  language: "en" | "mt" | "both";
+  status: "processing" | "ready" | "applied" | "failed" | "cancelled";
+  stage: string | null;
+  progress: number | null;
+  logs: { at: string; pct: number; stage: string }[] | null;
+  summary: Record<string, unknown> | null;
+}
+
+export async function runCommunityImportStep(importId: string): Promise<TickResult> {
+  const row = await loadRow(importId);
+  if (!row) throw new Error("Import row not found");
+
+  if (row.status === "ready" || row.status === "applied" || row.status === "failed" || row.status === "cancelled") {
+    return {
+      status: row.status === "applied" ? "ready" : row.status,
+      stage: row.stage ?? row.status,
+      progress: row.progress ?? 100,
+      done: true,
+    };
+  }
+
+  const summary = (row.summary ?? {}) as Record<string, unknown>;
+  const pipeline = ((summary.pipeline as PipelineState | undefined) ?? { phase: "queued" }) as PipelineState;
+  const logs = Array.isArray(row.logs) ? [...row.logs] : [];
+
   try {
-    await log(5, "Fetching source…");
-    const { pages, archivedPath, pageCount } = await loadSource(input);
-
-    await supabaseAdmin
-      .from("community_imports" as never)
-      .update({ page_count: pageCount, file_path: archivedPath ?? input.filePath ?? null } as never)
-      .eq("id", importId);
-
-    await log(18, `Extracting proposals from ${pageCount} pages…`);
-    const chunks = chunkPages(pages);
-    const extracted: ExtractedProposal[] = [];
-    const totalChunks = Math.max(chunks.length, 1);
-
-    for (let i = 0; i < chunks.length; i += MAX_CONCURRENT_CHUNKS) {
-      const slice = chunks.slice(i, i + MAX_CONCURRENT_CHUNKS);
-      const results = await Promise.all(slice.map((c) => extractChunk(c, input.language)));
-      for (const r of results) extracted.push(...r);
-      const done = Math.min(i + MAX_CONCURRENT_CHUNKS, chunks.length);
-      const pct = Math.round(20 + (70 * done) / totalChunks);
-      await log(pct, `Extracting proposals… (${done}/${chunks.length} chunks, ${extracted.length} so far)`);
-      if (extracted.length >= MAX_PROPOSALS_PER_IMPORT) break;
+    switch (pipeline.phase) {
+      case "queued":
+        return await stepStartLoading(row, summary, logs);
+      case "loading":
+        return await stepLoading(row, summary, logs);
+      case "extracting":
+        return await stepExtracting(row, summary, pipeline, logs);
+      case "matching":
+        return await stepMatching(row, summary, pipeline, logs);
+      case "done":
+        return { status: "ready", stage: row.stage ?? "Ready", progress: 100, done: true };
     }
-
-    const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
-    const deduped = dedupeWithinBatch(capped);
-
-    await log(92, `Matching ${deduped.length} proposals against existing…`);
-    const reviewRows = await attachMatches(deduped, input.authorId);
-
-    logs.push({ at: new Date().toISOString(), pct: 100, stage: `Ready — ${reviewRows.length} proposals extracted` });
-    await supabaseAdmin
-      .from("community_imports" as never)
-      .update({
-        status: "ready",
-        stage: `Ready — ${reviewRows.length} proposals extracted`,
-        progress: 100,
-        extracted: reviewRows as never,
-        logs: logs as never,
-        finished_at: new Date().toISOString(),
-      } as never)
-      .eq("id", importId);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? err.stack ?? null : null;
-    console.error("community import failed:", message, stack);
-    logs.push({ at: new Date().toISOString(), pct: -1, stage: `ERROR: ${message}` });
-    await supabaseAdmin
-      .from("community_imports" as never)
-      .update({
-        status: "failed",
-        error: message,
-        error_stack: stack,
-        stage: "Failed",
-        progress: 100,
-        logs: logs as never,
-        finished_at: new Date().toISOString(),
-      } as never)
-      .eq("id", importId);
+    return await failRow(importId, err, logs);
   }
 }
 
-async function setProgress(
-  importId: string,
-  progress: number,
-  stage: string,
-  logs?: { at: string; pct: number; stage: string }[],
-) {
-  const patch: Record<string, unknown> = { stage, progress: Math.max(0, Math.min(100, progress)) };
-  if (logs) patch.logs = logs;
+export async function resetCommunityImport(importId: string): Promise<void> {
   await supabaseAdmin
     .from("community_imports" as never)
-    .update(patch as never)
+    .update({
+      status: "processing",
+      stage: "Queued…",
+      progress: 0,
+      error: null,
+      error_stack: null,
+      logs: [] as never,
+      extracted: [] as never,
+      summary: { pipeline: { phase: "queued" } } as never,
+      finished_at: null,
+    } as never)
     .eq("id", importId);
 }
 
-interface PageText { page: number | null; text: string }
+async function stepStartLoading(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  logs.push({ at: new Date().toISOString(), pct: 5, stage: "Fetching source…" });
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      stage: "Fetching source…",
+      progress: 5,
+      logs: logs as never,
+      summary: { ...summary, pipeline: { phase: "loading" } } as never,
+    } as never)
+    .eq("id", row.id);
+  return { status: "processing", stage: "Fetching source…", progress: 5, done: false };
+}
+
+async function stepLoading(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const { pages, archivedPath, pageCount } = await loadSource({
+    sourceKind: row.source_kind,
+    sourceUrl: row.source_url,
+    filePath: row.file_path,
+    authorId: row.author_id,
+  });
+  const chunks = chunkPages(pages);
+  const stage = `Extracting proposals from ${pageCount} pages (0/${chunks.length} chunks)…`;
+  logs.push({ at: new Date().toISOString(), pct: 18, stage });
+
+  const newPipeline: PipelineState = { phase: "extracting", chunks, nextChunkIndex: 0, extracted: [] };
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      stage,
+      progress: 18,
+      page_count: pageCount,
+      file_path: archivedPath ?? row.file_path ?? null,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "processing", stage, progress: 18, done: false };
+}
+
+async function stepExtracting(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  pipeline: PipelineState,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const chunks = pipeline.chunks ?? [];
+  const extracted = pipeline.extracted ? [...pipeline.extracted] : [];
+  let nextIndex = pipeline.nextChunkIndex ?? 0;
+  const totalChunks = Math.max(chunks.length, 1);
+
+  if (chunks.length === 0) return await flipToMatching(row, summary, extracted, logs);
+
+  const end = Math.min(nextIndex + CHUNKS_PER_TICK, chunks.length);
+  for (let i = nextIndex; i < end; i++) {
+    const items = await extractChunk(chunks[i], row.language);
+    extracted.push(...items);
+    if (extracted.length >= MAX_PROPOSALS_PER_IMPORT) {
+      nextIndex = chunks.length;
+      break;
+    }
+  }
+  if (nextIndex < chunks.length) nextIndex = end;
+
+  const isDone = nextIndex >= chunks.length || extracted.length >= MAX_PROPOSALS_PER_IMPORT;
+  const pct = Math.round(20 + (70 * Math.min(nextIndex, chunks.length)) / totalChunks);
+  const stage = `Extracting proposals… (${Math.min(nextIndex, chunks.length)}/${chunks.length} chunks, ${extracted.length} so far)`;
+  logs.push({ at: new Date().toISOString(), pct, stage });
+
+  if (isDone) return await flipToMatching(row, summary, extracted, logs);
+
+  const newPipeline: PipelineState = { phase: "extracting", chunks, nextChunkIndex: nextIndex, extracted };
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      stage,
+      progress: pct,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "processing", stage, progress: pct, done: false };
+}
+
+async function flipToMatching(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  extracted: ExtractedProposal[],
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const capped = extracted.slice(0, MAX_PROPOSALS_PER_IMPORT);
+  const deduped = dedupeWithinBatch(capped);
+  const stage = `Matching ${deduped.length} proposals against existing…`;
+  logs.push({ at: new Date().toISOString(), pct: 92, stage });
+
+  const newPipeline: PipelineState = { phase: "matching", extracted: deduped };
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      stage,
+      progress: 92,
+      logs: logs as never,
+      summary: { ...summary, pipeline: newPipeline } as never,
+    } as never)
+    .eq("id", row.id);
+  return { status: "processing", stage, progress: 92, done: false };
+}
+
+async function stepMatching(
+  row: ImportRow,
+  summary: Record<string, unknown>,
+  pipeline: PipelineState,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const deduped = pipeline.extracted ?? [];
+  const reviewRows = await attachMatches(deduped, row.author_id);
+  const stage = `Ready — ${reviewRows.length} proposals extracted`;
+  logs.push({ at: new Date().toISOString(), pct: 100, stage });
+
+  const cleanedSummary = { ...summary };
+  delete (cleanedSummary as Record<string, unknown>).pipeline;
+
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      status: "ready",
+      stage,
+      progress: 100,
+      extracted: reviewRows as never,
+      logs: logs as never,
+      summary: cleanedSummary as never,
+      finished_at: new Date().toISOString(),
+    } as never)
+    .eq("id", row.id);
+
+  return { status: "ready", stage, progress: 100, done: true };
+}
+
+async function failRow(
+  importId: string,
+  err: unknown,
+  logs: { at: string; pct: number; stage: string }[],
+): Promise<TickResult> {
+  const message = err instanceof Error ? err.message : String(err);
+  const stack = err instanceof Error ? err.stack ?? null : null;
+  console.error("community import step failed:", message, stack);
+  logs.push({ at: new Date().toISOString(), pct: -1, stage: `ERROR: ${message}` });
+  await supabaseAdmin
+    .from("community_imports" as never)
+    .update({
+      status: "failed",
+      error: message,
+      error_stack: stack,
+      stage: "Failed",
+      progress: 100,
+      logs: logs as never,
+      finished_at: new Date().toISOString(),
+    } as never)
+    .eq("id", importId);
+  return { status: "failed", stage: "Failed", progress: 100, done: true };
+}
+
+async function loadRow(importId: string): Promise<ImportRow | null> {
+  const { data, error } = await supabaseAdmin
+    .from("community_imports" as never)
+    .select("id, author_id, source_url, source_kind, file_path, language, status, stage, progress, logs, summary")
+    .eq("id", importId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as ImportRow | null;
+}
+
+interface LoadSourceInput {
+  sourceKind: "pdf" | "html" | "upload";
+  sourceUrl: string | null;
+  filePath: string | null;
+  authorId: string;
+}
 
 async function loadSource(
-  input: RunInput,
+  input: LoadSourceInput,
 ): Promise<{ pages: PageText[]; archivedPath: string | null; pageCount: number }> {
   if (input.sourceKind === "html") {
     if (!input.sourceUrl) throw new Error("HTML source requires a URL");
@@ -252,8 +430,6 @@ async function firecrawlScrapePdf(url: string): Promise<string> {
   return json.data?.markdown ?? "";
 }
 
-interface Chunk { text: string; firstPage: number | null }
-
 function chunkPages(pages: PageText[]): Chunk[] {
   const chunks: Chunk[] = [];
   let buf = "";
@@ -274,7 +450,7 @@ function chunkPages(pages: PageText[]): Chunk[] {
   return chunks;
 }
 
-async function extractChunk(chunk: Chunk, language: RunInput["language"]): Promise<ExtractedProposal[]> {
+async function extractChunk(chunk: Chunk, language: ImportRow["language"]): Promise<ExtractedProposal[]> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
 

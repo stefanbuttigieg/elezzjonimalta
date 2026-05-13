@@ -1,4 +1,10 @@
 // Authenticated server functions for the Manifesto Import workflow.
+//
+// Architecture: tick-driven pipeline. The client repeatedly calls
+// `tickManifestoImport` until it returns done=true. Each tick advances the
+// state machine by ONE step inside Worker time/CPU limits. There is no
+// fire-and-forget background work — that pattern doesn't survive on
+// Cloudflare Workers and was the root cause of imports stalling at 0%.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -6,10 +12,10 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "./auditLog.server";
 import {
   applyManifestoDecisions,
-  runManifestoImport,
+  resetManifestoImport,
+  runManifestoImportStep,
   type Decision,
 } from "./manifestoImport.server";
-import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
@@ -24,8 +30,8 @@ async function assertStaff(supabase: {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Start an import — kicks off the heavy pipeline in the background and
-//    returns the new manifesto_imports id immediately for polling.
+// 1. Start an import — only inserts the row. The client immediately polls
+//    `tickManifestoImport` to drive the pipeline forward.
 // ---------------------------------------------------------------------------
 
 const StartInput = z.object({
@@ -48,7 +54,6 @@ export const startManifestoImport = createServerFn({ method: "POST" })
         return { ok: false as const, error: "Provide either a URL or upload a file" };
       }
 
-      // Confirm party exists.
       const { data: party, error: pErr } = await supabaseAdmin
         .from("parties")
         .select("id, name_en")
@@ -68,6 +73,7 @@ export const startManifestoImport = createServerFn({ method: "POST" })
           stage: "Queued…",
           progress: 0,
           imported_by: userId,
+          summary: { pipeline: { phase: "queued" } } as never,
         } as never)
         .select("id")
         .single();
@@ -86,18 +92,6 @@ export const startManifestoImport = createServerFn({ method: "POST" })
         metadata: { party_id: data.partyId, source_kind: data.sourceKind, source_url: data.sourceUrl ?? null },
       });
 
-      // Fire-and-forget; updates the row as it progresses.
-      runInBackground(
-        runManifestoImport({
-          importId,
-          partyId: data.partyId,
-          language: data.language,
-          sourceKind: data.sourceKind,
-          sourceUrl: data.sourceUrl ?? null,
-          filePath: data.uploadedFilePath ?? null,
-        }),
-      );
-
       return { ok: true as const, importId };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -107,7 +101,28 @@ export const startManifestoImport = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 2. Poll for status + extracted rows
+// 2. Tick — advance the pipeline by one step. Client polls until done.
+// ---------------------------------------------------------------------------
+
+const TickInput = z.object({ importId: z.string().uuid() });
+
+export const tickManifestoImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => TickInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      await assertStaff(context.supabase as never);
+      const result = await runManifestoImportStep(data.importId);
+      return { ok: true as const, ...result };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("tickManifestoImport failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// 3. Poll for status + extracted rows
 // ---------------------------------------------------------------------------
 
 const StatusInput = z.object({ importId: z.string().uuid() });
@@ -141,36 +156,17 @@ export const retryManifestoImport = createServerFn({ method: "POST" })
 
       const { data: row, error } = await supabaseAdmin
         .from("manifesto_imports" as never)
-        .select("id, party_id, source_url, source_kind, file_path, language, status")
+        .select("id, status, source_kind, source_url")
         .eq("id", data.importId)
         .maybeSingle();
       if (error || !row) return { ok: false as const, error: "Import not found" };
-      const r = row as {
-        id: string;
-        party_id: string;
-        source_url: string | null;
-        source_kind: "pdf" | "html" | "upload";
-        file_path: string | null;
-        language: "en" | "mt" | "both";
-        status: string;
-      };
+      const r = row as { id: string; status: string; source_kind: string; source_url: string | null };
       if (r.status === "processing") {
-        return { ok: false as const, error: "Import is already running" };
+        // Still processing — caller can just keep ticking.
+        return { ok: true as const, importId: r.id };
       }
 
-      await supabaseAdmin
-        .from("manifesto_imports" as never)
-        .update({
-          status: "processing",
-          stage: "Retrying…",
-          progress: 0,
-          error: null,
-          error_stack: null,
-          logs: [] as never,
-          extracted: [] as never,
-          finished_at: null,
-        } as never)
-        .eq("id", r.id);
+      await resetManifestoImport(r.id);
 
       const email = (claims as { email?: string }).email ?? null;
       await writeAudit(supabaseAdmin, {
@@ -182,17 +178,6 @@ export const retryManifestoImport = createServerFn({ method: "POST" })
         metadata: { source_kind: r.source_kind, source_url: r.source_url },
       });
 
-      runInBackground(
-        runManifestoImport({
-          importId: r.id,
-          partyId: r.party_id,
-          language: r.language,
-          sourceKind: r.source_kind,
-          sourceUrl: r.source_url,
-          filePath: r.file_path,
-        }),
-      );
-
       return { ok: true as const, importId: r.id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -202,7 +187,7 @@ export const retryManifestoImport = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 3. Apply decisions — bulk create/update/skip in one call
+// 4. Apply decisions — bulk create/update/skip in one call
 // ---------------------------------------------------------------------------
 
 const DecisionSchema = z.object({
@@ -279,8 +264,7 @@ export const applyManifestoImport = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 4. Generate a signed upload URL so the browser can PUT a PDF directly
-//    into the private `manifestos` bucket without proxying through us.
+// 5. Signed upload URL for direct PDF upload to the `manifestos` bucket.
 // ---------------------------------------------------------------------------
 
 const UploadUrlInput = z.object({
@@ -289,8 +273,7 @@ const UploadUrlInput = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// 5. Signed download URL for the archived PDF — used by the review-step preview
-//    pane so staff can verify the exact pages each extracted proposal came from.
+// 6. Signed download URL for the archived PDF (review-step preview pane).
 // ---------------------------------------------------------------------------
 
 const PdfUrlInput = z.object({ importId: z.string().uuid() });
@@ -313,7 +296,7 @@ export const getManifestoPdfUrl = createServerFn({ method: "POST" })
       }
       const { data: signed, error: sErr } = await supabaseAdmin.storage
         .from("manifestos")
-        .createSignedUrl(r.file_path, 60 * 60); // 1h
+        .createSignedUrl(r.file_path, 60 * 60);
       if (sErr || !signed) {
         return { ok: false as const, error: sErr?.message ?? "Could not sign URL" };
       }
@@ -344,10 +327,7 @@ export const createManifestoUploadUrl = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 6. Cancel a running/queued import — marks the row as cancelled so the
-//    admin UI stops showing it as "Queued…" forever. The background worker
-//    (if still alive) checks this flag between stages and aborts; if it's
-//    already dead (server restarted), the row is just freed up.
+// 7. Cancel a running import.
 // ---------------------------------------------------------------------------
 
 const CancelInput = z.object({ importId: z.string().uuid() });
@@ -399,7 +379,7 @@ export const cancelManifestoImport = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// 7. List recent manifesto imports (for the admin job-list page)
+// 8. List recent manifesto imports
 // ---------------------------------------------------------------------------
 
 const ListInput = z.object({
