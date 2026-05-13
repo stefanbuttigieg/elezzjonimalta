@@ -501,6 +501,7 @@ export async function applyManifestoDecisions(args: {
         if (error) throw error;
         proposalId = (data as { id: string }).id;
         result.created++;
+        touchedProposalIds.push(proposalId);
       } else if (d.action === "update") {
         if (!d.targetId) throw new Error("update action missing targetId");
         // Validate target exists and belongs to the same party.
