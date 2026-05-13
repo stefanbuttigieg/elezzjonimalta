@@ -6,10 +6,10 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "./auditLog.server";
 import {
   applyCommunityDecisions,
-  runCommunityImport,
+  resetCommunityImport,
+  runCommunityImportStep,
   type Decision,
 } from "./communityImport.server";
-import { runInBackground } from "./runInBackground.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
@@ -84,16 +84,7 @@ export const startCommunityImport = createServerFn({ method: "POST" })
         },
       });
 
-      runInBackground(
-        runCommunityImport({
-          importId,
-          authorId: data.authorId,
-          language: data.language,
-          sourceKind: data.sourceKind,
-          sourceUrl: data.sourceUrl ?? null,
-          filePath: data.uploadedFilePath ?? null,
-        }),
-      );
+      // Pipeline is driven from the client via tickCommunityImport.
 
       return { ok: true as const, importId };
     } catch (err) {
@@ -120,6 +111,21 @@ export const getCommunityImportStatus = createServerFn({ method: "POST" })
       return { ok: true as const, row };
     } catch (err) {
       return { ok: false as const, error: err instanceof Error ? err.message : String(err) };
+    }
+  });
+
+export const tickCommunityImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => StatusInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      await assertStaff(context.supabase as never);
+      const result = await runCommunityImportStep(data.importId);
+      return { ok: true as const, ...result };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("tickCommunityImport failed:", message);
+      return { ok: false as const, error: message };
     }
   });
 
@@ -150,19 +156,7 @@ export const retryCommunityImport = createServerFn({ method: "POST" })
         return { ok: false as const, error: "Import is already running" };
       }
 
-      await supabaseAdmin
-        .from("community_imports" as never)
-        .update({
-          status: "processing",
-          stage: "Retrying…",
-          progress: 0,
-          error: null,
-          error_stack: null,
-          logs: [] as never,
-          extracted: [] as never,
-          finished_at: null,
-        } as never)
-        .eq("id", r.id);
+      await resetCommunityImport(r.id);
 
       const email = (claims as { email?: string }).email ?? null;
       await writeAudit(supabaseAdmin, {
@@ -173,17 +167,6 @@ export const retryCommunityImport = createServerFn({ method: "POST" })
         actorEmail: email,
         metadata: { source_kind: r.source_kind, source_url: r.source_url },
       });
-
-      runInBackground(
-        runCommunityImport({
-          importId: r.id,
-          authorId: r.author_id,
-          language: r.language,
-          sourceKind: r.source_kind,
-          sourceUrl: r.source_url,
-          filePath: r.file_path,
-        }),
-      );
 
       return { ok: true as const, importId: r.id };
     } catch (err) {

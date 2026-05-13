@@ -1,7 +1,11 @@
-// Poll a community import row until it reaches a terminal status.
+// Drive a community import forward by repeatedly calling tickCommunityImport,
+// and surface the latest persisted row to the UI.
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getCommunityImportStatus } from "@/server/communityImport.functions";
+import {
+  getCommunityImportStatus,
+  tickCommunityImport,
+} from "@/server/communityImport.functions";
 
 export interface CommunityImportRow {
   id: string;
@@ -22,31 +26,59 @@ export interface CommunityImportRow {
 }
 
 export function useCommunityImport(importId: string | null) {
-  const fn = useServerFn(getCommunityImportStatus);
+  const statusFn = useServerFn(getCommunityImportStatus);
+  const tickFn = useServerFn(tickCommunityImport);
   const [row, setRow] = useState<CommunityImportRow | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!importId) { setRow(null); setError(null); return; }
+    if (!importId) {
+      setRow(null);
+      setError(null);
+      return;
+    }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const tick = async () => {
+    const refreshStatus = async () => {
+      const res = await statusFn({ data: { importId } });
+      if (cancelled) return null;
+      if (!res.ok) {
+        setError(res.error);
+        return null;
+      }
+      const r = res.row as CommunityImportRow;
+      setRow(r);
+      return r;
+    };
+
+    const loop = async () => {
       try {
-        const res = await fn({ data: { importId } });
+        const r = await refreshStatus();
+        if (cancelled || !r) return;
+        if (r.status !== "processing") return;
+
+        const t = await tickFn({ data: { importId } });
         if (cancelled) return;
-        if (!res.ok) { setError(res.error); return; }
-        setRow(res.row as CommunityImportRow);
-        if ((res.row as CommunityImportRow).status === "processing") {
-          timer = setTimeout(tick, 2000);
+        if (!t.ok) {
+          setError(t.error);
+          await refreshStatus();
+          return;
         }
+        await refreshStatus();
+        if (cancelled) return;
+        if (t.done) return;
+        timer = setTimeout(loop, 500);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
       }
     };
-    void tick();
-    return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [importId, fn]);
+    void loop();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [importId, statusFn, tickFn]);
 
   return { row, error };
 }
