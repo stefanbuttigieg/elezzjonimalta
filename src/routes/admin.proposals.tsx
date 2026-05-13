@@ -1248,8 +1248,229 @@ function ProposalEditor({
         </p>
       )}
 
+      {!isNew ? <GeoSection proposal={v} onUpdated={(patch) => setV({ ...v, ...patch })} /> : null}
+
       <DrawerActions onClose={onClose} onSave={save} saving={saving} />
     </Drawer>
+  );
+}
+
+interface RegistryEntry {
+  canonical: string;
+  districtId: string;
+  districtNumber: number;
+  districtNameEn: string;
+}
+
+function GeoSection({
+  proposal,
+  onUpdated,
+}: {
+  proposal: Proposal;
+  onUpdated: (patch: Partial<Proposal>) => void;
+}) {
+  const [registry, setRegistry] = useState<RegistryEntry[] | null>(null);
+  const [scope, setScope] = useState<GeoScope>(proposal.geo_scope ?? "national");
+  const [localities, setLocalities] = useState<string[]>(proposal.localities ?? []);
+  const [filter, setFilter] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [retagging, setRetagging] = useState(false);
+
+  useEffect(() => {
+    void listLocalityRegistry()
+      .then((r) => setRegistry(r as RegistryEntry[]))
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Failed to load localities"));
+  }, []);
+
+  useEffect(() => {
+    setScope(proposal.geo_scope ?? "national");
+    setLocalities(proposal.localities ?? []);
+  }, [proposal.id, proposal.geo_scope, proposal.localities]);
+
+  const grouped = useMemo(() => {
+    if (!registry) return [];
+    const f = filter.trim().toLowerCase();
+    const map = new Map<string, { districtNumber: number; districtNameEn: string; items: RegistryEntry[] }>();
+    for (const e of registry) {
+      if (f && !e.canonical.toLowerCase().includes(f) && !e.districtNameEn.toLowerCase().includes(f)) continue;
+      const key = e.districtId;
+      if (!map.has(key)) map.set(key, { districtNumber: e.districtNumber, districtNameEn: e.districtNameEn, items: [] });
+      map.get(key)!.items.push(e);
+    }
+    return Array.from(map.values()).sort((a, b) => a.districtNumber - b.districtNumber);
+  }, [registry, filter]);
+
+  const toggle = (canonical: string) => {
+    setLocalities((prev) =>
+      prev.includes(canonical) ? prev.filter((x) => x !== canonical) : [...prev, canonical],
+    );
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const res = await setProposalGeo({
+        data: { proposal_id: proposal.id, scope, localities },
+      });
+      if (!res.ok) throw new Error(res.error);
+      onUpdated({
+        geo_scope: res.scope,
+        localities: res.localities,
+        district_ids: res.district_ids,
+        geo_tagged_by: "human",
+        geo_tagged_at: new Date().toISOString(),
+      });
+      setLocalities(res.localities);
+      setScope(res.scope);
+      toast.success("Geo tags saved");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const retag = async () => {
+    setRetagging(true);
+    try {
+      const res = await tagProposalGeo({ data: { proposal_id: proposal.id } });
+      if (!res.ok) throw new Error(res.error);
+      onUpdated({
+        geo_scope: res.geo_scope,
+        localities: res.localities,
+        district_ids: res.district_ids,
+        geo_tagged_by: "ai",
+        geo_tagged_at: new Date().toISOString(),
+      });
+      setLocalities(res.localities);
+      setScope(res.geo_scope);
+      toast.success("AI re-tagged");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "AI tagging failed");
+    } finally {
+      setRetagging(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 rounded-lg border border-border bg-surface p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Geographic scope</h3>
+          <p className="text-xs text-muted-foreground">
+            {proposal.geo_tagged_by
+              ? `Last tagged by ${proposal.geo_tagged_by}${proposal.geo_tagged_at ? ` · ${new Date(proposal.geo_tagged_at).toLocaleString()}` : ""}`
+              : "Not yet tagged"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={retag}
+          disabled={retagging}
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          {retagging ? "Tagging…" : "Re-tag with AI"}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(["national", "regional", "local"] as GeoScope[]).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setScope(s)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${
+              scope === s
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-background hover:bg-accent"
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+        <span className="ml-2 text-xs text-muted-foreground">
+          {localities.length} localit{localities.length === 1 ? "y" : "ies"} selected
+        </span>
+      </div>
+
+      {localities.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {localities.map((l) => (
+            <span
+              key={l}
+              className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px]"
+            >
+              {l}
+              <button
+                type="button"
+                onClick={() => toggle(l)}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`Remove ${l}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-3">
+        <input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Search localities or districts…"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      <div className="mt-2 max-h-72 overflow-y-auto rounded-md border border-border bg-background p-2">
+        {!registry ? (
+          <p className="px-2 py-3 text-xs text-muted-foreground">Loading localities…</p>
+        ) : grouped.length === 0 ? (
+          <p className="px-2 py-3 text-xs text-muted-foreground">No matches.</p>
+        ) : (
+          grouped.map((g) => (
+            <div key={g.districtNumber} className="mb-2">
+              <div className="px-1 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                District {g.districtNumber} · {g.districtNameEn}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {g.items.map((e) => {
+                  const sel = localities.includes(e.canonical);
+                  return (
+                    <button
+                      key={e.canonical}
+                      type="button"
+                      onClick={() => toggle(e.canonical)}
+                      className={`rounded-full border px-2.5 py-0.5 text-[11px] ${
+                        sel
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:bg-accent"
+                      }`}
+                    >
+                      {sel ? "✓ " : ""}
+                      {e.canonical}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="mt-3 flex justify-end">
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save geo tags"}
+        </button>
+      </div>
+    </div>
   );
 }
 
