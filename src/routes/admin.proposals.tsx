@@ -778,6 +778,38 @@ function ProposalsAdmin() {
                         <StatusBadge status={r.status} />
                       </td>
                     ) : null}
+                    {visibleCols.geo ? (
+                      <td className="px-4 py-3 text-muted-foreground">
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                              r.geo_scope === "national"
+                                ? "border-primary/30 bg-primary/5 text-primary"
+                                : r.geo_scope === "regional"
+                                ? "border-warning/40 bg-warning/10 text-warning-foreground"
+                                : "border-success/40 bg-success/10 text-success"
+                            }`}
+                          >
+                            {r.geo_scope}
+                          </span>
+                          {r.localities.length > 0 ? (
+                            <span className="text-[11px]">
+                              {r.localities.slice(0, 2).join(", ")}
+                              {r.localities.length > 2 ? ` +${r.localities.length - 2}` : ""}
+                            </span>
+                          ) : r.geo_scope !== "national" ? (
+                            <span className="text-[11px] italic">No localities</span>
+                          ) : null}
+                          {r.geo_tagged_by ? (
+                            <span className="text-[10px] uppercase tracking-wider opacity-70">
+                              by {r.geo_tagged_by}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] italic opacity-70">untagged</span>
+                          )}
+                        </div>
+                      </td>
+                    ) : null}
                     <td className="whitespace-nowrap px-4 py-3 text-right">
                       <button
                         onClick={() => setEditing(r)}
