@@ -128,6 +128,8 @@ export const tickCommunityImport = createServerFn({ method: "POST" })
       return { ok: false as const, error: message };
     }
   });
+
+export const retryCommunityImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
