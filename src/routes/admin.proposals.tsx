@@ -488,6 +488,49 @@ function ProposalsAdmin() {
         >
           <Layers className="h-4 w-4" /> Find duplicates
         </Link>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setColsMenuOpen((o) => !o)}
+            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent"
+            aria-haspopup="menu"
+            aria-expanded={colsMenuOpen}
+          >
+            <Columns3 className="h-4 w-4" /> Columns
+          </button>
+          {colsMenuOpen ? (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setColsMenuOpen(false)}
+                aria-hidden
+              />
+              <div className="absolute right-0 z-20 mt-1 w-52 rounded-md border border-border bg-popover p-2 text-popover-foreground shadow-elevated">
+                <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Show columns
+                </div>
+                {ALL_COLS.map((c) => (
+                  <label
+                    key={c.key}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleCols[c.key]}
+                      onChange={(e) =>
+                        setVisibleCols((v) => ({ ...v, [c.key]: e.target.checked }))
+                      }
+                    />
+                    <span>{c.label}</span>
+                  </label>
+                ))}
+                <div className="mt-1 border-t border-border pt-1 text-[11px] text-muted-foreground">
+                  Title and Actions are always shown.
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
