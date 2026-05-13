@@ -275,6 +275,13 @@ export type Database = {
             foreignKeyName: "candidate_contributions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_contributions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -312,6 +319,13 @@ export type Database = {
           votes_first_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_districts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
           {
             foreignKeyName: "candidate_districts_candidate_id_fkey"
             columns: ["candidate_id"]
@@ -376,6 +390,13 @@ export type Database = {
             foreignKeyName: "candidate_endorsements_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_endorsements_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -434,6 +455,13 @@ export type Database = {
           votes_first_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_local_council_terms_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
           {
             foreignKeyName: "candidate_local_council_terms_candidate_id_fkey"
             columns: ["candidate_id"]
@@ -510,6 +538,13 @@ export type Database = {
             foreignKeyName: "candidate_media_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_media_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -566,6 +601,13 @@ export type Database = {
             foreignKeyName: "candidate_positions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_positions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -612,6 +654,13 @@ export type Database = {
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_sources_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
           {
             foreignKeyName: "candidate_sources_candidate_id_fkey"
             columns: ["candidate_id"]
@@ -1213,6 +1262,13 @@ export type Database = {
             foreignKeyName: "local_council_import_rows_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "local_council_import_rows_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -1487,6 +1543,13 @@ export type Database = {
             foreignKeyName: "news_findings_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "news_findings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -1636,6 +1699,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "parliament_terms_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
           {
             foreignKeyName: "parliament_terms_candidate_id_fkey"
             columns: ["candidate_id"]
@@ -2041,6 +2111,13 @@ export type Database = {
             foreignKeyName: "proposals_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "proposals_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
@@ -2357,7 +2434,26 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      candidate_experience_summary: {
+        Row: {
+          cabinet_terms_count: number | null
+          candidate_id: string | null
+          councils_served: string[] | null
+          current_portfolio: string | null
+          current_position_kind: string | null
+          currently_sitting: boolean | null
+          first_legislature: number | null
+          has_ever_been_mep: boolean | null
+          has_ever_been_minister: boolean | null
+          has_ever_been_pm: boolean | null
+          is_current_councillor: boolean | null
+          is_current_mayor: boolean | null
+          last_legislature: number | null
+          local_council_terms_count: number | null
+          parliamentary_terms_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       find_similar_community_proposals: {
