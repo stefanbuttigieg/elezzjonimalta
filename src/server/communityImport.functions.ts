@@ -114,7 +114,20 @@ export const getCommunityImportStatus = createServerFn({ method: "POST" })
     }
   });
 
-export const retryCommunityImport = createServerFn({ method: "POST" })
+export const tickCommunityImport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => StatusInput.parse(input))
+  .handler(async ({ data, context }) => {
+    try {
+      await assertStaff(context.supabase as never);
+      const result = await runCommunityImportStep(data.importId);
+      return { ok: true as const, ...result };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("tickCommunityImport failed:", message);
+      return { ok: false as const, error: message };
+    }
+  });
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
