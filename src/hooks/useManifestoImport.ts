@@ -1,7 +1,11 @@
-// Poll a manifesto import row until it reaches a terminal status.
+// Drive a manifesto import forward by repeatedly calling tickManifestoImport,
+// and surface the latest persisted row to the UI.
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { getManifestoImportStatus } from "@/server/manifestoImport.functions";
+import {
+  getManifestoImportStatus,
+  tickManifestoImport,
+} from "@/server/manifestoImport.functions";
 
 export interface ManifestoImportRow {
   id: string;
@@ -22,7 +26,8 @@ export interface ManifestoImportRow {
 }
 
 export function useManifestoImport(importId: string | null) {
-  const fn = useServerFn(getManifestoImportStatus);
+  const statusFn = useServerFn(getManifestoImportStatus);
+  const tickFn = useServerFn(tickManifestoImport);
   const [row, setRow] = useState<ManifestoImportRow | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,29 +40,49 @@ export function useManifestoImport(importId: string | null) {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const tick = async () => {
+    const refreshStatus = async () => {
+      const res = await statusFn({ data: { importId } });
+      if (cancelled) return null;
+      if (!res.ok) {
+        setError(res.error);
+        return null;
+      }
+      const r = res.row as ManifestoImportRow;
+      setRow(r);
+      return r;
+    };
+
+    const loop = async () => {
       try {
-        const res = await fn({ data: { importId } });
+        const r = await refreshStatus();
+        if (cancelled || !r) return;
+        if (r.status !== "processing") return; // terminal — stop driving
+
+        // Drive one step. The tick fn returns when its single phase finishes.
+        const t = await tickFn({ data: { importId } });
         if (cancelled) return;
-        if (!res.ok) {
-          setError(res.error);
+        if (!t.ok) {
+          setError(t.error);
+          // Refresh to surface the failure row.
+          await refreshStatus();
           return;
         }
-        setRow(res.row as ManifestoImportRow);
-        const status = (res.row as ManifestoImportRow).status;
-        if (status === "processing") {
-          timer = setTimeout(tick, 2000);
-        }
+        await refreshStatus();
+        if (cancelled) return;
+        if (t.done) return;
+        // Schedule the next tick. Small delay so the UI can repaint and so
+        // we don't hammer the server if the previous tick was very fast.
+        timer = setTimeout(loop, 500);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
       }
     };
-    void tick();
+    void loop();
     return () => {
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [importId, fn]);
+  }, [importId, statusFn, tickFn]);
 
   return { row, error };
 }
