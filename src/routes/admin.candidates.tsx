@@ -1050,6 +1050,21 @@ function CandidateEditor({
             onChange={(x) => setV({ ...v, parlament_mt_url: x })}
           />
         </Field>
+        <Field label="Profession" full>
+          <ProfessionPicker
+            code={v.profession_code}
+            bucket={v.profession_bucket}
+            freeText={v.profession}
+            onChange={(next) =>
+              setV({
+                ...v,
+                profession_code: next.code,
+                profession_bucket: next.bucket,
+                profession: next.freeText,
+              })
+            }
+          />
+        </Field>
         <Field label="Bio (EN)" full>
           <Textarea value={v.bio_en ?? ""} onChange={(x) => setV({ ...v, bio_en: x })} />
         </Field>
