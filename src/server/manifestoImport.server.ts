@@ -470,6 +470,7 @@ export async function applyManifestoDecisions(args: {
 }): Promise<ApplyResult> {
   const { importId, partyId, sourceUrl, decisions, actorId } = args;
   const result: ApplyResult = { created: 0, updated: 0, skipped: 0, errors: [] };
+  const touchedProposalIds: string[] = [];
 
   for (const d of decisions) {
     if (d.action === "skip") {
