@@ -281,10 +281,31 @@ function MyDistrictPage() {
 
   const [proposalQuery, setProposalQuery] = useState("");
   const [proposalParty, setProposalParty] = useState<string>("all");
+  type GeoTab = "local" | "district" | "national" | "all";
+  const [geoTab, setGeoTab] = useState<GeoTab>("all");
+
+  const geoCounts = useMemo(() => {
+    let local = 0, district = 0, national = 0;
+    for (const p of proposals) {
+      const inDistrict = p.district_ids?.includes(district_id_for_count);
+      if (inDistrict && p.geo_scope === "local") local++;
+      if (inDistrict && p.geo_scope !== "national") district++;
+      if (p.geo_scope === "national") national++;
+    }
+    return { local, district, national, all: proposals.length };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proposals]);
 
   const filteredProposals = useMemo(() => {
     const q = proposalQuery.trim().toLowerCase();
     return proposals.filter((p) => {
+      if (geoTab === "local") {
+        if (!(p.district_ids?.includes(district.id) && p.geo_scope === "local")) return false;
+      } else if (geoTab === "district") {
+        if (!(p.district_ids?.includes(district.id) && p.geo_scope !== "national")) return false;
+      } else if (geoTab === "national") {
+        if (p.geo_scope !== "national") return false;
+      }
       if (proposalParty !== "all") {
         const key = p.party_id ?? "__ind__";
         if (key !== proposalParty) return false;
@@ -302,7 +323,7 @@ function MyDistrictPage() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [proposals, proposalQuery, proposalParty]);
+  }, [proposals, proposalQuery, proposalParty, geoTab, district.id]);
 
 
   return (
