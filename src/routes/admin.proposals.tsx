@@ -56,6 +56,8 @@ interface CategoryLite {
   name_en: string;
 }
 
+type GeoScope = "national" | "regional" | "local";
+
 interface Proposal {
   id: string;
   title_en: string;
@@ -73,6 +75,11 @@ interface Proposal {
   merged_into_id: string | null;
   merged_at: string | null;
   merge_note: string | null;
+  geo_scope: GeoScope;
+  localities: string[];
+  district_ids: string[];
+  geo_tagged_by: string | null;
+  geo_tagged_at: string | null;
   party?: PartyLite | null;
   candidate?: CandidateLite | null;
 }
@@ -94,6 +101,11 @@ const empty: Proposal = {
   merged_into_id: null,
   merged_at: null,
   merge_note: null,
+  geo_scope: "national",
+  localities: [],
+  district_ids: [],
+  geo_tagged_by: null,
+  geo_tagged_at: null,
 };
 
 function ProposalsAdmin() {
