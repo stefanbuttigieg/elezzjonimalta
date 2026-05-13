@@ -138,21 +138,28 @@ function ProposalsAdmin() {
   const [bulkBusy, setBulkBusy] = useState(false);
 
   // Column visibility (persisted). Title + Actions always shown.
-  type ColKey = "linked" | "category" | "status";
+  type ColKey = "linked" | "category" | "status" | "geo";
   const ALL_COLS: { key: ColKey; label: string }[] = [
     { key: "linked", label: "Linked to" },
     { key: "category", label: "Category" },
     { key: "status", label: "Status" },
+    { key: "geo", label: "Geo tag" },
   ];
+  const defaultCols: Record<ColKey, boolean> = {
+    linked: true,
+    category: true,
+    status: true,
+    geo: false,
+  };
   const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
-    if (typeof window === "undefined") return { linked: true, category: true, status: true };
+    if (typeof window === "undefined") return defaultCols;
     try {
       const raw = window.localStorage.getItem("admin:proposals:cols");
-      if (raw) return { linked: true, category: true, status: true, ...JSON.parse(raw) };
+      if (raw) return { ...defaultCols, ...JSON.parse(raw) };
     } catch {
       /* ignore */
     }
-    return { linked: true, category: true, status: true };
+    return defaultCols;
   });
   useEffect(() => {
     try {
@@ -686,6 +693,7 @@ function ProposalsAdmin() {
                 {visibleCols.linked ? <th className="px-4 py-3">Linked to</th> : null}
                 {visibleCols.category ? <th className="px-4 py-3">Category</th> : null}
                 {visibleCols.status ? <th className="px-4 py-3">Status</th> : null}
+                {visibleCols.geo ? <th className="px-4 py-3">Geo tag</th> : null}
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -768,6 +776,38 @@ function ProposalsAdmin() {
                     {visibleCols.status ? (
                       <td className="px-4 py-3">
                         <StatusBadge status={r.status} />
+                      </td>
+                    ) : null}
+                    {visibleCols.geo ? (
+                      <td className="px-4 py-3 text-muted-foreground">
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                              r.geo_scope === "national"
+                                ? "border-primary/30 bg-primary/5 text-primary"
+                                : r.geo_scope === "regional"
+                                ? "border-warning/40 bg-warning/10 text-warning-foreground"
+                                : "border-success/40 bg-success/10 text-success"
+                            }`}
+                          >
+                            {r.geo_scope}
+                          </span>
+                          {r.localities.length > 0 ? (
+                            <span className="text-[11px]">
+                              {r.localities.slice(0, 2).join(", ")}
+                              {r.localities.length > 2 ? ` +${r.localities.length - 2}` : ""}
+                            </span>
+                          ) : r.geo_scope !== "national" ? (
+                            <span className="text-[11px] italic">No localities</span>
+                          ) : null}
+                          {r.geo_tagged_by ? (
+                            <span className="text-[10px] uppercase tracking-wider opacity-70">
+                              by {r.geo_tagged_by}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] italic opacity-70">untagged</span>
+                          )}
+                        </div>
                       </td>
                     ) : null}
                     <td className="whitespace-nowrap px-4 py-3 text-right">
