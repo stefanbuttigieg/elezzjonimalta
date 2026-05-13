@@ -141,19 +141,7 @@ export const retryCommunityImport = createServerFn({ method: "POST" })
         return { ok: false as const, error: "Import is already running" };
       }
 
-      await supabaseAdmin
-        .from("community_imports" as never)
-        .update({
-          status: "processing",
-          stage: "Retrying…",
-          progress: 0,
-          error: null,
-          error_stack: null,
-          logs: [] as never,
-          extracted: [] as never,
-          finished_at: null,
-        } as never)
-        .eq("id", r.id);
+      await resetCommunityImport(r.id);
 
       const email = (claims as { email?: string }).email ?? null;
       await writeAudit(supabaseAdmin, {
@@ -164,17 +152,6 @@ export const retryCommunityImport = createServerFn({ method: "POST" })
         actorEmail: email,
         metadata: { source_kind: r.source_kind, source_url: r.source_url },
       });
-
-      runInBackground(
-        runCommunityImport({
-          importId: r.id,
-          authorId: r.author_id,
-          language: r.language,
-          sourceKind: r.source_kind,
-          sourceUrl: r.source_url,
-          filePath: r.file_path,
-        }),
-      );
 
       return { ok: true as const, importId: r.id };
     } catch (err) {
