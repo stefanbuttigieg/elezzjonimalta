@@ -178,11 +178,11 @@ function ProposalsPage() {
 
   const relatedIndex = useMemo(() => {
     const map = new Map<string, { proposal: IndexProposal; score: number }[]>();
-    for (const target of proposals) {
-      const matches = indexPool
-        .filter((p) => p.id !== target.id)
-        .map((p) => ({ proposal: p, score: proposalSimilarity(target as unknown as ProposalForMatch, p) }))
-        .filter((m) => m.score >= 0.18)
+    for (const target of proposals as ProposalRecord[]) {
+      const matches = (indexPool as IndexProposal[])
+        .filter((p: IndexProposal) => p.id !== target.id)
+        .map((p: IndexProposal) => ({ proposal: p, score: proposalSimilarity(target as unknown as ProposalForMatch, p) }))
+        .filter((m: { proposal: IndexProposal; score: number }) => m.score >= 0.18)
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
       if (matches.length > 0) map.set(target.id, matches);
