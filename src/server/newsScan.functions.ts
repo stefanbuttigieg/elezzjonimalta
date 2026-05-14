@@ -314,11 +314,20 @@ export const convertFinding = createServerFn({ method: "POST" })
           category_id: string;
           sort_order: number;
         }> = [];
+        const nowIso = new Date().toISOString();
         valid.forEach((r, idx) => {
           const proposalId = ids[idx];
           if (!proposalId || !r.category_ids) return;
           r.category_ids.forEach((cid, ci) => {
-            if (cid) assignments.push({ proposal_id: proposalId, category_id: cid, sort_order: ci });
+            if (cid)
+              assignments.push({
+                proposal_id: proposalId,
+                category_id: cid,
+                sort_order: ci,
+                assigned_by: "ai",
+                ai_model: "news-scan",
+                assigned_at: nowIso,
+              } as never);
           });
         });
         if (assignments.length > 0) {

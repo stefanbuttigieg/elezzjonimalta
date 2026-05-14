@@ -18,6 +18,12 @@ const Input = z.object({
   max_per_proposal: z.number().int().min(1).max(5).default(3),
 });
 
+interface Suggestion {
+  id: string;
+  confidence: "high" | "medium" | "low";
+  reason?: string;
+}
+
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
 }) {
@@ -27,11 +33,6 @@ async function assertStaff(supabase: {
   if (!roles.includes("admin") && !roles.includes("editor")) {
     throw new Error("forbidden: staff role required");
   }
-}
-
-interface Suggestion {
-  id: string;
-  confidence: "high" | "medium" | "low";
 }
 
 async function suggestForProposal(
@@ -68,8 +69,12 @@ async function suggestForProposal(
                     properties: {
                       id: { type: "string" },
                       confidence: { type: "string", enum: ["high", "medium", "low"] },
+                      reason: {
+                        type: "string",
+                        description: "Short evidence (max ~25 words) quoting or paraphrasing the proposal text that justifies this category.",
+                      },
                     },
-                    required: ["id", "confidence"],
+                    required: ["id", "confidence", "reason"],
                     additionalProperties: false,
                   },
                 },
@@ -152,7 +157,16 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
       let added = 0;
       let skipped = 0;
       const errors: string[] = [];
-      const newAssignments: Array<{ proposal_id: string; category_id: string; sort_order: number }> = [];
+      const newAssignments: Array<{
+        proposal_id: string;
+        category_id: string;
+        sort_order: number;
+        assigned_by: "ai";
+        ai_confidence: "high" | "medium" | "low";
+        ai_reason: string | null;
+        ai_model: string;
+        assigned_at: string;
+      }> = [];
 
       for (const p of (proposals ?? []) as Array<{
         id: string;
@@ -172,11 +186,21 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
           const suggestions = await suggestForProposal(apiKey, text, taxonomy, data.max_per_proposal);
           const existingSet = existingByProposal.get(p.id) ?? new Set<string>();
           let order = existingSet.size;
+          const now = new Date().toISOString();
           for (const s of suggestions) {
             if (!minSet.has(s.confidence)) continue;
             if (!validCats.has(s.id)) continue;
             if (existingSet.has(s.id)) continue;
-            newAssignments.push({ proposal_id: p.id, category_id: s.id, sort_order: order++ });
+            newAssignments.push({
+              proposal_id: p.id,
+              category_id: s.id,
+              sort_order: order++,
+              assigned_by: "ai",
+              ai_confidence: s.confidence,
+              ai_reason: s.reason?.trim() ? s.reason.trim().slice(0, 500) : null,
+              ai_model: MODEL,
+              assigned_at: now,
+            });
             existingSet.add(s.id);
             added++;
           }

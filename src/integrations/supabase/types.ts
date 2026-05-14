@@ -1937,6 +1937,11 @@ export type Database = {
       }
       proposal_category_assignments: {
         Row: {
+          ai_confidence: string | null
+          ai_model: string | null
+          ai_reason: string | null
+          assigned_at: string
+          assigned_by: string
           category_id: string
           created_at: string
           id: string
@@ -1944,6 +1949,11 @@ export type Database = {
           sort_order: number
         }
         Insert: {
+          ai_confidence?: string | null
+          ai_model?: string | null
+          ai_reason?: string | null
+          assigned_at?: string
+          assigned_by?: string
           category_id: string
           created_at?: string
           id?: string
@@ -1951,6 +1961,11 @@ export type Database = {
           sort_order?: number
         }
         Update: {
+          ai_confidence?: string | null
+          ai_model?: string | null
+          ai_reason?: string | null
+          assigned_at?: string
+          assigned_by?: string
           category_id?: string
           created_at?: string
           id?: string
