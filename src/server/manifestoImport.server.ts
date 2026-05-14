@@ -471,32 +471,19 @@ function safeFilename(url: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// PDF extraction (pdfjs-dist legacy build is Worker-compatible)
+// PDF extraction (unpdf — Worker/edge runtime compatible, no DOMMatrix needed)
 // ---------------------------------------------------------------------------
 
 async function extractPdfPages(bytes: Uint8Array): Promise<PageText[]> {
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  const loadingTask = pdfjs.getDocument({
-    data: bytes,
-    useWorkerFetch: false,
-    useSystemFonts: false,
-    disableFontFace: true,
-  });
-  const pdf = await loadingTask.promise;
-  const pageCount = Math.min(pdf.numPages, MAX_PAGES);
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(bytes);
+  const { totalPages, text } = await extractText(pdf, { mergePages: false });
+  const pageTexts = Array.isArray(text) ? text : [text ?? ""];
+  const limit = Math.min(totalPages ?? pageTexts.length, MAX_PAGES);
   const pages: PageText[] = [];
-  for (let i = 1; i <= pageCount; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const text = content.items
-      .map((item: unknown) => {
-        const it = item as { str?: string };
-        return typeof it.str === "string" ? it.str : "";
-      })
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-    pages.push({ page: i, text });
+  for (let i = 0; i < limit; i++) {
+    const pageText = (pageTexts[i] ?? "").replace(/\s+/g, " ").trim();
+    pages.push({ page: i + 1, text: pageText });
   }
   return pages;
 }
