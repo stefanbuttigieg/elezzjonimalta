@@ -101,6 +101,7 @@ const empty: Proposal = {
   description_mt: "",
   category: "",
   category_ids: [],
+  category_audit: {},
   party_id: null,
   candidate_id: null,
   status: "pending_review",
