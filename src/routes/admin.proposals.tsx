@@ -807,6 +807,41 @@ function ProposalsAdmin() {
         </div>
       ) : null}
 
+      {geoProgress ? (
+        <div className="mt-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-card">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {geoProgress.done < geoProgress.total
+                ? "AI geo-tagging…"
+                : "AI geo-tagging complete"}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {geoProgress.done} / {geoProgress.total} ·{" "}
+              <span className="text-foreground">{geoProgress.processed}</span> tagged
+              {geoProgress.errors > 0 ? (
+                <>
+                  {" · "}
+                  <span className="text-destructive">{geoProgress.errors} error(s)</span>
+                </>
+              ) : null}
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                width: `${
+                  geoProgress.total === 0
+                    ? 0
+                    : Math.round((geoProgress.done / geoProgress.total) * 100)
+                }%`,
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
