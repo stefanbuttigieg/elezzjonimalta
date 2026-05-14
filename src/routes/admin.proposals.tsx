@@ -705,6 +705,41 @@ function ProposalsAdmin() {
         </div>
       ) : null}
 
+      {categoriseProgress ? (
+        <div className="mt-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-card">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {categoriseProgress.done < categoriseProgress.total
+                ? "AI categorising…"
+                : "AI categorisation complete"}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {categoriseProgress.done} / {categoriseProgress.total} ·{" "}
+              <span className="text-foreground">+{categoriseProgress.added}</span> added
+              {categoriseProgress.errors > 0 ? (
+                <>
+                  {" · "}
+                  <span className="text-destructive">{categoriseProgress.errors} error(s)</span>
+                </>
+              ) : null}
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                width: `${
+                  categoriseProgress.total === 0
+                    ? 0
+                    : Math.round((categoriseProgress.done / categoriseProgress.total) * 100)
+                }%`,
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">
