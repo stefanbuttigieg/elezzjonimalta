@@ -452,9 +452,7 @@ function ProposalCard({
           {locale === "mt" ? "Aġġornat" : "Updated"} {formatUpdatedAt(proposal.updated_at, locale)}
         </span>
       </div>
-    </article>
-  );
-}
+
 
       {related.length > 0 ? (
         <div className="mt-4 border-t border-border pt-3">
