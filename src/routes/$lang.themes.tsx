@@ -115,6 +115,8 @@ function ThemesPage() {
   const locale = lang as Locale;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeParty, setActiveParty] = useState<string | null>(null);
+  const [displayMode, setDisplayMode] = useState<"count" | "percent">("count");
+  const [percentBasis, setPercentBasis] = useState<"party" | "category">("party");
 
   const localised = (en: string | null | undefined, mt: string | null | undefined) =>
     locale === "mt" ? (mt?.trim() || en || "") : (en || mt || "");
@@ -202,9 +204,45 @@ function ThemesPage() {
 
       {/* Heatmap matrix */}
       <section className="mt-10 overflow-x-auto rounded-xl border border-border bg-surface p-4 shadow-card">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {locale === "mt" ? "Matrici partiti × temi" : "Parties × themes matrix"}
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            {locale === "mt" ? "Matrici partiti × temi" : "Parties × themes matrix"}
+          </h2>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="inline-flex overflow-hidden rounded-md border border-border">
+              <button
+                onClick={() => setDisplayMode("count")}
+                className={`px-2.5 py-1 font-medium ${displayMode === "count" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                {locale === "mt" ? "Numri" : "Counts"}
+              </button>
+              <button
+                onClick={() => setDisplayMode("percent")}
+                className={`px-2.5 py-1 font-medium ${displayMode === "percent" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                %
+              </button>
+            </div>
+            {displayMode === "percent" && (
+              <div className="inline-flex overflow-hidden rounded-md border border-border">
+                <button
+                  onClick={() => setPercentBasis("party")}
+                  className={`px-2.5 py-1 font-medium ${percentBasis === "party" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:text-foreground"}`}
+                  title={locale === "mt" ? "% tal-proposti tal-partit" : "% of party's proposals"}
+                >
+                  {locale === "mt" ? "Skont partit" : "By party"}
+                </button>
+                <button
+                  onClick={() => setPercentBasis("category")}
+                  className={`px-2.5 py-1 font-medium ${percentBasis === "category" ? "bg-foreground text-background" : "bg-surface text-muted-foreground hover:text-foreground"}`}
+                  title={locale === "mt" ? "% tal-proposti fit-tema" : "% of theme's proposals"}
+                >
+                  {locale === "mt" ? "Skont tema" : "By theme"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
         <table className="w-full min-w-[640px] border-separate border-spacing-1 text-xs">
           <thead>
             <tr>
@@ -241,23 +279,35 @@ function ThemesPage() {
                   </th>
                   {orderedCategories.map((c) => {
                     const v = row?.get(c.id) ?? 0;
-                    const intensity = v / maxCell;
+                    const basisTotal =
+                      percentBasis === "party"
+                        ? total
+                        : matrix.categoryTotals.get(c.id) ?? 0;
+                    const pct = basisTotal > 0 ? (v / basisTotal) * 100 : 0;
+                    const intensity =
+                      displayMode === "percent" ? pct / 100 : v / maxCell;
                     const bg = v === 0
                       ? "transparent"
                       : `color-mix(in oklab, ${p.color ?? "hsl(var(--primary))"} ${Math.round(15 + intensity * 75)}%, transparent)`;
                     const isActive = activeCategory === c.id || activeParty === p.id;
+                    const display =
+                      v === 0
+                        ? ""
+                        : displayMode === "percent"
+                          ? `${Math.round(pct)}%`
+                          : v;
                     return (
                       <td
                         key={c.id}
                         className={`cursor-pointer rounded text-center font-medium transition-all ${isActive ? "ring-2 ring-foreground/30" : ""}`}
-                        style={{ backgroundColor: bg, color: v > 0 && intensity > 0.5 ? "white" : undefined, minWidth: 32, height: 28 }}
+                        style={{ backgroundColor: bg, color: v > 0 && intensity > 0.5 ? "white" : undefined, minWidth: 36, height: 28 }}
                         onClick={() => {
                           setActiveCategory(c.id);
                           setActiveParty(p.id);
                         }}
-                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v}`}
+                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v} (${Math.round(pct)}% ${percentBasis === "party" ? (locale === "mt" ? "tal-partit" : "of party") : (locale === "mt" ? "tat-tema" : "of theme")})`}
                       >
-                        {v || ""}
+                        {display}
                       </td>
                     );
                   })}
