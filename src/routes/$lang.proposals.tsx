@@ -7,11 +7,13 @@ import {
 } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ExternalLink, Filter, FileText, History, Landmark, RotateCcw, Search, UserRound } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ExternalLink, Filter, FileText, History, Landmark, Link2, RotateCcw, Search, Sparkles, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
+import { proposalSimilarity, type ProposalForMatch } from "@/lib/proposal-dedupe";
 
 const proposalSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
