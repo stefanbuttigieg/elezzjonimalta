@@ -136,6 +136,12 @@ function ProposalsAdmin() {
   const [bulkTranslating, setBulkTranslating] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [categoriseProgress, setCategoriseProgress] = useState<{
+    total: number;
+    done: number;
+    added: number;
+    errors: number;
+  } | null>(null);
 
   // Column visibility (persisted). Title + Actions always shown.
   type ColKey = "linked" | "category" | "status" | "geo";
@@ -214,6 +220,7 @@ function ProposalsAdmin() {
       let processed = 0;
       let added = 0;
       let errorCount = 0;
+      setCategoriseProgress({ total: ids.length, done: 0, added: 0, errors: 0 });
       const toastId = toast.loading(`AI-categorising 0 / ${ids.length}…`);
       for (let i = 0; i < ids.length; i += CHUNK) {
         const slice = ids.slice(i, i + CHUNK);
@@ -231,8 +238,10 @@ function ProposalsAdmin() {
         } catch {
           errorCount += slice.length;
         }
+        const done = Math.min(i + CHUNK, ids.length);
+        setCategoriseProgress({ total: ids.length, done, added, errors: errorCount });
         toast.loading(
-          `AI-categorising ${Math.min(i + CHUNK, ids.length)} / ${ids.length}… · added ${added}`,
+          `AI-categorising ${done} / ${ids.length}… · added ${added}`,
           { id: toastId }
         );
       }
@@ -247,6 +256,8 @@ function ProposalsAdmin() {
       toast.error(e instanceof Error ? e.message : "Bulk categorise failed");
     } finally {
       setBulkBusy(false);
+      // Keep the final progress visible briefly so the user sees the result.
+      setTimeout(() => setCategoriseProgress(null), 4000);
     }
   };
 
@@ -691,6 +702,41 @@ function ProposalsAdmin() {
           >
             Clear selection
           </button>
+        </div>
+      ) : null}
+
+      {categoriseProgress ? (
+        <div className="mt-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-card">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {categoriseProgress.done < categoriseProgress.total
+                ? "AI categorising…"
+                : "AI categorisation complete"}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {categoriseProgress.done} / {categoriseProgress.total} ·{" "}
+              <span className="text-foreground">+{categoriseProgress.added}</span> added
+              {categoriseProgress.errors > 0 ? (
+                <>
+                  {" · "}
+                  <span className="text-destructive">{categoriseProgress.errors} error(s)</span>
+                </>
+              ) : null}
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                width: `${
+                  categoriseProgress.total === 0
+                    ? 0
+                    : Math.round((categoriseProgress.done / categoriseProgress.total) * 100)
+                }%`,
+              }}
+            />
+          </div>
         </div>
       ) : null}
 
