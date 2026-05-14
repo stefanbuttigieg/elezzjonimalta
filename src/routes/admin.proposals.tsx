@@ -152,6 +152,12 @@ function ProposalsAdmin() {
     added: number;
     errors: number;
   } | null>(null);
+  const [geoProgress, setGeoProgress] = useState<{
+    total: number;
+    done: number;
+    processed: number;
+    errors: number;
+  } | null>(null);
 
   // Column visibility (persisted). Title + Actions always shown.
   type ColKey = "linked" | "category" | "status" | "geo";
