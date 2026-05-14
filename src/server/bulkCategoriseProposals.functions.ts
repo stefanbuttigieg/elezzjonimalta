@@ -69,8 +69,12 @@ async function suggestForProposal(
                     properties: {
                       id: { type: "string" },
                       confidence: { type: "string", enum: ["high", "medium", "low"] },
+                      reason: {
+                        type: "string",
+                        description: "Short evidence (max ~25 words) quoting or paraphrasing the proposal text that justifies this category.",
+                      },
                     },
-                    required: ["id", "confidence"],
+                    required: ["id", "confidence", "reason"],
                     additionalProperties: false,
                   },
                 },
