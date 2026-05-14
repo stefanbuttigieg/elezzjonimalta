@@ -310,7 +310,12 @@ function ProposalsPage() {
         {proposals.length > 0 ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {proposals.map((proposal: ProposalRecord) => (
-              <ProposalCard key={proposal.id} proposal={proposal} locale={locale} />
+              <ProposalCard
+                key={proposal.id}
+                proposal={proposal}
+                locale={locale}
+                related={relatedIndex.get(proposal.id) ?? []}
+              />
             ))}
           </div>
         ) : (
