@@ -220,6 +220,7 @@ function ProposalsAdmin() {
       let processed = 0;
       let added = 0;
       let errorCount = 0;
+      setCategoriseProgress({ total: ids.length, done: 0, added: 0, errors: 0 });
       const toastId = toast.loading(`AI-categorising 0 / ${ids.length}…`);
       for (let i = 0; i < ids.length; i += CHUNK) {
         const slice = ids.slice(i, i + CHUNK);
@@ -237,8 +238,10 @@ function ProposalsAdmin() {
         } catch {
           errorCount += slice.length;
         }
+        const done = Math.min(i + CHUNK, ids.length);
+        setCategoriseProgress({ total: ids.length, done, added, errors: errorCount });
         toast.loading(
-          `AI-categorising ${Math.min(i + CHUNK, ids.length)} / ${ids.length}… · added ${added}`,
+          `AI-categorising ${done} / ${ids.length}… · added ${added}`,
           { id: toastId }
         );
       }
@@ -253,6 +256,8 @@ function ProposalsAdmin() {
       toast.error(e instanceof Error ? e.message : "Bulk categorise failed");
     } finally {
       setBulkBusy(false);
+      // Keep the final progress visible briefly so the user sees the result.
+      setTimeout(() => setCategoriseProgress(null), 4000);
     }
   };
 
