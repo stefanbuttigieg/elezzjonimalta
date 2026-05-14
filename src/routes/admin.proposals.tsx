@@ -1201,6 +1201,8 @@ function ProposalEditor({
           proposal_id: savedId,
           category_id: id,
           sort_order: idx,
+          assigned_by: "human" as const,
+          assigned_at: new Date().toISOString(),
         }))
         .filter((r) => !existingIds.has(r.category_id));
       if (toDelete.length > 0) {
