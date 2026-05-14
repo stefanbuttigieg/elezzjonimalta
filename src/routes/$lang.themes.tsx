@@ -447,7 +447,15 @@ function ThemesPage() {
         </section>
       )}
 
-      <div className="mt-12 flex justify-center">
+      <div className="mt-12 flex flex-wrap justify-center gap-3">
+        <Link
+          to="/$lang/parties-compare"
+          params={{ lang }}
+          className="inline-flex items-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+        >
+          {locale === "mt" ? "Qabbel partiti skont it-temi" : "Compare parties by theme"}{" "}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
         <Link
           to="/$lang/proposals"
           params={{ lang }}
