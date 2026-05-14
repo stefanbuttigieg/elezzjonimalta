@@ -152,6 +152,12 @@ function ProposalsAdmin() {
     added: number;
     errors: number;
   } | null>(null);
+  const [geoProgress, setGeoProgress] = useState<{
+    total: number;
+    done: number;
+    processed: number;
+    errors: number;
+  } | null>(null);
 
   // Column visibility (persisted). Title + Actions always shown.
   type ColKey = "linked" | "category" | "status" | "geo";
@@ -268,6 +274,52 @@ function ProposalsAdmin() {
       setBulkBusy(false);
       // Keep the final progress visible briefly so the user sees the result.
       setTimeout(() => setCategoriseProgress(null), 4000);
+    }
+  };
+
+  const bulkGeoTag = async () => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`AI geo-tag ${selected.size} proposal(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const CHUNK = 10;
+      let processed = 0;
+      let errorCount = 0;
+      setGeoProgress({ total: ids.length, done: 0, processed: 0, errors: 0 });
+      const toastId = toast.loading(`AI geo-tagging 0 / ${ids.length}…`);
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const slice = ids.slice(i, i + CHUNK);
+        try {
+          const res = await bulkTagProposalsGeo({ data: { proposal_ids: slice } });
+          if (!res.ok) {
+            errorCount += slice.length;
+          } else {
+            processed += res.processed;
+            errorCount += res.errors.length;
+          }
+        } catch {
+          errorCount += slice.length;
+        }
+        const done = Math.min(i + CHUNK, ids.length);
+        setGeoProgress({ total: ids.length, done, processed, errors: errorCount });
+        toast.loading(
+          `AI geo-tagging ${done} / ${ids.length}… · tagged ${processed}`,
+          { id: toastId }
+        );
+      }
+      toast.success(
+        `Geo-tagged ${processed} / ${ids.length}` +
+          (errorCount ? ` · ${errorCount} error(s)` : ""),
+        { id: toastId }
+      );
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk geo-tag failed");
+    } finally {
+      setBulkBusy(false);
+      setTimeout(() => setGeoProgress(null), 4000);
     }
   };
 
@@ -698,21 +750,7 @@ function ProposalsAdmin() {
           </button>
           <button
             disabled={bulkBusy}
-            onClick={async () => {
-              try {
-                const ids = Array.from(selected);
-                toast.info(`AI tagging ${ids.length} proposal(s)…`);
-                const res = await bulkTagProposalsGeo({ data: { proposal_ids: ids } });
-                if (res.ok) {
-                  toast.success(`Geo-tagged ${res.processed}/${ids.length}`);
-                  void load();
-                } else {
-                  toast.error(res.error);
-                }
-              } catch (e) {
-                toast.error(e instanceof Error ? e.message : "AI geo-tag failed");
-              }
-            }}
+            onClick={() => void bulkGeoTag()}
             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
             title="AI geo-tag (national/regional/local + localities)"
           >
@@ -762,6 +800,41 @@ function ProposalsAdmin() {
                   categoriseProgress.total === 0
                     ? 0
                     : Math.round((categoriseProgress.done / categoriseProgress.total) * 100)
+                }%`,
+              }}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {geoProgress ? (
+        <div className="mt-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-card">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {geoProgress.done < geoProgress.total
+                ? "AI geo-tagging…"
+                : "AI geo-tagging complete"}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {geoProgress.done} / {geoProgress.total} ·{" "}
+              <span className="text-foreground">{geoProgress.processed}</span> tagged
+              {geoProgress.errors > 0 ? (
+                <>
+                  {" · "}
+                  <span className="text-destructive">{geoProgress.errors} error(s)</span>
+                </>
+              ) : null}
+            </span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                width: `${
+                  geoProgress.total === 0
+                    ? 0
+                    : Math.round((geoProgress.done / geoProgress.total) * 100)
                 }%`,
               }}
             />
