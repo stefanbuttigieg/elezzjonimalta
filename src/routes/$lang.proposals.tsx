@@ -371,8 +371,17 @@ function FilterSelect({
   );
 }
 
-function ProposalCard({ proposal, locale }: { proposal: ProposalRecord; locale: Locale }) {
+function ProposalCard({
+  proposal,
+  locale,
+  related,
+}: {
+  proposal: ProposalRecord;
+  locale: Locale;
+  related: { proposal: IndexProposal; score: number }[];
+}) {
   const t = useT();
+  const [showRelated, setShowRelated] = useState(false);
   const title =
     locale === "mt"
       ? proposal.title_mt || proposal.title_en
