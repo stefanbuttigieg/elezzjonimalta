@@ -66,6 +66,7 @@ interface Proposal {
   description_mt: string | null;
   category: string | null;
   category_ids: string[];
+  category_audit: Record<string, CategoryAudit>;
   party_id: string | null;
   candidate_id: string | null;
   status: ReviewStatus;
