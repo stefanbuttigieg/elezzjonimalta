@@ -750,21 +750,7 @@ function ProposalsAdmin() {
           </button>
           <button
             disabled={bulkBusy}
-            onClick={async () => {
-              try {
-                const ids = Array.from(selected);
-                toast.info(`AI tagging ${ids.length} proposal(s)…`);
-                const res = await bulkTagProposalsGeo({ data: { proposal_ids: ids } });
-                if (res.ok) {
-                  toast.success(`Geo-tagged ${res.processed}/${ids.length}`);
-                  void load();
-                } else {
-                  toast.error(res.error);
-                }
-              } catch (e) {
-                toast.error(e instanceof Error ? e.message : "AI geo-tag failed");
-              }
-            }}
+            onClick={() => void bulkGeoTag()}
             className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
             title="AI geo-tag (national/regional/local + localities)"
           >
