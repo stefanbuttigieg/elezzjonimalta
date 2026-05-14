@@ -277,6 +277,52 @@ function ProposalsAdmin() {
     }
   };
 
+  const bulkGeoTag = async () => {
+    if (selected.size === 0 || bulkBusy) return;
+    if (!confirm(`AI geo-tag ${selected.size} proposal(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      const ids = Array.from(selected);
+      const CHUNK = 10;
+      let processed = 0;
+      let errorCount = 0;
+      setGeoProgress({ total: ids.length, done: 0, processed: 0, errors: 0 });
+      const toastId = toast.loading(`AI geo-tagging 0 / ${ids.length}…`);
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const slice = ids.slice(i, i + CHUNK);
+        try {
+          const res = await bulkTagProposalsGeo({ data: { proposal_ids: slice } });
+          if (!res.ok) {
+            errorCount += slice.length;
+          } else {
+            processed += res.processed;
+            errorCount += res.errors.length;
+          }
+        } catch {
+          errorCount += slice.length;
+        }
+        const done = Math.min(i + CHUNK, ids.length);
+        setGeoProgress({ total: ids.length, done, processed, errors: errorCount });
+        toast.loading(
+          `AI geo-tagging ${done} / ${ids.length}… · tagged ${processed}`,
+          { id: toastId }
+        );
+      }
+      toast.success(
+        `Geo-tagged ${processed} / ${ids.length}` +
+          (errorCount ? ` · ${errorCount} error(s)` : ""),
+        { id: toastId }
+      );
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk geo-tag failed");
+    } finally {
+      setBulkBusy(false);
+      setTimeout(() => setGeoProgress(null), 4000);
+    }
+  };
+
   const bulkDelete = async () => {
     if (selected.size === 0 || bulkBusy) return;
     if (!confirm(`Delete ${selected.size} proposal(s)? This cannot be undone.`)) return;
