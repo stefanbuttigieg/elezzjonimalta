@@ -1655,6 +1655,48 @@ export type Database = {
         }
         Relationships: []
       }
+      page_seo: {
+        Row: {
+          description: string | null
+          id: string
+          keywords: string[]
+          lang: string
+          noindex: boolean
+          notes: string | null
+          og_image: string | null
+          path: string
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          keywords?: string[]
+          lang: string
+          noindex?: boolean
+          notes?: string | null
+          og_image?: string | null
+          path: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          keywords?: string[]
+          lang?: string
+          noindex?: boolean
+          notes?: string | null
+          og_image?: string | null
+          path?: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       parliament_terms: {
         Row: {
           candidate_id: string

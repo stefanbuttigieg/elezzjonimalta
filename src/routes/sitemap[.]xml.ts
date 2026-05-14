@@ -19,6 +19,7 @@ const STATIC_PATHS: Array<{ path: string; changefreq?: SitemapEntry["changefreq"
   { path: "/about", changefreq: "monthly", priority: "0.6" },
   { path: "/candidates", changefreq: "daily", priority: "0.9" },
   { path: "/parties", changefreq: "weekly", priority: "0.9" },
+  { path: "/parties-compare", changefreq: "weekly", priority: "0.7" },
   { path: "/proposals", changefreq: "daily", priority: "0.9" },
   { path: "/community-proposals", changefreq: "daily", priority: "0.7" },
   { path: "/themes", changefreq: "weekly", priority: "0.7" },
