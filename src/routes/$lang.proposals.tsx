@@ -173,8 +173,22 @@ function ProposalsPage() {
   const navigate = useNavigate({ from: "/$lang/proposals" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { proposals, parties, candidates, categories } = Route.useLoaderData();
+  const { proposals, parties, candidates, categories, indexPool } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
+
+  const relatedIndex = useMemo(() => {
+    const map = new Map<string, { proposal: IndexProposal; score: number }[]>();
+    for (const target of proposals) {
+      const matches = indexPool
+        .filter((p) => p.id !== target.id)
+        .map((p) => ({ proposal: p, score: proposalSimilarity(target as unknown as ProposalForMatch, p) }))
+        .filter((m) => m.score >= 0.18)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      if (matches.length > 0) map.set(target.id, matches);
+    }
+    return map;
+  }, [proposals, indexPool]);
 
   const updateSearch = (patch: Partial<typeof search>) => {
     void navigate({ search: { ...search, ...patch } });
