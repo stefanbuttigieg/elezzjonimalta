@@ -115,6 +115,8 @@ function ThemesPage() {
   const locale = lang as Locale;
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeParty, setActiveParty] = useState<string | null>(null);
+  const [displayMode, setDisplayMode] = useState<"count" | "percent">("count");
+  const [percentBasis, setPercentBasis] = useState<"party" | "category">("party");
 
   const localised = (en: string | null | undefined, mt: string | null | undefined) =>
     locale === "mt" ? (mt?.trim() || en || "") : (en || mt || "");
