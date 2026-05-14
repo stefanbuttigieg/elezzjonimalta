@@ -477,15 +477,13 @@ function safeFilename(url: string): string {
 async function extractPdfPages(bytes: Uint8Array): Promise<PageText[]> {
   const { extractText, getDocumentProxy } = await import("unpdf");
   const pdf = await getDocumentProxy(bytes);
-  const totalPages = pdf.numPages ?? 0;
-  const pageCount = Math.min(totalPages, MAX_PAGES);
+  const { totalPages, text } = await extractText(pdf, { mergePages: false });
+  const pageTexts = Array.isArray(text) ? text : [text ?? ""];
+  const limit = Math.min(totalPages ?? pageTexts.length, MAX_PAGES);
   const pages: PageText[] = [];
-  for (let i = 1; i <= pageCount; i++) {
-    const { text } = await extractText(pdf, { mergePages: false, page: i });
-    const pageText = (Array.isArray(text) ? text[0] ?? "" : text ?? "")
-      .replace(/\s+/g, " ")
-      .trim();
-    pages.push({ page: i, text: pageText });
+  for (let i = 0; i < limit; i++) {
+    const pageText = (pageTexts[i] ?? "").replace(/\s+/g, " ").trim();
+    pages.push({ page: i + 1, text: pageText });
   }
   return pages;
 }
