@@ -136,6 +136,12 @@ function ProposalsAdmin() {
   const [bulkTranslating, setBulkTranslating] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [categoriseProgress, setCategoriseProgress] = useState<{
+    total: number;
+    done: number;
+    added: number;
+    errors: number;
+  } | null>(null);
 
   // Column visibility (persisted). Title + Actions always shown.
   type ColKey = "linked" | "category" | "status" | "geo";
