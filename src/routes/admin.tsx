@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   BookOpen,
   BookUp,
+  Search,
 } from "lucide-react";
 import {
   Sheet,
