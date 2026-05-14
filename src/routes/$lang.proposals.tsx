@@ -84,7 +84,7 @@ async function loadProposals({
   if (candidate !== "all") proposalsQuery = proposalsQuery.eq("candidate_id", candidate);
   if (category !== "all") proposalsQuery = proposalsQuery.eq("category", category);
 
-  const [proposalsResult, partiesResult, candidatesResult, categoriesResult] = await Promise.all([
+  const [proposalsResult, partiesResult, candidatesResult, categoriesResult, indexResult] = await Promise.all([
     proposalsQuery,
     supabase
       .from("parties")
@@ -101,12 +101,19 @@ async function loadProposals({
       .select("category")
       .eq("status", "published")
       .not("category", "is", null),
+    supabase
+      .from("proposals")
+      .select("id, title_en, title_mt, description_en, description_mt, party_id, candidate_id, status, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)")
+      .eq("status", "published")
+      .is("merged_into_id", null)
+      .limit(2000),
   ]);
 
   if (proposalsResult.error) throw proposalsResult.error;
   if (partiesResult.error) throw partiesResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
   if (categoriesResult.error) throw categoriesResult.error;
+  if (indexResult.error) throw indexResult.error;
 
   const categories = Array.from(
     new Set(((categoriesResult.data ?? []) as { category: string | null }[])
@@ -119,8 +126,15 @@ async function loadProposals({
     parties: (partiesResult.data ?? []) as PartyOption[],
     candidates: (candidatesResult.data ?? []) as CandidateOption[],
     categories,
+    indexPool: (indexResult.data ?? []) as IndexProposal[],
   };
 }
+
+type IndexProposal = ProposalForMatch & {
+  category: string | null;
+  party: PartyOption | null;
+  candidate: CandidateOption | null;
+};
 
 export const Route = createFileRoute("/$lang/proposals")({
   validateSearch: zodValidator(proposalSearchSchema),
