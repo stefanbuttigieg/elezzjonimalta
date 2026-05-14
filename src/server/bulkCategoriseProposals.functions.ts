@@ -157,7 +157,16 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
       let added = 0;
       let skipped = 0;
       const errors: string[] = [];
-      const newAssignments: Array<{ proposal_id: string; category_id: string; sort_order: number }> = [];
+      const newAssignments: Array<{
+        proposal_id: string;
+        category_id: string;
+        sort_order: number;
+        assigned_by: "ai";
+        ai_confidence: "high" | "medium" | "low";
+        ai_reason: string | null;
+        ai_model: string;
+        assigned_at: string;
+      }> = [];
 
       for (const p of (proposals ?? []) as Array<{
         id: string;
@@ -177,11 +186,21 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
           const suggestions = await suggestForProposal(apiKey, text, taxonomy, data.max_per_proposal);
           const existingSet = existingByProposal.get(p.id) ?? new Set<string>();
           let order = existingSet.size;
+          const now = new Date().toISOString();
           for (const s of suggestions) {
             if (!minSet.has(s.confidence)) continue;
             if (!validCats.has(s.id)) continue;
             if (existingSet.has(s.id)) continue;
-            newAssignments.push({ proposal_id: p.id, category_id: s.id, sort_order: order++ });
+            newAssignments.push({
+              proposal_id: p.id,
+              category_id: s.id,
+              sort_order: order++,
+              assigned_by: "ai",
+              ai_confidence: s.confidence,
+              ai_reason: s.reason?.trim() ? s.reason.trim().slice(0, 500) : null,
+              ai_model: MODEL,
+              assigned_at: now,
+            });
             existingSet.add(s.id);
             added++;
           }
