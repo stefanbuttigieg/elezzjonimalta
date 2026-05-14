@@ -18,6 +18,7 @@ import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
 import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
+import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
 import { Route as AdminReviewRouteImport } from './routes/admin.review'
 import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
@@ -110,6 +111,11 @@ const AdminVotingFaqsRoute = AdminVotingFaqsRouteImport.update({
 const AdminSittingMpsRoute = AdminSittingMpsRouteImport.update({
   id: '/sitting-mps',
   path: '/sitting-mps',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSeoRoute = AdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminRolesRoute = AdminRolesRouteImport.update({
@@ -397,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -454,6 +461,7 @@ export interface FileRoutesByTo {
   '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -514,6 +522,7 @@ export interface FileRoutesById {
   '/admin/resources': typeof AdminResourcesRoute
   '/admin/review': typeof AdminReviewRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -575,6 +584,7 @@ export interface FileRouteTypes {
     | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
+    | '/admin/seo'
     | '/admin/sitting-mps'
     | '/admin/voting-faqs'
     | '/auth/login'
@@ -632,6 +642,7 @@ export interface FileRouteTypes {
     | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
+    | '/admin/seo'
     | '/admin/sitting-mps'
     | '/admin/voting-faqs'
     | '/auth/login'
@@ -691,6 +702,7 @@ export interface FileRouteTypes {
     | '/admin/resources'
     | '/admin/review'
     | '/admin/roles'
+    | '/admin/seo'
     | '/admin/sitting-mps'
     | '/admin/voting-faqs'
     | '/auth/login'
@@ -785,6 +797,13 @@ declare module '@tanstack/react-router' {
       path: '/sitting-mps'
       fullPath: '/admin/sitting-mps'
       preLoaderRoute: typeof AdminSittingMpsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/seo': {
+      id: '/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AdminSeoRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/roles': {
@@ -1203,6 +1222,7 @@ interface AdminRouteChildren {
   AdminResourcesRoute: typeof AdminResourcesRoute
   AdminReviewRoute: typeof AdminReviewRoute
   AdminRolesRoute: typeof AdminRolesRoute
+  AdminSeoRoute: typeof AdminSeoRoute
   AdminSittingMpsRoute: typeof AdminSittingMpsRoute
   AdminVotingFaqsRoute: typeof AdminVotingFaqsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1228,6 +1248,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminResourcesRoute: AdminResourcesRoute,
   AdminReviewRoute: AdminReviewRoute,
   AdminRolesRoute: AdminRolesRoute,
+  AdminSeoRoute: AdminSeoRoute,
   AdminSittingMpsRoute: AdminSittingMpsRoute,
   AdminVotingFaqsRoute: AdminVotingFaqsRoute,
   AdminIndexRoute: AdminIndexRoute,
