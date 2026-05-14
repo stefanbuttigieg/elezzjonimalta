@@ -43,6 +43,7 @@ import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
 import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
 import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangPartiesCompareRouteImport } from './routes/$lang.parties-compare'
 import { Route as LangFaqRouteImport } from './routes/$lang.faq'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
@@ -236,6 +237,11 @@ const LangPrivacyRoute = LangPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => LangRoute,
 } as any)
+const LangPartiesCompareRoute = LangPartiesCompareRouteImport.update({
+  id: '/parties-compare',
+  path: '/parties-compare',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangFaqRoute = LangFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
+  '/$lang/parties-compare': typeof LangPartiesCompareRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -421,6 +428,7 @@ export interface FileRoutesByTo {
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
+  '/$lang/parties-compare': typeof LangPartiesCompareRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -480,6 +488,7 @@ export interface FileRoutesById {
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
+  '/$lang/parties-compare': typeof LangPartiesCompareRoute
   '/$lang/privacy': typeof LangPrivacyRoute
   '/$lang/proposals': typeof LangProposalsRoute
   '/$lang/resources': typeof LangResourcesRoute
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
+    | '/$lang/parties-compare'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -596,6 +606,7 @@ export interface FileRouteTypes {
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
+    | '/$lang/parties-compare'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -654,6 +665,7 @@ export interface FileRouteTypes {
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
+    | '/$lang/parties-compare'
     | '/$lang/privacy'
     | '/$lang/proposals'
     | '/$lang/resources'
@@ -950,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangPrivacyRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/parties-compare': {
+      id: '/$lang/parties-compare'
+      path: '/parties-compare'
+      fullPath: '/$lang/parties-compare'
+      preLoaderRoute: typeof LangPartiesCompareRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/faq': {
       id: '/$lang/faq'
       path: '/faq'
@@ -1119,6 +1138,7 @@ interface LangRouteChildren {
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
   LangFaqRoute: typeof LangFaqRoute
+  LangPartiesCompareRoute: typeof LangPartiesCompareRoute
   LangPrivacyRoute: typeof LangPrivacyRoute
   LangProposalsRoute: typeof LangProposalsRoute
   LangResourcesRoute: typeof LangResourcesRoute
@@ -1146,6 +1166,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
   LangFaqRoute: LangFaqRoute,
+  LangPartiesCompareRoute: LangPartiesCompareRoute,
   LangPrivacyRoute: LangPrivacyRoute,
   LangProposalsRoute: LangProposalsRoute,
   LangResourcesRoute: LangResourcesRoute,
