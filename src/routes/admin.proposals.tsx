@@ -58,6 +58,14 @@ interface CategoryLite {
 
 type GeoScope = "national" | "regional" | "local";
 
+interface CategoryAudit {
+  assigned_by: "ai" | "human";
+  ai_confidence: "high" | "medium" | "low" | null;
+  ai_reason: string | null;
+  ai_model: string | null;
+  assigned_at: string | null;
+}
+
 interface Proposal {
   id: string;
   title_en: string;
