@@ -35,11 +35,6 @@ async function assertStaff(supabase: {
   }
 }
 
-interface Suggestion {
-  id: string;
-  confidence: "high" | "medium" | "low";
-}
-
 async function suggestForProposal(
   apiKey: string,
   proposalText: string,
