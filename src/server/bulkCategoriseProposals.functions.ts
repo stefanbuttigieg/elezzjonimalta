@@ -18,6 +18,12 @@ const Input = z.object({
   max_per_proposal: z.number().int().min(1).max(5).default(3),
 });
 
+interface Suggestion {
+  id: string;
+  confidence: "high" | "medium" | "low";
+  reason?: string;
+}
+
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
 }) {
