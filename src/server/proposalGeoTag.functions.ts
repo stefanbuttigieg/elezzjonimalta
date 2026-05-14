@@ -88,7 +88,7 @@ export const setProposalGeo = createServerFn({ method: "POST" })
 export const bulkTagProposalsGeo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ proposal_ids: z.array(z.string().uuid()).min(1).max(200) }).parse(input),
+    z.object({ proposal_ids: z.array(z.string().uuid()).min(1).max(2000) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     try {
