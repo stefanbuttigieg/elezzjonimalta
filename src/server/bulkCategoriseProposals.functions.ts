@@ -13,7 +13,7 @@ const MODEL = "google/gemini-2.5-flash";
 const Confidence = z.enum(["high", "medium", "low"]);
 
 const Input = z.object({
-  proposal_ids: z.array(z.string().uuid()).min(1).max(50),
+  proposal_ids: z.array(z.string().uuid()).min(1).max(2000),
   min_confidence: z.array(Confidence).default(["high", "medium"]),
   max_per_proposal: z.number().int().min(1).max(5).default(3),
 });
