@@ -352,25 +352,44 @@ function ProposalsAdmin() {
           .order("name_en"),
         supabase
           .from("proposal_category_assignments")
-          .select("proposal_id, category_id"),
+          .select(
+            "proposal_id, category_id, assigned_by, ai_confidence, ai_reason, ai_model, assigned_at, sort_order"
+          )
+          .order("sort_order"),
       ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
     if (candidatesRes.error) toast.error(candidatesRes.error.message);
     if (assignmentsRes.error) toast.error(assignmentsRes.error.message);
     const assignmentsByProposal = new Map<string, string[]>();
+    const auditByProposal = new Map<string, Record<string, CategoryAudit>>();
     for (const a of (assignmentsRes.data ?? []) as Array<{
       proposal_id: string;
       category_id: string;
+      assigned_by: "ai" | "human" | null;
+      ai_confidence: "high" | "medium" | "low" | null;
+      ai_reason: string | null;
+      ai_model: string | null;
+      assigned_at: string | null;
     }>) {
       const list = assignmentsByProposal.get(a.proposal_id) ?? [];
       list.push(a.category_id);
       assignmentsByProposal.set(a.proposal_id, list);
+      const auditMap = auditByProposal.get(a.proposal_id) ?? {};
+      auditMap[a.category_id] = {
+        assigned_by: a.assigned_by ?? "human",
+        ai_confidence: a.ai_confidence,
+        ai_reason: a.ai_reason,
+        ai_model: a.ai_model,
+        assigned_at: a.assigned_at,
+      };
+      auditByProposal.set(a.proposal_id, auditMap);
     }
     const enrichedRows = ((proposalsRes.data ?? []) as Array<Record<string, unknown>>).map(
       (r) => ({
         ...(r as unknown as Proposal),
         category_ids: assignmentsByProposal.get((r as { id: string }).id) ?? [],
+        category_audit: auditByProposal.get((r as { id: string }).id) ?? {},
       })
     );
     setRows(enrichedRows);
