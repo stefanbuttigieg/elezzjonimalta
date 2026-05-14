@@ -456,6 +456,62 @@ function ProposalCard({
   );
 }
 
+      {related.length > 0 ? (
+        <div className="mt-4 border-t border-border pt-3">
+          <button
+            type="button"
+            onClick={() => setShowRelated((v) => !v)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {showRelated
+              ? locale === "mt" ? "Aħbi proposti relatati" : "Hide related proposals"
+              : locale === "mt"
+                ? `Uri ${related.length} proposti relatati`
+                : `Show ${related.length} related proposal${related.length === 1 ? "" : "s"}`}
+          </button>
+          {showRelated ? (
+            <ul className="mt-3 space-y-2">
+              {related.map((r) => {
+                const rTitle = locale === "mt"
+                  ? r.proposal.title_mt || r.proposal.title_en
+                  : r.proposal.title_en || r.proposal.title_mt;
+                const owner = r.proposal.party
+                  ? partyName(r.proposal.party, locale)
+                  : r.proposal.candidate?.full_name ?? "";
+                return (
+                  <li key={r.proposal.id} className="rounded-md border border-border bg-background px-3 py-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{rTitle}</p>
+                        <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          {r.proposal.party?.color ? (
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: r.proposal.party.color }} />
+                          ) : (
+                            <Link2 className="h-3 w-3" />
+                          )}
+                          <span className="truncate">{owner}</span>
+                          {r.proposal.category ? <span className="truncate">· {r.proposal.category}</span> : null}
+                        </p>
+                      </div>
+                      <span
+                        className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground"
+                        title={locale === "mt" ? "Punteġġ ta' similarità" : "Similarity score"}
+                      >
+                        {Math.round(r.score * 100)}%
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 function partyName(party: PartyOption, locale: Locale) {
   return locale === "mt"
     ? party.name_mt || party.name_en
