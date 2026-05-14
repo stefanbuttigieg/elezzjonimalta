@@ -151,6 +151,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PageSeoOverride />
         <Outlet />
         <Toaster />
       </AuthProvider>
