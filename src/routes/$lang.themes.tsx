@@ -279,23 +279,35 @@ function ThemesPage() {
                   </th>
                   {orderedCategories.map((c) => {
                     const v = row?.get(c.id) ?? 0;
-                    const intensity = v / maxCell;
+                    const basisTotal =
+                      percentBasis === "party"
+                        ? total
+                        : matrix.categoryTotals.get(c.id) ?? 0;
+                    const pct = basisTotal > 0 ? (v / basisTotal) * 100 : 0;
+                    const intensity =
+                      displayMode === "percent" ? pct / 100 : v / maxCell;
                     const bg = v === 0
                       ? "transparent"
                       : `color-mix(in oklab, ${p.color ?? "hsl(var(--primary))"} ${Math.round(15 + intensity * 75)}%, transparent)`;
                     const isActive = activeCategory === c.id || activeParty === p.id;
+                    const display =
+                      v === 0
+                        ? ""
+                        : displayMode === "percent"
+                          ? `${Math.round(pct)}%`
+                          : v;
                     return (
                       <td
                         key={c.id}
                         className={`cursor-pointer rounded text-center font-medium transition-all ${isActive ? "ring-2 ring-foreground/30" : ""}`}
-                        style={{ backgroundColor: bg, color: v > 0 && intensity > 0.5 ? "white" : undefined, minWidth: 32, height: 28 }}
+                        style={{ backgroundColor: bg, color: v > 0 && intensity > 0.5 ? "white" : undefined, minWidth: 36, height: 28 }}
                         onClick={() => {
                           setActiveCategory(c.id);
                           setActiveParty(p.id);
                         }}
-                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v}`}
+                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v} (${Math.round(pct)}% ${percentBasis === "party" ? (locale === "mt" ? "tal-partit" : "of party") : (locale === "mt" ? "tat-tema" : "of theme")})`}
                       >
-                        {v || ""}
+                        {display}
                       </td>
                     );
                   })}
