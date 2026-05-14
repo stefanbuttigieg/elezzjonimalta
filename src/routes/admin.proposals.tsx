@@ -1369,6 +1369,70 @@ function ProposalEditor({
               )}
             </div>
 
+            {v.category_ids.length > 0 ? (
+              <div className="rounded-md border border-border bg-muted/20 p-3">
+                <p className="mb-2 text-xs font-semibold text-foreground">
+                  Assignment audit
+                </p>
+                <ul className="space-y-1.5 text-xs">
+                  {v.category_ids.map((cid) => {
+                    const cat = categories.find((c) => c.id === cid);
+                    const audit = v.category_audit?.[cid];
+                    if (!cat) return null;
+                    const isAi = audit?.assigned_by === "ai";
+                    return (
+                      <li
+                        key={cid}
+                        className="flex flex-wrap items-start gap-x-2 gap-y-1 border-b border-border/40 pb-1.5 last:border-0 last:pb-0"
+                      >
+                        <span className="font-medium">{cat.name_en}</span>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                            isAi
+                              ? "bg-primary/15 text-primary"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {isAi ? <Sparkles className="h-2.5 w-2.5" /> : null}
+                          {audit?.assigned_by ?? "human"}
+                        </span>
+                        {audit?.ai_confidence ? (
+                          <span
+                            className={`rounded-full px-1.5 py-0.5 text-[10px] uppercase ${
+                              audit.ai_confidence === "high"
+                                ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                                : audit.ai_confidence === "medium"
+                                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                  : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {audit.ai_confidence}
+                          </span>
+                        ) : null}
+                        {audit?.assigned_at ? (
+                          <span
+                            className="text-muted-foreground"
+                            title={new Date(audit.assigned_at).toLocaleString()}
+                          >
+                            {new Date(audit.assigned_at).toLocaleDateString()}
+                          </span>
+                        ) : null}
+                        {audit?.ai_model ? (
+                          <span className="text-muted-foreground">· {audit.ai_model}</span>
+                        ) : null}
+                        {audit?.ai_reason ? (
+                          <p className="basis-full text-muted-foreground">
+                            <span className="font-medium text-foreground/80">Evidence:</span>{" "}
+                            {audit.ai_reason}
+                          </p>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+
             {v.category && !categories.some((c) => c.id === v.category_ids[0]) && v.category_ids.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 Legacy category text: <span className="font-medium">{v.category}</span>
