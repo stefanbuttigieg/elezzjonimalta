@@ -209,13 +209,37 @@ function ProposalsAdmin() {
     setBulkBusy(true);
     try {
       const ids = Array.from(selected);
-      const res = await bulkCategoriseProposals({
-        data: { proposal_ids: ids, min_confidence: ["high", "medium"], max_per_proposal: 3 },
-      });
-      if (!res.ok) throw new Error(res.error);
+      // Chunk client-side so each server call stays under Worker time limits.
+      const CHUNK = 10;
+      let processed = 0;
+      let added = 0;
+      let errorCount = 0;
+      const toastId = toast.loading(`AI-categorising 0 / ${ids.length}…`);
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const slice = ids.slice(i, i + CHUNK);
+        try {
+          const res = await bulkCategoriseProposals({
+            data: { proposal_ids: slice, min_confidence: ["high", "medium"], max_per_proposal: 3 },
+          });
+          if (!res.ok) {
+            errorCount += slice.length;
+          } else {
+            processed += res.processed;
+            added += res.added;
+            errorCount += res.errors.length;
+          }
+        } catch {
+          errorCount += slice.length;
+        }
+        toast.loading(
+          `AI-categorising ${Math.min(i + CHUNK, ids.length)} / ${ids.length}… · added ${added}`,
+          { id: toastId }
+        );
+      }
       toast.success(
-        `Processed ${res.processed} · added ${res.added} categor${res.added === 1 ? "y" : "ies"}` +
-          (res.errors.length ? ` · ${res.errors.length} error(s)` : "")
+        `Processed ${processed} · added ${added} categor${added === 1 ? "y" : "ies"}` +
+          (errorCount ? ` · ${errorCount} error(s)` : ""),
+        { id: toastId }
       );
       setSelected(new Set());
       await load();
