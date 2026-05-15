@@ -104,7 +104,23 @@ async function loadLandingStats(): Promise<LandingStats> {
 }
 
 export const Route = createFileRoute("/$lang/")({
-  loader: () => loadLandingStats().catch(() => null),
+  loader: async () => {
+    // Edge-cache the SSR'd HTML for a short window. Landing stats are
+    // counts that update slowly; serve cached HTML for 60s and allow stale
+    // responses for 5 more minutes while revalidating in the background.
+    if (typeof window === "undefined") {
+      try {
+        const { setResponseHeader } = await import("@tanstack/react-start/server");
+        setResponseHeader(
+          "cache-control",
+          "public, s-maxage=60, stale-while-revalidate=300",
+        );
+      } catch {
+        // not running under SSR — ignore
+      }
+    }
+    return loadLandingStats().catch(() => null);
+  },
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title =
