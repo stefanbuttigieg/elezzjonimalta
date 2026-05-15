@@ -32,6 +32,7 @@ import {
   BookOpen,
   BookUp,
   Search,
+  Languages,
 } from "lucide-react";
 import {
   Sheet,
@@ -81,6 +82,7 @@ const items: NavItem[] = [
   { to: "/admin/audit", label: "Audit log", icon: History },
   { to: "/admin/api-logs", label: "API logs", icon: Activity },
   { to: "/admin/seo", label: "SEO", icon: Search },
+  { to: "/admin/translations", label: "Translations", icon: Languages },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
 ];
 
