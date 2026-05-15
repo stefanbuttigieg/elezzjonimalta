@@ -11,6 +11,7 @@ import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { installServerFnAuthInterceptor } from "@/lib/serverFnFetchInterceptor";
 import { PageSeoOverride } from "@/lib/seoOverrides";
+import { TranslationOverridesLoader } from "@/i18n/overrides";
 
 if (typeof window !== "undefined") {
   installServerFnAuthInterceptor();
@@ -152,6 +153,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <PageSeoOverride />
+        <TranslationOverridesLoader />
         <Outlet />
         <Toaster />
       </AuthProvider>
