@@ -120,61 +120,33 @@ function AdminTranslationsPage() {
     mutationFn: async (input: Editing) => {
       const baseEn = dictionaries.en[input.key] ?? "";
       const baseMt = dictionaries.mt[input.key] ?? "";
-      const ops: Array<Promise<unknown>> = [];
 
-      // EN
-      if (input.en.trim() && input.en !== baseEn) {
-        ops.push(
-          supabase
+      const applyLang = async (lang: Locale, value: string, base: string) => {
+        if (value.trim() && value !== base) {
+          const { error } = await supabase
             .from("translation_overrides")
             .upsert(
               {
-                lang: "en",
+                lang,
                 key: input.key,
-                value: input.en,
+                value,
                 notes: input.notes || null,
               },
               { onConflict: "lang,key" },
-            )
-            .then(({ error }) => { if (error) throw error; }),
-        );
-      } else {
-        ops.push(
-          supabase
+            );
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
             .from("translation_overrides")
             .delete()
-            .eq("lang", "en")
-            .eq("key", input.key)
-            .then(({ error }) => { if (error) throw error; }),
-        );
-      }
-      // MT
-      if (input.mt.trim() && input.mt !== baseMt) {
-        ops.push(
-          supabase
-            .from("translation_overrides")
-            .upsert(
-              {
-                lang: "mt",
-                key: input.key,
-                value: input.mt,
-                notes: input.notes || null,
-              },
-              { onConflict: "lang,key" },
-            )
-            .then(({ error }) => { if (error) throw error; }),
-        );
-      } else {
-        ops.push(
-          supabase
-            .from("translation_overrides")
-            .delete()
-            .eq("lang", "mt")
-            .eq("key", input.key)
-            .then(({ error }) => { if (error) throw error; }),
-        );
-      }
-      await Promise.all(ops);
+            .eq("lang", lang)
+            .eq("key", input.key);
+          if (error) throw error;
+        }
+      };
+
+      await applyLang("en", input.en, baseEn);
+      await applyLang("mt", input.mt, baseMt);
     },
     onSuccess: () => {
       toast.success("Translation saved");
