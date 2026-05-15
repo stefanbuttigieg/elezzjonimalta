@@ -1,6 +1,7 @@
 import { useParams } from "@tanstack/react-router";
 import { dictionaries } from "./dictionaries";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "./types";
+import { getOverride, useOverridesVersion } from "./overrides";
 
 /**
  * Resolve the current locale from the /$lang URL segment.
@@ -24,6 +25,8 @@ export function translate(
   key: string,
   vars?: Record<string, string | number>
 ): string {
+  const override = getOverride(locale, key);
+  if (override !== undefined) return format(override, vars);
   const dict = dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
   const value = dict[key] ?? dictionaries[DEFAULT_LOCALE][key] ?? key;
   return format(value, vars);
@@ -35,6 +38,8 @@ export function translate(
  */
 export function useT() {
   const locale = useLocale();
+  // Subscribe to override store changes so consumers re-render on save.
+  useOverridesVersion();
   return (key: string, vars?: Record<string, string | number>) =>
     translate(locale, key, vars);
 }

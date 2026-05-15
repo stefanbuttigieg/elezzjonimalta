@@ -17,6 +17,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
+import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
@@ -106,6 +107,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 const AdminVotingFaqsRoute = AdminVotingFaqsRouteImport.update({
   id: '/voting-faqs',
   path: '/voting-faqs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
+  id: '/translations',
+  path: '/translations',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSittingMpsRoute = AdminSittingMpsRouteImport.update({
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang': typeof LangIndexRoute
@@ -524,6 +532,7 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/seo': typeof AdminSeoRoute
   '/admin/sitting-mps': typeof AdminSittingMpsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
   '/$lang/': typeof LangIndexRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/seo'
     | '/admin/sitting-mps'
+    | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang/'
@@ -644,6 +654,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/seo'
     | '/admin/sitting-mps'
+    | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/seo'
     | '/admin/sitting-mps'
+    | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
     | '/$lang/'
@@ -790,6 +802,13 @@ declare module '@tanstack/react-router' {
       path: '/voting-faqs'
       fullPath: '/admin/voting-faqs'
       preLoaderRoute: typeof AdminVotingFaqsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/translations': {
+      id: '/admin/translations'
+      path: '/translations'
+      fullPath: '/admin/translations'
+      preLoaderRoute: typeof AdminTranslationsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/sitting-mps': {
@@ -1224,6 +1243,7 @@ interface AdminRouteChildren {
   AdminRolesRoute: typeof AdminRolesRoute
   AdminSeoRoute: typeof AdminSeoRoute
   AdminSittingMpsRoute: typeof AdminSittingMpsRoute
+  AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminVotingFaqsRoute: typeof AdminVotingFaqsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCandidatesConfirmEcRoute: typeof AdminCandidatesConfirmEcRoute
@@ -1250,6 +1270,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRolesRoute: AdminRolesRoute,
   AdminSeoRoute: AdminSeoRoute,
   AdminSittingMpsRoute: AdminSittingMpsRoute,
+  AdminTranslationsRoute: AdminTranslationsRoute,
   AdminVotingFaqsRoute: AdminVotingFaqsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminCandidatesConfirmEcRoute: AdminCandidatesConfirmEcRoute,
