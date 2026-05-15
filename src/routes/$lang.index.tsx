@@ -28,7 +28,7 @@ import { useT } from "@/i18n/useT";
 import { translate } from "@/i18n/useT";
 import { isLocale, type Locale } from "@/i18n/types";
 import { LocalityPicker } from "@/components/site/LocalityPicker";
-import { MaltaDistrictsMap } from "@/components/site/MaltaDistrictsMap";
+import { LazyMaltaDistrictsMap } from "@/components/site/LazyMaltaDistrictsMap";
 import { formatUpdatedAt } from "@/lib/formatDate";
 import {
   clearPreferredDistrict,
@@ -438,7 +438,7 @@ function DistrictsMapSection({
           </Link>
         </div>
         <div className="mt-6">
-          <MaltaDistrictsMap locale={lang} height={420} candidateCounts={candidateCounts} />
+          <LazyMaltaDistrictsMap locale={lang} height={420} candidateCounts={candidateCounts} />
         </div>
       </div>
     </section>
