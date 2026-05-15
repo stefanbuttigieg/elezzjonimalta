@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
+
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
@@ -104,18 +104,18 @@ async function loadLandingStats(): Promise<LandingStats> {
   };
 }
 
-const setLandingCacheHeaders = createServerFn({ method: "GET" }).handler(async () => {
-  const { setResponseHeader } = await import("@tanstack/react-start/server");
-  setResponseHeader("cache-control", "public, s-maxage=60, stale-while-revalidate=300");
-});
-
 export const Route = createFileRoute("/$lang/")({
   loader: async () => {
-    // Edge-cache the SSR'd HTML for a short window via a server fn (the
-    // server runtime utilities cannot be imported from a client-reachable
-    // route module, even dynamically — the import-protection plugin blocks it).
+    // Edge-cache the SSR'd HTML for a short window. The cache header must be
+    // set on the outer SSR response, so we import a `.server.ts` helper
+    // (excluded from client bundles by the import-protection plugin).
     if (typeof window === "undefined") {
-      await setLandingCacheHeaders().catch(() => undefined);
+      try {
+        const { setEdgeCacheHeader } = await import("@/lib/ssrCache.server");
+        setEdgeCacheHeader("public, s-maxage=60, stale-while-revalidate=300");
+      } catch {
+        // not running under SSR — ignore
+      }
     }
     return loadLandingStats().catch(() => null);
   },
