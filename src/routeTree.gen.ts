@@ -68,6 +68,7 @@ import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1
 import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
+import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -366,6 +367,12 @@ const ApiPublicHooksScanNewsRoute = ApiPublicHooksScanNewsRouteImport.update({
   path: '/api/public/hooks/scan-news',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksManifestoTickRoute =
+  ApiPublicHooksManifestoTickRouteImport.update({
+    id: '/api/public/hooks/manifesto-tick',
+    path: '/api/public/hooks/manifesto-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -422,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/admin/candidates/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
@@ -481,6 +489,7 @@ export interface FileRoutesByTo {
   '/admin/candidates/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
+  '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
@@ -543,6 +552,7 @@ export interface FileRoutesById {
   '/admin/candidates_/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
@@ -606,6 +616,7 @@ export interface FileRouteTypes {
     | '/admin/candidates/confirm-ec'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
@@ -665,6 +676,7 @@ export interface FileRouteTypes {
     | '/admin/candidates/confirm-ec'
     | '/$lang/candidates'
     | '/$lang/parties'
+    | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
@@ -726,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/candidates_/confirm-ec'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
@@ -739,6 +752,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  ApiPublicHooksManifestoTickRoute: typeof ApiPublicHooksManifestoTickRoute
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
   ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
@@ -1161,6 +1175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksScanNewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/manifesto-tick': {
+      id: '/api/public/hooks/manifesto-tick'
+      path: '/api/public/hooks/manifesto-tick'
+      fullPath: '/api/public/hooks/manifesto-tick'
+      preLoaderRoute: typeof ApiPublicHooksManifestoTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1284,6 +1305,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthLoginRoute: AuthLoginRoute,
+  ApiPublicHooksManifestoTickRoute: ApiPublicHooksManifestoTickRoute,
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,
   ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
