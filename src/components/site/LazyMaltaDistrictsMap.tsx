@@ -46,21 +46,33 @@ export function LazyMaltaDistrictsMap({ height = 460, className, ...rest }: Prop
     return () => io.disconnect();
   }, [visible]);
 
+  if (visible) {
+    return (
+      <Suspense
+        fallback={
+          <div
+            className={
+              "rounded-xl border border-border bg-surface shadow-card " +
+              (className ?? "")
+            }
+            style={{ height }}
+          />
+        }
+      >
+        <MaltaDistrictsMap height={height} className={className} {...rest} />
+      </Suspense>
+    );
+  }
+
   return (
     <div
       ref={ref}
       className={
-        "relative overflow-hidden rounded-xl border border-border bg-surface shadow-card " +
-        (className ?? "")
+        "rounded-xl border border-border bg-surface shadow-card " + (className ?? "")
       }
-      style={{ minHeight: height }}
-    >
-      {visible ? (
-        <Suspense fallback={null}>
-          <MaltaDistrictsMap height={height} {...rest} />
-        </Suspense>
-      ) : null}
-    </div>
+      style={{ height }}
+      aria-hidden="true"
+    />
   );
 }
 
