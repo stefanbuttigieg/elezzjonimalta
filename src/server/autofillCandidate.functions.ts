@@ -88,6 +88,19 @@ const PREFERRED_DOMAINS = [
   "adpd.mt",
   "abba.com.mt",
   "wikipedia.org",
+  "timesofmalta.com",
+  "independent.com.mt",
+  "maltatoday.com.mt",
+  "lovinmalta.com",
+  "newsbook.com.mt",
+  "tvmnews.mt",
+  "one.com.mt",
+  "net.com.mt",
+  "facebook.com",
+  "linkedin.com",
+  "instagram.com",
+  "x.com",
+  "twitter.com",
 ];
 
 async function gatherSources(
@@ -107,15 +120,18 @@ async function gatherSources(
     const queries = [
       `${fullName}${partySuffix} Malta candidate biography`,
       `${fullName} Malta MP profile site:parlament.mt OR site:wikipedia.org`,
+      `${fullName}${partySuffix} Malta site:timesofmalta.com OR site:independent.com.mt OR site:maltatoday.com.mt`,
+      `${fullName}${partySuffix} Malta site:facebook.com OR site:linkedin.com`,
+      `${fullName}${partySuffix} Malta education profession career`,
+      `${fullName}${partySuffix} Malta contact email phone`,
     ];
     for (const q of queries) {
-      const found = await firecrawlSearchUrls(q, 4);
+      const found = await firecrawlSearchUrls(q, 5);
       for (const u of found) urls.add(u);
-      if (urls.size >= 8) break;
+      if (urls.size >= 20) break;
     }
   }
 
-  // Prioritise preferred sources, then take first ~6
   const ordered = [...urls].sort((a, b) => {
     const score = (u: string) => {
       try {
@@ -130,12 +146,12 @@ async function gatherSources(
   });
 
   const docs: SourceDoc[] = [];
-  for (const url of ordered.slice(0, 6)) {
+  for (const url of ordered.slice(0, 12)) {
     const text = await firecrawlScrape(url);
     if (text && text.length > 200) {
       docs.push({ url, text: text.slice(0, 8000) });
     }
-    if (docs.length >= 4) break;
+    if (docs.length >= 8) break;
   }
   return docs;
 }
