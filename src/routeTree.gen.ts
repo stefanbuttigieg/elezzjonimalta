@@ -35,6 +35,7 @@ import { Route as AdminCommunityProposalsRouteImport } from './routes/admin.comm
 import { Route as AdminCommunityAuthorsRouteImport } from './routes/admin.community-authors'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminCandidateSuggestionsRouteImport } from './routes/admin.candidate-suggestions'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
@@ -200,6 +201,12 @@ const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
   path: '/candidates',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCandidateSuggestionsRoute =
+  AdminCandidateSuggestionsRouteImport.update({
+    id: '/candidate-suggestions',
+    path: '/candidate-suggestions',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -401,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
@@ -461,6 +469,7 @@ export interface FileRoutesByTo {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
@@ -524,6 +533,7 @@ export interface FileRoutesById {
   '/admin/api-logs': typeof AdminApiLogsRoute
   '/admin/assistant': typeof AdminAssistantRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
@@ -588,6 +598,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/candidate-suggestions'
     | '/admin/candidates'
     | '/admin/categories'
     | '/admin/community-authors'
@@ -648,6 +659,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/candidate-suggestions'
     | '/admin/candidates'
     | '/admin/categories'
     | '/admin/community-authors'
@@ -710,6 +722,7 @@ export interface FileRouteTypes {
     | '/admin/api-logs'
     | '/admin/assistant'
     | '/admin/audit'
+    | '/admin/candidate-suggestions'
     | '/admin/candidates'
     | '/admin/categories'
     | '/admin/community-authors'
@@ -942,6 +955,13 @@ declare module '@tanstack/react-router' {
       path: '/candidates'
       fullPath: '/admin/candidates'
       preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/candidate-suggestions': {
+      id: '/admin/candidate-suggestions'
+      path: '/candidate-suggestions'
+      fullPath: '/admin/candidate-suggestions'
+      preLoaderRoute: typeof AdminCandidateSuggestionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -1247,6 +1267,7 @@ interface AdminRouteChildren {
   AdminApiLogsRoute: typeof AdminApiLogsRoute
   AdminAssistantRoute: typeof AdminAssistantRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminCandidateSuggestionsRoute: typeof AdminCandidateSuggestionsRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCommunityAuthorsRoute: typeof AdminCommunityAuthorsRoute
@@ -1274,6 +1295,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminApiLogsRoute: AdminApiLogsRoute,
   AdminAssistantRoute: AdminAssistantRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminCandidateSuggestionsRoute: AdminCandidateSuggestionsRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCommunityAuthorsRoute: AdminCommunityAuthorsRoute,

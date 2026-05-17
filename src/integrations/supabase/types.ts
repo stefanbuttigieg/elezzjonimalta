@@ -287,6 +287,63 @@ export type Database = {
           },
         ]
       }
+      candidate_discovery_runs: {
+        Row: {
+          ai_model: string | null
+          candidate_id: string
+          error: string | null
+          finished_at: string | null
+          id: string
+          metadata: Json
+          source_urls: string[]
+          started_at: string
+          status: string
+          suggestion_count: number
+          triggered_by: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          candidate_id: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json
+          source_urls?: string[]
+          started_at?: string
+          status?: string
+          suggestion_count?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          candidate_id?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          metadata?: Json
+          source_urls?: string[]
+          started_at?: string
+          status?: string
+          suggestion_count?: number
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_discovery_runs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_discovery_runs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_districts: {
         Row: {
           candidate_id: string
@@ -395,6 +452,78 @@ export type Database = {
           },
           {
             foreignKeyName: "candidate_endorsements_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_field_suggestions: {
+        Row: {
+          ai_confidence: string | null
+          ai_model: string | null
+          ai_reason: string | null
+          candidate_id: string
+          created_at: string
+          current_value: string | null
+          field_key: string
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          run_id: string | null
+          source_urls: string[]
+          status: Database["public"]["Enums"]["candidate_suggestion_status"]
+          suggested_value: string
+          updated_at: string
+        }
+        Insert: {
+          ai_confidence?: string | null
+          ai_model?: string | null
+          ai_reason?: string | null
+          candidate_id: string
+          created_at?: string
+          current_value?: string | null
+          field_key: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_urls?: string[]
+          status?: Database["public"]["Enums"]["candidate_suggestion_status"]
+          suggested_value: string
+          updated_at?: string
+        }
+        Update: {
+          ai_confidence?: string | null
+          ai_model?: string | null
+          ai_reason?: string | null
+          candidate_id?: string
+          created_at?: string
+          current_value?: string | null
+          field_key?: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          run_id?: string | null
+          source_urls?: string[]
+          status?: Database["public"]["Enums"]["candidate_suggestion_status"]
+          suggested_value?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_field_suggestions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_experience_summary"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_field_suggestions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidates"
@@ -2616,6 +2745,11 @@ export type Database = {
         | "interview"
         | "speech"
         | "article"
+      candidate_suggestion_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "superseded"
       community_author_kind:
         | "individual"
         | "ngo"
@@ -2813,6 +2947,12 @@ export const Constants = {
         "interview",
         "speech",
         "article",
+      ],
+      candidate_suggestion_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "superseded",
       ],
       community_author_kind: [
         "individual",

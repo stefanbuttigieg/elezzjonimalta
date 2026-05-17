@@ -233,10 +233,10 @@ function CandidatesAdmin() {
       });
       if (!res.ok) throw new Error(res.error);
       const succeeded = res.results.filter((r) => r.ok).length;
-      const totalUpdated = res.results.reduce((acc, r) => acc + (r.updated_count ?? 0), 0);
+      const totalSuggestions = res.results.reduce((acc, r) => acc + (r.suggestions_created ?? 0), 0);
       const failed = res.results.filter((r) => !r.ok).length;
       toast.success(
-        `Auto-fill done · ${succeeded}/${res.results.length} processed · ${totalUpdated} fields filled${failed ? ` · ${failed} failed` : ""}`
+        `Discovery done · ${succeeded}/${res.results.length} processed · ${totalSuggestions} suggestion(s) created${failed ? ` · ${failed} failed` : ""}. Review at /admin/candidate-suggestions.`
       );
       setSelected(new Set());
       await load();
@@ -886,19 +886,12 @@ function CandidateEditor({
         },
       });
       if (!res.ok) throw new Error(res.error);
-      const updated = res.updated_fields ?? [];
-      if (updated.length === 0) {
-        toast.info("No empty fields could be filled from the available sources.");
+      const count = res.suggestions_created ?? 0;
+      if (count === 0) {
+        toast.info("No new suggestions — fields already match or no sources found.");
       } else {
-        toast.success(`Filled ${updated.length} field(s): ${updated.slice(0, 6).join(", ")}${updated.length > 6 ? "…" : ""}`);
+        toast.success(`Created ${count} suggestion(s). Review at /admin/candidate-suggestions.`);
       }
-      // Reload the candidate row so the editor reflects new values.
-      const { data: fresh } = await supabase
-        .from("candidates")
-        .select("*")
-        .eq("id", v.id)
-        .single();
-      if (fresh) setV(fresh as Candidate);
       setAutofillUrls("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Auto-fill failed");

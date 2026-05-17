@@ -88,6 +88,19 @@ const PREFERRED_DOMAINS = [
   "adpd.mt",
   "abba.com.mt",
   "wikipedia.org",
+  "timesofmalta.com",
+  "independent.com.mt",
+  "maltatoday.com.mt",
+  "lovinmalta.com",
+  "newsbook.com.mt",
+  "tvmnews.mt",
+  "one.com.mt",
+  "net.com.mt",
+  "facebook.com",
+  "linkedin.com",
+  "instagram.com",
+  "x.com",
+  "twitter.com",
 ];
 
 async function gatherSources(
@@ -107,15 +120,18 @@ async function gatherSources(
     const queries = [
       `${fullName}${partySuffix} Malta candidate biography`,
       `${fullName} Malta MP profile site:parlament.mt OR site:wikipedia.org`,
+      `${fullName}${partySuffix} Malta site:timesofmalta.com OR site:independent.com.mt OR site:maltatoday.com.mt`,
+      `${fullName}${partySuffix} Malta site:facebook.com OR site:linkedin.com`,
+      `${fullName}${partySuffix} Malta education profession career`,
+      `${fullName}${partySuffix} Malta contact email phone`,
     ];
     for (const q of queries) {
-      const found = await firecrawlSearchUrls(q, 4);
+      const found = await firecrawlSearchUrls(q, 5);
       for (const u of found) urls.add(u);
-      if (urls.size >= 8) break;
+      if (urls.size >= 20) break;
     }
   }
 
-  // Prioritise preferred sources, then take first ~6
   const ordered = [...urls].sort((a, b) => {
     const score = (u: string) => {
       try {
@@ -130,12 +146,12 @@ async function gatherSources(
   });
 
   const docs: SourceDoc[] = [];
-  for (const url of ordered.slice(0, 6)) {
+  for (const url of ordered.slice(0, 12)) {
     const text = await firecrawlScrape(url);
     if (text && text.length > 200) {
       docs.push({ url, text: text.slice(0, 8000) });
     }
-    if (docs.length >= 4) break;
+    if (docs.length >= 8) break;
   }
   return docs;
 }
@@ -265,26 +281,23 @@ const FIELD_KEYS = [
 
 type CandidateRow = Record<string, unknown> & { id: string; full_name: string };
 
-function buildSafeMergePatch(
+function buildSuggestionDiffs(
   current: CandidateRow,
   extracted: ExtractedFields,
-): Record<string, unknown> {
-  const patch: Record<string, unknown> = {};
+): Array<{ field_key: string; current_value: string | null; suggested_value: string }> {
+  const out: Array<{ field_key: string; current_value: string | null; suggested_value: string }> = [];
   for (const key of FIELD_KEYS) {
-    const cur = current[key];
     const next = extracted[key];
-    if (next === undefined || next === null || (typeof next === "string" && !next.trim())) continue;
-    if (cur && typeof cur === "string" && cur.trim()) continue; // already filled
-    if (key === "date_of_birth" && typeof next === "string") {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(next)) continue;
-    }
-    patch[key] = next;
+    if (next === undefined || next === null) continue;
+    const nextStr = typeof next === "string" ? next.trim() : String(next);
+    if (!nextStr) continue;
+    if (key === "date_of_birth" && !/^\d{4}-\d{2}-\d{2}$/.test(nextStr)) continue;
+    const cur = current[key];
+    const curStr = cur == null ? "" : typeof cur === "string" ? cur.trim() : String(cur);
+    if (curStr && curStr.toLowerCase() === nextStr.toLowerCase()) continue;
+    out.push({ field_key: key, current_value: curStr || null, suggested_value: nextStr });
   }
-  // Booleans only when currently false AND we have explicit true.
-  if (extracted.is_incumbent === true && current.is_incumbent === false) {
-    // Don't auto-flip — too consequential. Keep manual.
-  }
-  return patch;
+  return out;
 }
 
 async function autofillOne(
@@ -292,11 +305,33 @@ async function autofillOne(
   urls: string[],
   useWeb: boolean,
   useParliament: boolean,
+  actorId: string,
 ): Promise<{
   ok: true;
-  updated_fields: string[];
+  suggestions_created: number;
   source_urls: string[];
+  run_id: string;
 } | { ok: false; error: string }> {
+  const { data: run, error: runErr } = await supabaseAdmin
+    .from("candidate_discovery_runs")
+    .insert({
+      candidate_id: candidateId,
+      triggered_by: actorId,
+      status: "running",
+      ai_model: MODEL,
+    } as never)
+    .select("id")
+    .single();
+  if (runErr || !run) return { ok: false, error: runErr?.message ?? "Failed to start run" };
+  const runId = (run as { id: string }).id;
+
+  const finishRun = async (patch: Record<string, unknown>) => {
+    await supabaseAdmin
+      .from("candidate_discovery_runs")
+      .update({ ...patch, finished_at: new Date().toISOString() } as never)
+      .eq("id", runId);
+  };
+
   const { data: row, error } = await supabaseAdmin
     .from("candidates")
     .select(
@@ -304,8 +339,14 @@ async function autofillOne(
     )
     .eq("id", candidateId)
     .maybeSingle();
-  if (error) return { ok: false, error: error.message };
-  if (!row) return { ok: false, error: "Candidate not found" };
+  if (error) {
+    await finishRun({ status: "failed", error: error.message });
+    return { ok: false, error: error.message };
+  }
+  if (!row) {
+    await finishRun({ status: "failed", error: "Candidate not found" });
+    return { ok: false, error: "Candidate not found" };
+  }
 
   const partyName = (row.party as { name_en?: string } | null)?.name_en ?? null;
   const docs = await gatherSources(
@@ -316,32 +357,66 @@ async function autofillOne(
     useWeb,
     useParliament,
   );
+  const sourceUrls = docs.map((d) => d.url);
+
   if (docs.length === 0) {
+    await finishRun({ status: "failed", error: "No usable sources found", source_urls: sourceUrls });
     return { ok: false, error: "No usable sources found" };
   }
 
-  const extracted = await extractWithAI(row.full_name, partyName, docs);
-  if (!extracted) return { ok: false, error: "AI returned no data" };
-
-  const patch = buildSafeMergePatch(row as CandidateRow, extracted);
-  const sourceUrls = docs.map((d) => d.url);
-
-  // If source_url is empty, set the first preferred one.
-  if (!(row as { source_url?: string | null }).source_url && sourceUrls.length > 0) {
-    patch.source_url = sourceUrls[0];
+  let extracted: ExtractedFields | null = null;
+  try {
+    extracted = await extractWithAI(row.full_name, partyName, docs);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await finishRun({ status: "failed", error: msg, source_urls: sourceUrls });
+    return { ok: false, error: msg };
+  }
+  if (!extracted) {
+    await finishRun({ status: "failed", error: "AI returned no data", source_urls: sourceUrls });
+    return { ok: false, error: "AI returned no data" };
   }
 
-  if (Object.keys(patch).length === 0) {
-    return { ok: true, updated_fields: [], source_urls: sourceUrls };
+  const diffs = buildSuggestionDiffs(row as CandidateRow, extracted);
+
+  // Mark previous pending suggestions for same fields as superseded
+  if (diffs.length > 0) {
+    await supabaseAdmin
+      .from("candidate_field_suggestions")
+      .update({ status: "superseded" } as never)
+      .eq("candidate_id", candidateId)
+      .eq("status", "pending")
+      .in(
+        "field_key",
+        diffs.map((d) => d.field_key),
+      );
+
+    const rows = diffs.map((d) => ({
+      candidate_id: candidateId,
+      field_key: d.field_key,
+      current_value: d.current_value,
+      suggested_value: d.suggested_value,
+      source_urls: sourceUrls,
+      ai_model: MODEL,
+      status: "pending" as const,
+      run_id: runId,
+    }));
+    const { error: insErr } = await supabaseAdmin
+      .from("candidate_field_suggestions")
+      .insert(rows as never);
+    if (insErr) {
+      await finishRun({ status: "failed", error: insErr.message, source_urls: sourceUrls });
+      return { ok: false, error: insErr.message };
+    }
   }
 
-  const { error: upErr } = await supabaseAdmin
-    .from("candidates")
-    .update(patch as never)
-    .eq("id", candidateId);
-  if (upErr) return { ok: false, error: upErr.message };
+  await finishRun({
+    status: "completed",
+    source_urls: sourceUrls,
+    suggestion_count: diffs.length,
+  });
 
-  return { ok: true, updated_fields: Object.keys(patch), source_urls: sourceUrls };
+  return { ok: true, suggestions_created: diffs.length, source_urls: sourceUrls, run_id: runId };
 }
 
 export const autofillCandidate = createServerFn({ method: "POST" })
@@ -358,6 +433,7 @@ export const autofillCandidate = createServerFn({ method: "POST" })
         data.urls,
         data.use_web_search,
         data.use_parliament_mt,
+        userId,
       );
 
       await writeAudit(supabaseAdmin, {
@@ -371,7 +447,7 @@ export const autofillCandidate = createServerFn({ method: "POST" })
           urls_provided: data.urls.length,
           use_web_search: data.use_web_search,
           ...(result.ok
-            ? { updated_fields: result.updated_fields, source_urls: result.source_urls }
+            ? { suggestions_created: result.suggestions_created, source_urls: result.source_urls, run_id: result.run_id }
             : { error: result.error }),
         },
       });
@@ -396,14 +472,14 @@ export const bulkAutofillCandidates = createServerFn({ method: "POST" })
       const results: Array<{
         id: string;
         ok: boolean;
-        updated_count?: number;
+        suggestions_created?: number;
         error?: string;
       }> = [];
 
       for (const id of data.candidate_ids) {
-        const r = await autofillOne(id, [], data.use_web_search, data.use_parliament_mt);
+        const r = await autofillOne(id, [], data.use_web_search, data.use_parliament_mt, userId);
         if (r.ok) {
-          results.push({ id, ok: true, updated_count: r.updated_fields.length });
+          results.push({ id, ok: true, suggestions_created: r.suggestions_created });
         } else {
           results.push({ id, ok: false, error: r.error });
         }

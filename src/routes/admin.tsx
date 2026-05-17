@@ -66,6 +66,7 @@ const items: NavItem[] = [
   { to: "/admin/news", label: "News monitor", icon: Newspaper },
   { to: "/admin/sitting-mps", label: "Sitting MPs", icon: ShieldCheck },
   { to: "/admin/candidates", label: "Candidates", icon: Users },
+  { to: "/admin/candidate-suggestions", label: "AI suggestions", icon: Sparkles },
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
