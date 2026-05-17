@@ -433,6 +433,7 @@ export const autofillCandidate = createServerFn({ method: "POST" })
         data.urls,
         data.use_web_search,
         data.use_parliament_mt,
+        userId,
       );
 
       await writeAudit(supabaseAdmin, {
@@ -446,7 +447,7 @@ export const autofillCandidate = createServerFn({ method: "POST" })
           urls_provided: data.urls.length,
           use_web_search: data.use_web_search,
           ...(result.ok
-            ? { updated_fields: result.updated_fields, source_urls: result.source_urls }
+            ? { suggestions_created: result.suggestions_created, source_urls: result.source_urls, run_id: result.run_id }
             : { error: result.error }),
         },
       });
@@ -471,14 +472,14 @@ export const bulkAutofillCandidates = createServerFn({ method: "POST" })
       const results: Array<{
         id: string;
         ok: boolean;
-        updated_count?: number;
+        suggestions_created?: number;
         error?: string;
       }> = [];
 
       for (const id of data.candidate_ids) {
-        const r = await autofillOne(id, [], data.use_web_search, data.use_parliament_mt);
+        const r = await autofillOne(id, [], data.use_web_search, data.use_parliament_mt, userId);
         if (r.ok) {
-          results.push({ id, ok: true, updated_count: r.updated_fields.length });
+          results.push({ id, ok: true, suggestions_created: r.suggestions_created });
         } else {
           results.push({ id, ok: false, error: r.error });
         }
