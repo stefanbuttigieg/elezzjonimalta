@@ -46,6 +46,7 @@ type CandidateRecord = {
   website: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  leadership_role: "leader" | "deputy_leader" | null;
   updated_at: string;
   party: PartyOption | null;
   district: DistrictOption | null;
@@ -64,7 +65,7 @@ async function loadCandidates({
   let candidatesQuery = supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, is_incumbent, electoral_confirmed, leadership_role, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts(id, number, name_en, name_mt)",
     )
     .eq("status", "published")
     .eq("electoral_confirmed", true)
@@ -313,6 +314,16 @@ function CandidateCard({ candidate, locale }: { candidate: CandidateRecord; loca
       </Link>
 
       <div className="mt-4 flex flex-wrap gap-2">
+        {candidate.leadership_role === "leader" ? (
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+            {t("myDistrict.candidates.leader")}
+          </span>
+        ) : null}
+        {candidate.leadership_role === "deputy_leader" ? (
+          <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-900 dark:bg-sky-900/40 dark:text-sky-100">
+            {t("myDistrict.candidates.deputyLeader")}
+          </span>
+        ) : null}
         {candidate.is_incumbent ? <Badge label={t("common.sittingMp")} /> : null}
         {candidate.electoral_confirmed ? <Badge label={t("common.electoralConfirmed")} /> : null}
       </div>

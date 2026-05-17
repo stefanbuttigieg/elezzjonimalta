@@ -394,7 +394,8 @@ function ProposalsAdmin() {
           .select(
             "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
           )
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false })
+          .range(0, 9999),
         supabase.from("parties").select("id, name_en, short_name").order("name_en"),
         supabase.from("candidates").select("id, full_name").order("full_name"),
         supabase
