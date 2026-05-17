@@ -233,10 +233,10 @@ function CandidatesAdmin() {
       });
       if (!res.ok) throw new Error(res.error);
       const succeeded = res.results.filter((r) => r.ok).length;
-      const totalUpdated = res.results.reduce((acc, r) => acc + (r.updated_count ?? 0), 0);
+      const totalSuggestions = res.results.reduce((acc, r) => acc + (r.suggestions_created ?? 0), 0);
       const failed = res.results.filter((r) => !r.ok).length;
       toast.success(
-        `Auto-fill done · ${succeeded}/${res.results.length} processed · ${totalUpdated} fields filled${failed ? ` · ${failed} failed` : ""}`
+        `Discovery done · ${succeeded}/${res.results.length} processed · ${totalSuggestions} suggestion(s) created${failed ? ` · ${failed} failed` : ""}. Review at /admin/candidate-suggestions.`
       );
       setSelected(new Set());
       await load();
