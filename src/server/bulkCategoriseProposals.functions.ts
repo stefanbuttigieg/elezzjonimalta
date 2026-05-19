@@ -203,6 +203,8 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
         title_mt: string | null;
         description_en: string | null;
         description_mt: string | null;
+        source_url: string | null;
+        custom_fields: Record<string, unknown> | null;
       }>) {
         const text = [p.title_en, p.title_mt, p.description_en, p.description_mt]
           .filter((s) => s && s.trim())
@@ -211,8 +213,16 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
           skipped++;
           continue;
         }
+        const cf = (p.custom_fields ?? {}) as Record<string, unknown>;
+        const cfTheme =
+          (typeof cf.pn_theme === "string" && cf.pn_theme) ||
+          (typeof cf.theme === "string" && cf.theme) ||
+          (typeof cf.manifesto_theme === "string" && cf.manifesto_theme) ||
+          null;
+        const themeSlug = cfTheme || themeFromUrl(p.source_url);
+        const theme = themeSlug ? humaniseSlug(themeSlug) : null;
         try {
-          const suggestions = await suggestForProposal(apiKey, text, taxonomy, data.max_per_proposal);
+          const suggestions = await suggestForProposal(apiKey, text, theme, taxonomy, data.max_per_proposal);
           const existingSet = existingByProposal.get(p.id) ?? new Set<string>();
           let order = existingSet.size;
           const now = new Date().toISOString();
