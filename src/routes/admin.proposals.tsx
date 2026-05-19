@@ -387,15 +387,51 @@ function ProposalsAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
-      await Promise.all([
-        supabase
+    // Supabase/PostgREST caps a single response at 1000 rows by default, so
+    // chunk-fetch the full proposals table in 1000-row pages until exhausted.
+    const PAGE = 1000;
+    const fetchAllProposals = async () => {
+      const all: Array<Record<string, unknown>> = [];
+      let from = 0;
+      // Hard safety cap to avoid runaway loops.
+      for (let i = 0; i < 200; i++) {
+        const { data, error } = await supabase
           .from("proposals")
           .select(
             "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
           )
           .order("created_at", { ascending: false })
-          .range(0, 9999),
+          .range(from, from + PAGE - 1);
+        if (error) return { data: null, error };
+        const batch = (data ?? []) as Array<Record<string, unknown>>;
+        all.push(...batch);
+        if (batch.length < PAGE) break;
+        from += PAGE;
+      }
+      return { data: all, error: null as null | { message: string } };
+    };
+    const fetchAllAssignments = async () => {
+      const all: Array<Record<string, unknown>> = [];
+      let from = 0;
+      for (let i = 0; i < 200; i++) {
+        const { data, error } = await supabase
+          .from("proposal_category_assignments")
+          .select(
+            "proposal_id, category_id, assigned_by, ai_confidence, ai_reason, ai_model, assigned_at, sort_order"
+          )
+          .order("sort_order")
+          .range(from, from + PAGE - 1);
+        if (error) return { data: null, error };
+        const batch = (data ?? []) as Array<Record<string, unknown>>;
+        all.push(...batch);
+        if (batch.length < PAGE) break;
+        from += PAGE;
+      }
+      return { data: all, error: null as null | { message: string } };
+    };
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
+      await Promise.all([
+        fetchAllProposals(),
         supabase.from("parties").select("id, name_en, short_name").order("name_en"),
         supabase.from("candidates").select("id, full_name").order("full_name"),
         supabase
@@ -403,12 +439,7 @@ function ProposalsAdmin() {
           .select("id, name_en")
           .order("sort_order")
           .order("name_en"),
-        supabase
-          .from("proposal_category_assignments")
-          .select(
-            "proposal_id, category_id, assigned_by, ai_confidence, ai_reason, ai_model, assigned_at, sort_order"
-          )
-          .order("sort_order"),
+        fetchAllAssignments(),
       ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
