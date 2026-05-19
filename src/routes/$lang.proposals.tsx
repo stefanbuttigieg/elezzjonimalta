@@ -65,27 +65,61 @@ async function loadProposals({
   category: string;
 }) {
   const cleanQuery = q.trim();
-  let proposalsQuery = supabase
-    .from("proposals")
-    .select(
-      "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const PAGE_SIZE = 1000;
 
-  if (cleanQuery) {
-    proposalsQuery = proposalsQuery.or(
-      `title_en.ilike.%${cleanQuery}%,title_mt.ilike.%${cleanQuery}%`,
-    );
+  const buildProposalsQuery = (from: number, to: number) => {
+    let p = supabase
+      .from("proposals")
+      .select(
+        "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+      )
+      .eq("status", "published")
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (cleanQuery) {
+      p = p.or(`title_en.ilike.%${cleanQuery}%,title_mt.ilike.%${cleanQuery}%`);
+    }
+    if (scope === "party") p = p.not("party_id", "is", null);
+    if (scope === "candidate") p = p.not("candidate_id", "is", null);
+    if (party !== "all") p = p.eq("party_id", party);
+    if (candidate !== "all") p = p.eq("candidate_id", candidate);
+    if (category !== "all") p = p.eq("category", category);
+    return p;
+  };
+
+  async function fetchAllProposals(): Promise<ProposalRecord[]> {
+    const all: ProposalRecord[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, error } = await buildProposalsQuery(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      const rows = (data ?? []) as ProposalRecord[];
+      all.push(...rows);
+      if (rows.length < PAGE_SIZE) break;
+    }
+    return all;
   }
-  if (scope === "party") proposalsQuery = proposalsQuery.not("party_id", "is", null);
-  if (scope === "candidate") proposalsQuery = proposalsQuery.not("candidate_id", "is", null);
-  if (party !== "all") proposalsQuery = proposalsQuery.eq("party_id", party);
-  if (candidate !== "all") proposalsQuery = proposalsQuery.eq("candidate_id", candidate);
-  if (category !== "all") proposalsQuery = proposalsQuery.eq("category", category);
 
-  const [proposalsResult, partiesResult, candidatesResult, categoriesResult, indexResult] = await Promise.all([
-    proposalsQuery,
+  async function fetchAllIndexPool(): Promise<IndexProposal[]> {
+    const all: IndexProposal[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, error } = await supabase
+        .from("proposals")
+        .select(
+          "id, title_en, title_mt, description_en, description_mt, party_id, candidate_id, status, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+        )
+        .eq("status", "published")
+        .is("merged_into_id", null)
+        .range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      const rows = (data ?? []) as IndexProposal[];
+      all.push(...rows);
+      if (rows.length < PAGE_SIZE) break;
+    }
+    return all;
+  }
+
+  const [proposals, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
+    fetchAllProposals(),
     supabase
       .from("parties")
       .select("id, slug, name_en, name_mt, short_name, color")
@@ -100,20 +134,14 @@ async function loadProposals({
       .from("proposals")
       .select("category")
       .eq("status", "published")
-      .not("category", "is", null),
-    supabase
-      .from("proposals")
-      .select("id, title_en, title_mt, description_en, description_mt, party_id, candidate_id, status, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)")
-      .eq("status", "published")
-      .is("merged_into_id", null)
-      .limit(2000),
+      .not("category", "is", null)
+      .range(0, 9999),
+    fetchAllIndexPool(),
   ]);
 
-  if (proposalsResult.error) throw proposalsResult.error;
   if (partiesResult.error) throw partiesResult.error;
   if (candidatesResult.error) throw candidatesResult.error;
   if (categoriesResult.error) throw categoriesResult.error;
-  if (indexResult.error) throw indexResult.error;
 
   const categories = Array.from(
     new Set(((categoriesResult.data ?? []) as { category: string | null }[])
