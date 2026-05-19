@@ -1075,6 +1075,70 @@ function ProposalsAdmin() {
         </div>
       </div>
 
+      {/* Pagination controls */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <label className="text-muted-foreground" htmlFor="proposals-page-size">
+            Rows per page
+          </label>
+          <select
+            id="proposals-page-size"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n === -1 ? "All" : n}
+              </option>
+            ))}
+          </select>
+          <span className="text-muted-foreground">
+            {filtered.length === 0
+              ? "0"
+              : pageSize === -1
+                ? `1–${filtered.length}`
+                : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)}`}{" "}
+            of {filtered.length}
+          </span>
+        </div>
+        {pageSize !== -1 && totalPages > 1 ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(1)}
+              disabled={safePage === 1}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              « First
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              ‹ Prev
+            </button>
+            <span className="px-2 text-xs tabular-nums text-muted-foreground">
+              Page {safePage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              Next ›
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={safePage === totalPages}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              Last »
+            </button>
+          </div>
+        ) : null}
+      </div>
+
       {editing ? (
         <ProposalEditor
           value={editing}
