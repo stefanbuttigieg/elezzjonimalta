@@ -65,25 +65,22 @@ async function loadProposals({
   party,
   candidate,
   category,
+  page,
+  perPage,
 }: {
   q: string;
   scope: "all" | "party" | "candidate";
   party: string;
   candidate: string;
   category: string;
+  page: number;
+  perPage: number;
 }) {
   const cleanQuery = q.trim();
   const PAGE_SIZE = 1000;
 
-  const buildProposalsQuery = (from: number, to: number) => {
-    let p = supabase
-      .from("proposals")
-      .select(
-        "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
-      )
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .range(from, to);
+  const applyFilters = (qb: any): any => {
+    let p = qb;
     if (cleanQuery) {
       p = p.or(`title_en.ilike.%${cleanQuery}%,title_mt.ilike.%${cleanQuery}%`);
     }
@@ -95,17 +92,44 @@ async function loadProposals({
     return p;
   };
 
-  async function fetchAllProposals(): Promise<ProposalRecord[]> {
-    const all: ProposalRecord[] = [];
-    for (let from = 0; ; from += PAGE_SIZE) {
-      const { data, error } = await buildProposalsQuery(from, from + PAGE_SIZE - 1);
-      if (error) throw error;
-      const rows = (data ?? []) as ProposalRecord[];
-      all.push(...rows);
-      if (rows.length < PAGE_SIZE) break;
+  const selectCols =
+    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
+
+  // Server-side pagination: only fetch the visible page (+ exact total).
+  const pageProposalsPromise: Promise<{ rows: ProposalRecord[]; total: number }> = (async () => {
+    if (perPage === -1) {
+      const all: ProposalRecord[] = [];
+      let total = 0;
+      for (let from = 0; ; from += PAGE_SIZE) {
+        const { data, error, count } = await applyFilters(
+          supabase
+            .from("proposals")
+            .select(selectCols, { count: "exact" })
+            .eq("status", "published")
+            .order("created_at", { ascending: false })
+            .range(from, from + PAGE_SIZE - 1),
+        );
+        if (error) throw error;
+        total = count ?? total;
+        const rows = (data ?? []) as ProposalRecord[];
+        all.push(...rows);
+        if (rows.length < PAGE_SIZE) break;
+      }
+      return { rows: all, total };
     }
-    return all;
-  }
+    const from = (Math.max(1, page) - 1) * perPage;
+    const to = from + perPage - 1;
+    const { data, error, count } = await applyFilters(
+      supabase
+        .from("proposals")
+        .select(selectCols, { count: "exact" })
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .range(from, to),
+    );
+    if (error) throw error;
+    return { rows: (data ?? []) as ProposalRecord[], total: count ?? 0 };
+  })();
 
   async function fetchAllIndexPool(): Promise<IndexProposal[]> {
     const all: IndexProposal[] = [];
@@ -113,7 +137,7 @@ async function loadProposals({
       const { data, error } = await supabase
         .from("proposals")
         .select(
-          "id, title_en, title_mt, description_en, description_mt, party_id, candidate_id, status, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+          "id, title_en, title_mt, description_en, description_mt, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
         )
         .eq("status", "published")
         .is("merged_into_id", null)
@@ -126,8 +150,8 @@ async function loadProposals({
     return all;
   }
 
-  const [proposals, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
-    fetchAllProposals(),
+  const [pageResult, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
+    pageProposalsPromise,
     supabase
       .from("parties")
       .select("id, slug, name_en, name_mt, short_name, color")
@@ -158,7 +182,8 @@ async function loadProposals({
   ).sort();
 
   return {
-    proposals,
+    proposals: pageResult.rows,
+    total: pageResult.total,
     parties: (partiesResult.data ?? []) as PartyOption[],
     candidates: (candidatesResult.data ?? []) as CandidateOption[],
     categories,
