@@ -35,12 +35,35 @@ async function assertStaff(supabase: {
   }
 }
 
+// Best-effort extraction of a theme slug from a PN-style source URL,
+// e.g. https://pn.org.mt/en/temi/edukazzjoni-u-hiliet/proposta-123 -> "edukazzjoni-u-hiliet".
+function themeFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split("/").filter(Boolean);
+    const i = parts.findIndex((p) => p === "temi" || p === "themes" || p === "theme");
+    if (i >= 0 && parts[i + 1]) return decodeURIComponent(parts[i + 1]);
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function humaniseSlug(slug: string): string {
+  return slug.replace(/[-_]+/g, " ").trim();
+}
+
 async function suggestForProposal(
   apiKey: string,
   proposalText: string,
+  theme: string | null,
   taxonomy: Array<{ id: string; name: string; description: string }>,
   max: number,
 ): Promise<Suggestion[]> {
+  const themeLine = theme
+    ? `\n\nSource theme (from the manifesto's own taxonomy, treat as a STRONG hint about subject area): "${theme}".`
+    : "";
   const resp = await fetch(GATEWAY_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -49,9 +72,14 @@ async function suggestForProposal(
       messages: [
         {
           role: "system",
-          content: `You categorise Maltese political proposals. Pick 1 to ${max} categories from the provided taxonomy that BEST match the proposal. Only return categories from the list — never invent new ones. Order by relevance. If nothing fits well, return an empty array.`,
+          content:
+            `You categorise Maltese political proposals. Pick 1 to ${max} categories from the provided taxonomy that BEST match the proposal. Only return categories from the list — never invent new ones. Order by relevance. If nothing fits well, return an empty array.` +
+            themeLine,
         },
-        { role: "user", content: JSON.stringify({ proposal: proposalText, taxonomy }) },
+        {
+          role: "user",
+          content: JSON.stringify({ proposal: proposalText, source_theme: theme, taxonomy }),
+        },
       ],
       tools: [
         {
@@ -105,6 +133,7 @@ async function suggestForProposal(
   const parsed = JSON.parse(args) as { suggestions?: Suggestion[] };
   return parsed.suggestions ?? [];
 }
+
 
 export const bulkCategoriseProposals = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
