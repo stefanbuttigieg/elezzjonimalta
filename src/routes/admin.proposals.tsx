@@ -533,6 +533,35 @@ function ProposalsAdmin() {
   );
 
   const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
+
+  // Pagination
+  const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
+  const [pageSize, setPageSize] = useState<number>(() => {
+    if (typeof window === "undefined") return 50;
+    const raw = window.localStorage.getItem("admin:proposals:pageSize");
+    const n = raw ? Number(raw) : 50;
+    return PAGE_SIZE_OPTIONS.includes(n as (typeof PAGE_SIZE_OPTIONS)[number]) ? n : 50;
+  });
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("admin:proposals:pageSize", String(pageSize));
+    } catch {
+      /* ignore */
+    }
+  }, [pageSize]);
+  // Reset to page 1 whenever filters or page size change.
+  useEffect(() => {
+    setPage(1);
+  }, [q, showMerged, filterParty, filterCategory, filterStatus, filterLink, filterTranslation, filterCategorised, pageSize]);
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paged = useMemo(() => {
+    if (pageSize === -1) return filtered;
+    const start = (safePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, safePage, pageSize]);
+
   // Lightweight pool used for in-editor duplicate suggestions
   const dupePool = useMemo(
     () =>
