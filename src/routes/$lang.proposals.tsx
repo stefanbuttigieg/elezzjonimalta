@@ -367,7 +367,7 @@ function ProposalsPage() {
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <p>{t("proposals.results", { count: proposals.length })}</p>
+          <p>{t("proposals.results", { count: total })}</p>
           {proposals.length > 0 ? (
             <p className="inline-flex items-center gap-1 text-[11px]">
               <History className="h-3 w-3" />
@@ -383,14 +383,14 @@ function ProposalsPage() {
           ) : null}
         </div>
 
-        {proposals.length > 0 ? (
+        {total > 0 ? (
           <>
             <PaginationBar
               locale={locale}
               perPage={perPage}
               page={safePage}
               totalPages={totalPages}
-              total={proposals.length}
+              total={total}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
               onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
@@ -413,7 +413,7 @@ function ProposalsPage() {
                 perPage={perPage}
                 page={safePage}
                 totalPages={totalPages}
-                total={proposals.length}
+                total={total}
                 rangeStart={rangeStart}
                 rangeEnd={rangeEnd}
                 onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
