@@ -912,10 +912,10 @@ function ProposalsAdmin() {
                   <input
                     type="checkbox"
                     aria-label="Select all"
-                    checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                    checked={paged.length > 0 && paged.every((r) => selected.has(r.id))}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelected(new Set(filtered.map((r) => r.id)));
+                        setSelected(new Set([...selected, ...paged.map((r) => r.id)]));
                       } else {
                         setSelected(new Set());
                       }
