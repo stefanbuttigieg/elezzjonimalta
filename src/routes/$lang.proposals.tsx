@@ -236,9 +236,11 @@ function ProposalsPage() {
   const navigate = useNavigate({ from: "/$lang/proposals" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { proposals, parties, candidates, categories, indexPool } = Route.useLoaderData();
+  const { proposals, total, parties, candidates, categories, indexPool } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
 
+  // Proposals are now server-paginated, so we only compute related matches
+  // for the rows actually on screen (proposals.length === page size, not total).
   const relatedIndex = useMemo(() => {
     const map = new Map<string, { proposal: IndexProposal; score: number }[]>();
     for (const target of proposals as ProposalRecord[]) {
@@ -261,14 +263,11 @@ function ProposalsPage() {
   };
 
   const perPage = search.perPage;
-  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(proposals.length / perPage));
+  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(Math.max(1, search.page), totalPages);
-  const pagedProposals =
-    perPage === -1
-      ? proposals
-      : proposals.slice((safePage - 1) * perPage, safePage * perPage);
-  const rangeStart = proposals.length === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
-  const rangeEnd = perPage === -1 ? proposals.length : Math.min(safePage * perPage, proposals.length);
+  const pagedProposals = proposals;
+  const rangeStart = total === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
+  const rangeEnd = perPage === -1 ? total : Math.min(safePage * perPage, total);
 
 
   return (
