@@ -937,7 +937,7 @@ function ProposalsAdmin() {
                     Loading…
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : paged.length === 0 ? (
                 <tr>
                   <td colSpan={visibleColCount} className="px-4 py-8 text-center text-muted-foreground">
                     <FileText className="mx-auto mb-2 h-6 w-6" />
@@ -945,7 +945,7 @@ function ProposalsAdmin() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((r) => (
+                paged.map((r) => (
                   <tr key={r.id} className="border-t border-border">
                     <td className="px-4 py-3 align-top">
                       <input
