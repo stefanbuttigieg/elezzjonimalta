@@ -227,8 +227,22 @@ function ProposalsPage() {
   }, [proposals, indexPool]);
 
   const updateSearch = (patch: Partial<typeof search>) => {
-    void navigate({ search: { ...search, ...patch } });
+    // Any filter change (anything other than just `page`) should reset to page 1.
+    const keys = Object.keys(patch);
+    const onlyPage = keys.length === 1 && keys[0] === "page";
+    void navigate({ search: { ...search, ...patch, page: onlyPage ? (patch.page ?? 1) : 1 } });
   };
+
+  const perPage = search.perPage;
+  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(proposals.length / perPage));
+  const safePage = Math.min(Math.max(1, search.page), totalPages);
+  const pagedProposals =
+    perPage === -1
+      ? proposals
+      : proposals.slice((safePage - 1) * perPage, safePage * perPage);
+  const rangeStart = proposals.length === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
+  const rangeEnd = perPage === -1 ? proposals.length : Math.min(safePage * perPage, proposals.length);
+
 
   return (
     <section className="border-b border-border bg-background">
