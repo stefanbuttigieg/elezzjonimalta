@@ -35,12 +35,35 @@ async function assertStaff(supabase: {
   }
 }
 
+// Best-effort extraction of a theme slug from a PN-style source URL,
+// e.g. https://pn.org.mt/en/temi/edukazzjoni-u-hiliet/proposta-123 -> "edukazzjoni-u-hiliet".
+function themeFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split("/").filter(Boolean);
+    const i = parts.findIndex((p) => p === "temi" || p === "themes" || p === "theme");
+    if (i >= 0 && parts[i + 1]) return decodeURIComponent(parts[i + 1]);
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function humaniseSlug(slug: string): string {
+  return slug.replace(/[-_]+/g, " ").trim();
+}
+
 async function suggestForProposal(
   apiKey: string,
   proposalText: string,
+  theme: string | null,
   taxonomy: Array<{ id: string; name: string; description: string }>,
   max: number,
 ): Promise<Suggestion[]> {
+  const themeLine = theme
+    ? `\n\nSource theme (from the manifesto's own taxonomy, treat as a STRONG hint about subject area): "${theme}".`
+    : "";
   const resp = await fetch(GATEWAY_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -49,9 +72,14 @@ async function suggestForProposal(
       messages: [
         {
           role: "system",
-          content: `You categorise Maltese political proposals. Pick 1 to ${max} categories from the provided taxonomy that BEST match the proposal. Only return categories from the list — never invent new ones. Order by relevance. If nothing fits well, return an empty array.`,
+          content:
+            `You categorise Maltese political proposals. Pick 1 to ${max} categories from the provided taxonomy that BEST match the proposal. Only return categories from the list — never invent new ones. Order by relevance. If nothing fits well, return an empty array.` +
+            themeLine,
         },
-        { role: "user", content: JSON.stringify({ proposal: proposalText, taxonomy }) },
+        {
+          role: "user",
+          content: JSON.stringify({ proposal: proposalText, source_theme: theme, taxonomy }),
+        },
       ],
       tools: [
         {
@@ -106,6 +134,7 @@ async function suggestForProposal(
   return parsed.suggestions ?? [];
 }
 
+
 export const bulkCategoriseProposals = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => Input.parse(input))
@@ -122,7 +151,7 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
         await Promise.all([
           supabaseAdmin
             .from("proposals")
-            .select("id, title_en, title_mt, description_en, description_mt")
+            .select("id, title_en, title_mt, description_en, description_mt, source_url, custom_fields")
             .in("id", data.proposal_ids),
           supabaseAdmin
             .from("proposal_categories")
@@ -174,6 +203,8 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
         title_mt: string | null;
         description_en: string | null;
         description_mt: string | null;
+        source_url: string | null;
+        custom_fields: Record<string, unknown> | null;
       }>) {
         const text = [p.title_en, p.title_mt, p.description_en, p.description_mt]
           .filter((s) => s && s.trim())
@@ -182,8 +213,16 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
           skipped++;
           continue;
         }
+        const cf = (p.custom_fields ?? {}) as Record<string, unknown>;
+        const cfTheme =
+          (typeof cf.pn_theme === "string" && cf.pn_theme) ||
+          (typeof cf.theme === "string" && cf.theme) ||
+          (typeof cf.manifesto_theme === "string" && cf.manifesto_theme) ||
+          null;
+        const themeSlug = cfTheme || themeFromUrl(p.source_url);
+        const theme = themeSlug ? humaniseSlug(themeSlug) : null;
         try {
-          const suggestions = await suggestForProposal(apiKey, text, taxonomy, data.max_per_proposal);
+          const suggestions = await suggestForProposal(apiKey, text, theme, taxonomy, data.max_per_proposal);
           const existingSet = existingByProposal.get(p.id) ?? new Set<string>();
           let order = existingSet.size;
           const now = new Date().toISOString();
