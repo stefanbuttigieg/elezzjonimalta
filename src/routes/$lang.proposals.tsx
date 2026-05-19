@@ -358,16 +358,44 @@ function ProposalsPage() {
         </div>
 
         {proposals.length > 0 ? (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {proposals.map((proposal: ProposalRecord) => (
-              <ProposalCard
-                key={proposal.id}
-                proposal={proposal}
+          <>
+            <PaginationBar
+              locale={locale}
+              perPage={perPage}
+              page={safePage}
+              totalPages={totalPages}
+              total={proposals.length}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
+              onPageChange={(value) => updateSearch({ page: value })}
+              className="mt-4"
+            />
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {pagedProposals.map((proposal: ProposalRecord) => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  locale={locale}
+                  related={relatedIndex.get(proposal.id) ?? []}
+                />
+              ))}
+            </div>
+            {totalPages > 1 ? (
+              <PaginationBar
                 locale={locale}
-                related={relatedIndex.get(proposal.id) ?? []}
+                perPage={perPage}
+                page={safePage}
+                totalPages={totalPages}
+                total={proposals.length}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
+                onPageChange={(value) => updateSearch({ page: value })}
+                className="mt-6"
               />
-            ))}
-          </div>
+            ) : null}
+          </>
         ) : (
           <div className="mt-6 rounded-xl border border-dashed border-border bg-surface px-6 py-12 text-center">
             <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
