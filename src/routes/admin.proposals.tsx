@@ -387,15 +387,51 @@ function ProposalsAdmin() {
 
   const load = async () => {
     setLoading(true);
-    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
-      await Promise.all([
-        supabase
+    // Supabase/PostgREST caps a single response at 1000 rows by default, so
+    // chunk-fetch the full proposals table in 1000-row pages until exhausted.
+    const PAGE = 1000;
+    const fetchAllProposals = async () => {
+      const all: Array<Record<string, unknown>> = [];
+      let from = 0;
+      // Hard safety cap to avoid runaway loops.
+      for (let i = 0; i < 200; i++) {
+        const { data, error } = await supabase
           .from("proposals")
           .select(
             "*, party:parties(id, name_en, short_name), candidate:candidates(id, full_name)"
           )
           .order("created_at", { ascending: false })
-          .range(0, 9999),
+          .range(from, from + PAGE - 1);
+        if (error) return { data: null, error };
+        const batch = (data ?? []) as Array<Record<string, unknown>>;
+        all.push(...batch);
+        if (batch.length < PAGE) break;
+        from += PAGE;
+      }
+      return { data: all, error: null as null | { message: string } };
+    };
+    const fetchAllAssignments = async () => {
+      const all: Array<Record<string, unknown>> = [];
+      let from = 0;
+      for (let i = 0; i < 200; i++) {
+        const { data, error } = await supabase
+          .from("proposal_category_assignments")
+          .select(
+            "proposal_id, category_id, assigned_by, ai_confidence, ai_reason, ai_model, assigned_at, sort_order"
+          )
+          .order("sort_order")
+          .range(from, from + PAGE - 1);
+        if (error) return { data: null, error };
+        const batch = (data ?? []) as Array<Record<string, unknown>>;
+        all.push(...batch);
+        if (batch.length < PAGE) break;
+        from += PAGE;
+      }
+      return { data: all, error: null as null | { message: string } };
+    };
+    const [proposalsRes, partiesRes, candidatesRes, categoriesRes, assignmentsRes] =
+      await Promise.all([
+        fetchAllProposals(),
         supabase.from("parties").select("id, name_en, short_name").order("name_en"),
         supabase.from("candidates").select("id, full_name").order("full_name"),
         supabase
@@ -403,12 +439,7 @@ function ProposalsAdmin() {
           .select("id, name_en")
           .order("sort_order")
           .order("name_en"),
-        supabase
-          .from("proposal_category_assignments")
-          .select(
-            "proposal_id, category_id, assigned_by, ai_confidence, ai_reason, ai_model, assigned_at, sort_order"
-          )
-          .order("sort_order"),
+        fetchAllAssignments(),
       ]);
     if (proposalsRes.error) toast.error(proposalsRes.error.message);
     if (partiesRes.error) toast.error(partiesRes.error.message);
@@ -502,6 +533,35 @@ function ProposalsAdmin() {
   );
 
   const mergedCount = useMemo(() => rows.filter((r) => r.merged_into_id).length, [rows]);
+
+  // Pagination
+  const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
+  const [pageSize, setPageSize] = useState<number>(() => {
+    if (typeof window === "undefined") return 50;
+    const raw = window.localStorage.getItem("admin:proposals:pageSize");
+    const n = raw ? Number(raw) : 50;
+    return PAGE_SIZE_OPTIONS.includes(n as (typeof PAGE_SIZE_OPTIONS)[number]) ? n : 50;
+  });
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("admin:proposals:pageSize", String(pageSize));
+    } catch {
+      /* ignore */
+    }
+  }, [pageSize]);
+  // Reset to page 1 whenever filters or page size change.
+  useEffect(() => {
+    setPage(1);
+  }, [q, showMerged, filterParty, filterCategory, filterStatus, filterLink, filterTranslation, filterCategorised, pageSize]);
+  const totalPages = pageSize === -1 ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paged = useMemo(() => {
+    if (pageSize === -1) return filtered;
+    const start = (safePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, safePage, pageSize]);
+
   // Lightweight pool used for in-editor duplicate suggestions
   const dupePool = useMemo(
     () =>
@@ -723,7 +783,7 @@ function ProposalsAdmin() {
           ]}
         />
         <span className="text-muted-foreground">
-          Showing {filtered.length} of {rows.length}
+          Showing {paged.length} of {filtered.length} (filtered from {rows.length})
         </span>
       </div>
 
@@ -852,10 +912,10 @@ function ProposalsAdmin() {
                   <input
                     type="checkbox"
                     aria-label="Select all"
-                    checked={filtered.length > 0 && filtered.every((r) => selected.has(r.id))}
+                    checked={paged.length > 0 && paged.every((r) => selected.has(r.id))}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelected(new Set(filtered.map((r) => r.id)));
+                        setSelected(new Set([...selected, ...paged.map((r) => r.id)]));
                       } else {
                         setSelected(new Set());
                       }
@@ -877,7 +937,7 @@ function ProposalsAdmin() {
                     Loading…
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : paged.length === 0 ? (
                 <tr>
                   <td colSpan={visibleColCount} className="px-4 py-8 text-center text-muted-foreground">
                     <FileText className="mx-auto mb-2 h-6 w-6" />
@@ -885,7 +945,7 @@ function ProposalsAdmin() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((r) => (
+                paged.map((r) => (
                   <tr key={r.id} className="border-t border-border">
                     <td className="px-4 py-3 align-top">
                       <input
@@ -1013,6 +1073,70 @@ function ProposalsAdmin() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Pagination controls */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <label className="text-muted-foreground" htmlFor="proposals-page-size">
+            Rows per page
+          </label>
+          <select
+            id="proposals-page-size"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+          >
+            {PAGE_SIZE_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {n === -1 ? "All" : n}
+              </option>
+            ))}
+          </select>
+          <span className="text-muted-foreground">
+            {filtered.length === 0
+              ? "0"
+              : pageSize === -1
+                ? `1–${filtered.length}`
+                : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)}`}{" "}
+            of {filtered.length}
+          </span>
+        </div>
+        {pageSize !== -1 && totalPages > 1 ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(1)}
+              disabled={safePage === 1}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              « First
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              ‹ Prev
+            </button>
+            <span className="px-2 text-xs tabular-nums text-muted-foreground">
+              Page {safePage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              Next ›
+            </button>
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={safePage === totalPages}
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+            >
+              Last »
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {editing ? (
