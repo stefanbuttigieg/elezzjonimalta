@@ -150,11 +150,11 @@ async function loadProposals({
   ).sort();
 
   return {
-    proposals: (proposalsResult.data ?? []) as ProposalRecord[],
+    proposals,
     parties: (partiesResult.data ?? []) as PartyOption[],
     candidates: (candidatesResult.data ?? []) as CandidateOption[],
     categories,
-    indexPool: (indexResult.data ?? []) as IndexProposal[],
+    indexPool,
   };
 }
 
