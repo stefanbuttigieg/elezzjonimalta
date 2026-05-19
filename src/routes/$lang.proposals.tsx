@@ -594,6 +594,104 @@ function partyName(party: PartyOption, locale: Locale) {
     : party.name_en || party.name_mt || party.slug;
 }
 
+function PaginationBar({
+  locale,
+  perPage,
+  page,
+  totalPages,
+  total,
+  rangeStart,
+  rangeEnd,
+  onPerPageChange,
+  onPageChange,
+  className,
+}: {
+  locale: Locale;
+  perPage: number;
+  page: number;
+  totalPages: number;
+  total: number;
+  rangeStart: number;
+  rangeEnd: number;
+  onPerPageChange: (value: number) => void;
+  onPageChange: (value: number) => void;
+  className?: string;
+}) {
+  const labels = {
+    perPage: locale === "mt" ? "Riżultati f'kull paġna" : "Per page",
+    all: locale === "mt" ? "Kollha" : "All",
+    of: locale === "mt" ? "minn" : "of",
+    page: locale === "mt" ? "Paġna" : "Page",
+    first: locale === "mt" ? "« L-Ewwel" : "« First",
+    prev: locale === "mt" ? "‹ Ta' qabel" : "‹ Prev",
+    next: locale === "mt" ? "Li jmiss ›" : "Next ›",
+    last: locale === "mt" ? "L-Aħħar »" : "Last »",
+  };
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 text-sm ${className ?? ""}`}>
+      <div className="flex items-center gap-2">
+        <label className="text-muted-foreground" htmlFor="proposals-page-size">
+          {labels.perPage}
+        </label>
+        <select
+          id="proposals-page-size"
+          value={perPage}
+          onChange={(e) => onPerPageChange(Number(e.target.value))}
+          className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+        >
+          {PAGE_SIZE_OPTIONS.map((n) => (
+            <option key={n} value={n}>
+              {n === -1 ? labels.all : n}
+            </option>
+          ))}
+        </select>
+        <span className="text-muted-foreground tabular-nums">
+          {total === 0 ? "0" : `${rangeStart}–${rangeEnd}`} {labels.of} {total}
+        </span>
+      </div>
+      {perPage !== -1 && totalPages > 1 ? (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onPageChange(1)}
+            disabled={page === 1}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.first}
+          </button>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.prev}
+          </button>
+          <span className="px-2 text-xs tabular-nums text-muted-foreground">
+            {labels.page} {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.next}
+          </button>
+          <button
+            type="button"
+            onClick={() => onPageChange(totalPages)}
+            disabled={page === totalPages}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.last}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ProposalsError({ error, reset }: { error: Error; reset: () => void }) {
   const t = useT();
   const router = useRouter();
