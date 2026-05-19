@@ -151,7 +151,7 @@ export const bulkCategoriseProposals = createServerFn({ method: "POST" })
         await Promise.all([
           supabaseAdmin
             .from("proposals")
-            .select("id, title_en, title_mt, description_en, description_mt")
+            .select("id, title_en, title_mt, description_en, description_mt, source_url, custom_fields")
             .in("id", data.proposal_ids),
           supabaseAdmin
             .from("proposal_categories")
