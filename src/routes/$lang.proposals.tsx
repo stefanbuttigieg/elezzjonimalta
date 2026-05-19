@@ -15,12 +15,20 @@ import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
 import { proposalSimilarity, type ProposalForMatch } from "@/lib/proposal-dedupe";
 
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
+const DEFAULT_PAGE_SIZE = 50;
+
 const proposalSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   scope: fallback(z.enum(["all", "party", "candidate"]), "all").default("all"),
   party: fallback(z.string(), "all").default("all"),
   candidate: fallback(z.string(), "all").default("all"),
   category: fallback(z.string(), "all").default("all"),
+  page: fallback(z.number().int().min(1), 1).default(1),
+  perPage: fallback(
+    z.number().int().refine((n) => (PAGE_SIZE_OPTIONS as readonly number[]).includes(n)),
+    DEFAULT_PAGE_SIZE,
+  ).default(DEFAULT_PAGE_SIZE),
 });
 
 type PartyOption = {
@@ -219,8 +227,22 @@ function ProposalsPage() {
   }, [proposals, indexPool]);
 
   const updateSearch = (patch: Partial<typeof search>) => {
-    void navigate({ search: { ...search, ...patch } });
+    // Any filter change (anything other than just `page`) should reset to page 1.
+    const keys = Object.keys(patch);
+    const onlyPage = keys.length === 1 && keys[0] === "page";
+    void navigate({ search: { ...search, ...patch, page: onlyPage ? (patch.page ?? 1) : 1 } });
   };
+
+  const perPage = search.perPage;
+  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(proposals.length / perPage));
+  const safePage = Math.min(Math.max(1, search.page), totalPages);
+  const pagedProposals =
+    perPage === -1
+      ? proposals
+      : proposals.slice((safePage - 1) * perPage, safePage * perPage);
+  const rangeStart = proposals.length === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
+  const rangeEnd = perPage === -1 ? proposals.length : Math.min(safePage * perPage, proposals.length);
+
 
   return (
     <section className="border-b border-border bg-background">
@@ -295,7 +317,7 @@ function ProposalsPage() {
           <Link
             to="/$lang/proposals"
             params={{ lang: locale }}
-            search={{ q: "", scope: "all", party: "all", candidate: "all", category: "all" }}
+            search={{ q: "", scope: "all", party: "all", candidate: "all", category: "all", page: 1, perPage: DEFAULT_PAGE_SIZE }}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
           >
             <RotateCcw className="h-4 w-4" />
@@ -336,16 +358,44 @@ function ProposalsPage() {
         </div>
 
         {proposals.length > 0 ? (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {proposals.map((proposal: ProposalRecord) => (
-              <ProposalCard
-                key={proposal.id}
-                proposal={proposal}
+          <>
+            <PaginationBar
+              locale={locale}
+              perPage={perPage}
+              page={safePage}
+              totalPages={totalPages}
+              total={proposals.length}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
+              onPageChange={(value) => updateSearch({ page: value })}
+              className="mt-4"
+            />
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {pagedProposals.map((proposal: ProposalRecord) => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  locale={locale}
+                  related={relatedIndex.get(proposal.id) ?? []}
+                />
+              ))}
+            </div>
+            {totalPages > 1 ? (
+              <PaginationBar
                 locale={locale}
-                related={relatedIndex.get(proposal.id) ?? []}
+                perPage={perPage}
+                page={safePage}
+                totalPages={totalPages}
+                total={proposals.length}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
+                onPageChange={(value) => updateSearch({ page: value })}
+                className="mt-6"
               />
-            ))}
-          </div>
+            ) : null}
+          </>
         ) : (
           <div className="mt-6 rounded-xl border border-dashed border-border bg-surface px-6 py-12 text-center">
             <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
@@ -542,6 +592,104 @@ function partyName(party: PartyOption, locale: Locale) {
   return locale === "mt"
     ? party.name_mt || party.name_en
     : party.name_en || party.name_mt || party.slug;
+}
+
+function PaginationBar({
+  locale,
+  perPage,
+  page,
+  totalPages,
+  total,
+  rangeStart,
+  rangeEnd,
+  onPerPageChange,
+  onPageChange,
+  className,
+}: {
+  locale: Locale;
+  perPage: number;
+  page: number;
+  totalPages: number;
+  total: number;
+  rangeStart: number;
+  rangeEnd: number;
+  onPerPageChange: (value: number) => void;
+  onPageChange: (value: number) => void;
+  className?: string;
+}) {
+  const labels = {
+    perPage: locale === "mt" ? "Riżultati f'kull paġna" : "Per page",
+    all: locale === "mt" ? "Kollha" : "All",
+    of: locale === "mt" ? "minn" : "of",
+    page: locale === "mt" ? "Paġna" : "Page",
+    first: locale === "mt" ? "« L-Ewwel" : "« First",
+    prev: locale === "mt" ? "‹ Ta' qabel" : "‹ Prev",
+    next: locale === "mt" ? "Li jmiss ›" : "Next ›",
+    last: locale === "mt" ? "L-Aħħar »" : "Last »",
+  };
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 text-sm ${className ?? ""}`}>
+      <div className="flex items-center gap-2">
+        <label className="text-muted-foreground" htmlFor="proposals-page-size">
+          {labels.perPage}
+        </label>
+        <select
+          id="proposals-page-size"
+          value={perPage}
+          onChange={(e) => onPerPageChange(Number(e.target.value))}
+          className="rounded-md border border-border bg-background px-2 py-1 text-sm"
+        >
+          {PAGE_SIZE_OPTIONS.map((n) => (
+            <option key={n} value={n}>
+              {n === -1 ? labels.all : n}
+            </option>
+          ))}
+        </select>
+        <span className="text-muted-foreground tabular-nums">
+          {total === 0 ? "0" : `${rangeStart}–${rangeEnd}`} {labels.of} {total}
+        </span>
+      </div>
+      {perPage !== -1 && totalPages > 1 ? (
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onPageChange(1)}
+            disabled={page === 1}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.first}
+          </button>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.prev}
+          </button>
+          <span className="px-2 text-xs tabular-nums text-muted-foreground">
+            {labels.page} {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.next}
+          </button>
+          <button
+            type="button"
+            onClick={() => onPageChange(totalPages)}
+            disabled={page === totalPages}
+            className="rounded-md border border-border bg-background px-2 py-1 text-xs disabled:opacity-40"
+          >
+            {labels.last}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function ProposalsError({ error, reset }: { error: Error; reset: () => void }) {
