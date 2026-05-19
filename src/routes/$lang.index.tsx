@@ -106,17 +106,9 @@ async function loadLandingStats(): Promise<LandingStats> {
 
 export const Route = createFileRoute("/$lang/")({
   loader: async () => {
-    // Edge-cache the SSR'd HTML for a short window. The cache header must be
-    // set on the outer SSR response, so we import a `.server.ts` helper
-    // (excluded from client bundles by the import-protection plugin).
-    if (typeof window === "undefined") {
-      try {
-        const { setEdgeCacheHeader } = await import("@/lib/ssrCache.server");
-        setEdgeCacheHeader("public, s-maxage=60, stale-while-revalidate=300");
-      } catch {
-        // not running under SSR — ignore
-      }
-    }
+    // Edge-cache the SSR'd HTML for a short window. createIsomorphicFn keeps
+    // the response-header call server-only while staying safe to import here.
+    setEdgeCacheHeader("public, s-maxage=60, stale-while-revalidate=300");
     return loadLandingStats().catch(() => null);
   },
   head: ({ params }) => {
