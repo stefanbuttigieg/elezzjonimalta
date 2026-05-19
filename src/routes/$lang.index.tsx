@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { setEdgeCacheHeader } from "@/lib/ssrCache";
 
 import { useEffect, useState } from "react";
 import {
