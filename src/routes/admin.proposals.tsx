@@ -783,7 +783,7 @@ function ProposalsAdmin() {
           ]}
         />
         <span className="text-muted-foreground">
-          Showing {filtered.length} of {rows.length}
+          Showing {paged.length} of {filtered.length} (filtered from {rows.length})
         </span>
       </div>
 
