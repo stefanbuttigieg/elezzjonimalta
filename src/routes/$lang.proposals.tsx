@@ -15,12 +15,20 @@ import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
 import { proposalSimilarity, type ProposalForMatch } from "@/lib/proposal-dedupe";
 
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
+const DEFAULT_PAGE_SIZE = 50;
+
 const proposalSearchSchema = z.object({
   q: fallback(z.string(), "").default(""),
   scope: fallback(z.enum(["all", "party", "candidate"]), "all").default("all"),
   party: fallback(z.string(), "all").default("all"),
   candidate: fallback(z.string(), "all").default("all"),
   category: fallback(z.string(), "all").default("all"),
+  page: fallback(z.number().int().min(1), 1).default(1),
+  perPage: fallback(
+    z.number().int().refine((n) => (PAGE_SIZE_OPTIONS as readonly number[]).includes(n)),
+    DEFAULT_PAGE_SIZE,
+  ).default(DEFAULT_PAGE_SIZE),
 });
 
 type PartyOption = {
