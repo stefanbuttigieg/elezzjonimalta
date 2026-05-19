@@ -65,25 +65,22 @@ async function loadProposals({
   party,
   candidate,
   category,
+  page,
+  perPage,
 }: {
   q: string;
   scope: "all" | "party" | "candidate";
   party: string;
   candidate: string;
   category: string;
+  page: number;
+  perPage: number;
 }) {
   const cleanQuery = q.trim();
   const PAGE_SIZE = 1000;
 
-  const buildProposalsQuery = (from: number, to: number) => {
-    let p = supabase
-      .from("proposals")
-      .select(
-        "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
-      )
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .range(from, to);
+  const applyFilters = (qb: any): any => {
+    let p = qb;
     if (cleanQuery) {
       p = p.or(`title_en.ilike.%${cleanQuery}%,title_mt.ilike.%${cleanQuery}%`);
     }
@@ -95,17 +92,44 @@ async function loadProposals({
     return p;
   };
 
-  async function fetchAllProposals(): Promise<ProposalRecord[]> {
-    const all: ProposalRecord[] = [];
-    for (let from = 0; ; from += PAGE_SIZE) {
-      const { data, error } = await buildProposalsQuery(from, from + PAGE_SIZE - 1);
-      if (error) throw error;
-      const rows = (data ?? []) as ProposalRecord[];
-      all.push(...rows);
-      if (rows.length < PAGE_SIZE) break;
+  const selectCols =
+    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
+
+  // Server-side pagination: only fetch the visible page (+ exact total).
+  const pageProposalsPromise: Promise<{ rows: ProposalRecord[]; total: number }> = (async () => {
+    if (perPage === -1) {
+      const all: ProposalRecord[] = [];
+      let total = 0;
+      for (let from = 0; ; from += PAGE_SIZE) {
+        const { data, error, count } = await applyFilters(
+          supabase
+            .from("proposals")
+            .select(selectCols, { count: "exact" })
+            .eq("status", "published")
+            .order("created_at", { ascending: false })
+            .range(from, from + PAGE_SIZE - 1),
+        );
+        if (error) throw error;
+        total = count ?? total;
+        const rows = (data ?? []) as ProposalRecord[];
+        all.push(...rows);
+        if (rows.length < PAGE_SIZE) break;
+      }
+      return { rows: all, total };
     }
-    return all;
-  }
+    const from = (Math.max(1, page) - 1) * perPage;
+    const to = from + perPage - 1;
+    const { data, error, count } = await applyFilters(
+      supabase
+        .from("proposals")
+        .select(selectCols, { count: "exact" })
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .range(from, to),
+    );
+    if (error) throw error;
+    return { rows: (data ?? []) as ProposalRecord[], total: count ?? 0 };
+  })();
 
   async function fetchAllIndexPool(): Promise<IndexProposal[]> {
     const all: IndexProposal[] = [];
@@ -113,7 +137,7 @@ async function loadProposals({
       const { data, error } = await supabase
         .from("proposals")
         .select(
-          "id, title_en, title_mt, description_en, description_mt, party_id, candidate_id, status, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+          "id, title_en, title_mt, description_en, description_mt, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
         )
         .eq("status", "published")
         .is("merged_into_id", null)
@@ -126,8 +150,8 @@ async function loadProposals({
     return all;
   }
 
-  const [proposals, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
-    fetchAllProposals(),
+  const [pageResult, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
+    pageProposalsPromise,
     supabase
       .from("parties")
       .select("id, slug, name_en, name_mt, short_name, color")
@@ -158,7 +182,8 @@ async function loadProposals({
   ).sort();
 
   return {
-    proposals,
+    proposals: pageResult.rows,
+    total: pageResult.total,
     parties: (partiesResult.data ?? []) as PartyOption[],
     candidates: (candidatesResult.data ?? []) as CandidateOption[],
     categories,
@@ -174,12 +199,14 @@ type IndexProposal = ProposalForMatch & {
 
 export const Route = createFileRoute("/$lang/proposals")({
   validateSearch: zodValidator(proposalSearchSchema),
-  loaderDeps: ({ search: { q, scope, party, candidate, category } }) => ({
+  loaderDeps: ({ search: { q, scope, party, candidate, category, page, perPage } }) => ({
     q,
     scope,
     party,
     candidate,
     category,
+    page,
+    perPage,
   }),
   loader: ({ deps }) => loadProposals(deps),
   head: ({ params }) => {
@@ -209,9 +236,11 @@ function ProposalsPage() {
   const navigate = useNavigate({ from: "/$lang/proposals" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { proposals, parties, candidates, categories, indexPool } = Route.useLoaderData();
+  const { proposals, total, parties, candidates, categories, indexPool } = Route.useLoaderData();
   const locale = isLocale(lang) ? lang : "en";
 
+  // Proposals are now server-paginated, so we only compute related matches
+  // for the rows actually on screen (proposals.length === page size, not total).
   const relatedIndex = useMemo(() => {
     const map = new Map<string, { proposal: IndexProposal; score: number }[]>();
     for (const target of proposals as ProposalRecord[]) {
@@ -234,14 +263,11 @@ function ProposalsPage() {
   };
 
   const perPage = search.perPage;
-  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(proposals.length / perPage));
+  const totalPages = perPage === -1 ? 1 : Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(Math.max(1, search.page), totalPages);
-  const pagedProposals =
-    perPage === -1
-      ? proposals
-      : proposals.slice((safePage - 1) * perPage, safePage * perPage);
-  const rangeStart = proposals.length === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
-  const rangeEnd = perPage === -1 ? proposals.length : Math.min(safePage * perPage, proposals.length);
+  const pagedProposals = proposals;
+  const rangeStart = total === 0 ? 0 : perPage === -1 ? 1 : (safePage - 1) * perPage + 1;
+  const rangeEnd = perPage === -1 ? total : Math.min(safePage * perPage, total);
 
 
   return (
@@ -341,7 +367,7 @@ function ProposalsPage() {
         ) : null}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <p>{t("proposals.results", { count: proposals.length })}</p>
+          <p>{t("proposals.results", { count: total })}</p>
           {proposals.length > 0 ? (
             <p className="inline-flex items-center gap-1 text-[11px]">
               <History className="h-3 w-3" />
@@ -357,14 +383,14 @@ function ProposalsPage() {
           ) : null}
         </div>
 
-        {proposals.length > 0 ? (
+        {total > 0 ? (
           <>
             <PaginationBar
               locale={locale}
               perPage={perPage}
               page={safePage}
               totalPages={totalPages}
-              total={proposals.length}
+              total={total}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
               onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
@@ -387,7 +413,7 @@ function ProposalsPage() {
                 perPage={perPage}
                 page={safePage}
                 totalPages={totalPages}
-                total={proposals.length}
+                total={total}
                 rangeStart={rangeStart}
                 rangeEnd={rangeEnd}
                 onPerPageChange={(value) => updateSearch({ perPage: value, page: 1 })}
