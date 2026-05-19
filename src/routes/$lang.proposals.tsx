@@ -317,7 +317,7 @@ function ProposalsPage() {
           <Link
             to="/$lang/proposals"
             params={{ lang: locale }}
-            search={{ q: "", scope: "all", party: "all", candidate: "all", category: "all" }}
+            search={{ q: "", scope: "all", party: "all", candidate: "all", category: "all", page: 1, perPage: DEFAULT_PAGE_SIZE }}
             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
           >
             <RotateCcw className="h-4 w-4" />
