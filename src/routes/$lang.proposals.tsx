@@ -199,12 +199,14 @@ type IndexProposal = ProposalForMatch & {
 
 export const Route = createFileRoute("/$lang/proposals")({
   validateSearch: zodValidator(proposalSearchSchema),
-  loaderDeps: ({ search: { q, scope, party, candidate, category } }) => ({
+  loaderDeps: ({ search: { q, scope, party, candidate, category, page, perPage } }) => ({
     q,
     scope,
     party,
     candidate,
     category,
+    page,
+    perPage,
   }),
   loader: ({ deps }) => loadProposals(deps),
   head: ({ params }) => {
