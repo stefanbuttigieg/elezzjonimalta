@@ -14,6 +14,7 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
 import { proposalSimilarity, type ProposalForMatch } from "@/lib/proposal-dedupe";
+import { setEdgeCacheHeader } from "@/lib/ssrCache";
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
 const DEFAULT_PAGE_SIZE = 50;
@@ -59,6 +60,92 @@ type ProposalRecord = {
   candidate: CandidateOption | null;
 };
 
+type StaticLookups = {
+  parties: PartyOption[];
+  candidates: CandidateOption[];
+  categories: string[];
+  indexPool: IndexProposal[];
+};
+
+// In-memory cache for filter-independent data shared across all loader calls
+// (different filter/page combinations). Refreshed every STATIC_TTL_MS.
+const STATIC_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let staticCache: { at: number; promise: Promise<StaticLookups> } | null = null;
+
+const PAGE_SIZE = 1000;
+
+async function fetchAllIndexPool(): Promise<IndexProposal[]> {
+  const all: IndexProposal[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("proposals")
+      .select(
+        "id, title_en, title_mt, description_en, description_mt, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
+      )
+      .eq("status", "published")
+      .is("merged_into_id", null)
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as IndexProposal[];
+    all.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
+async function loadStaticLookups(): Promise<StaticLookups> {
+  const [partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
+    supabase
+      .from("parties")
+      .select("id, slug, name_en, name_mt, short_name, color")
+      .eq("status", "published")
+      .order("name_en", { ascending: true }),
+    supabase
+      .from("candidates")
+      .select("id, slug, full_name")
+      .eq("status", "published")
+      .order("full_name", { ascending: true }),
+    supabase
+      .from("proposals")
+      .select("category")
+      .eq("status", "published")
+      .not("category", "is", null)
+      .range(0, 9999),
+    fetchAllIndexPool(),
+  ]);
+
+  if (partiesResult.error) throw partiesResult.error;
+  if (candidatesResult.error) throw candidatesResult.error;
+  if (categoriesResult.error) throw categoriesResult.error;
+
+  const categories = Array.from(
+    new Set(((categoriesResult.data ?? []) as { category: string | null }[])
+      .map((row) => row.category)
+      .filter((cat): cat is string => Boolean(cat))),
+  ).sort();
+
+  return {
+    parties: (partiesResult.data ?? []) as PartyOption[],
+    candidates: (candidatesResult.data ?? []) as CandidateOption[],
+    categories,
+    indexPool,
+  };
+}
+
+function getStaticLookups(): Promise<StaticLookups> {
+  const now = Date.now();
+  if (staticCache && now - staticCache.at < STATIC_TTL_MS) {
+    return staticCache.promise;
+  }
+  const promise = loadStaticLookups().catch((err) => {
+    // Invalidate on failure so the next attempt retries.
+    if (staticCache?.promise === promise) staticCache = null;
+    throw err;
+  });
+  staticCache = { at: now, promise };
+  return promise;
+}
+
 async function loadProposals({
   q,
   scope,
@@ -77,7 +164,6 @@ async function loadProposals({
   perPage: number;
 }) {
   const cleanQuery = q.trim();
-  const PAGE_SIZE = 1000;
 
   const applyFilters = (qb: any): any => {
     let p = qb;
@@ -131,63 +217,18 @@ async function loadProposals({
     return { rows: (data ?? []) as ProposalRecord[], total: count ?? 0 };
   })();
 
-  async function fetchAllIndexPool(): Promise<IndexProposal[]> {
-    const all: IndexProposal[] = [];
-    for (let from = 0; ; from += PAGE_SIZE) {
-      const { data, error } = await supabase
-        .from("proposals")
-        .select(
-          "id, title_en, title_mt, description_en, description_mt, category, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)",
-        )
-        .eq("status", "published")
-        .is("merged_into_id", null)
-        .range(from, from + PAGE_SIZE - 1);
-      if (error) throw error;
-      const rows = (data ?? []) as IndexProposal[];
-      all.push(...rows);
-      if (rows.length < PAGE_SIZE) break;
-    }
-    return all;
-  }
-
-  const [pageResult, partiesResult, candidatesResult, categoriesResult, indexPool] = await Promise.all([
+  const [pageResult, statics] = await Promise.all([
     pageProposalsPromise,
-    supabase
-      .from("parties")
-      .select("id, slug, name_en, name_mt, short_name, color")
-      .eq("status", "published")
-      .order("name_en", { ascending: true }),
-    supabase
-      .from("candidates")
-      .select("id, slug, full_name")
-      .eq("status", "published")
-      .order("full_name", { ascending: true }),
-    supabase
-      .from("proposals")
-      .select("category")
-      .eq("status", "published")
-      .not("category", "is", null)
-      .range(0, 9999),
-    fetchAllIndexPool(),
+    getStaticLookups(),
   ]);
-
-  if (partiesResult.error) throw partiesResult.error;
-  if (candidatesResult.error) throw candidatesResult.error;
-  if (categoriesResult.error) throw categoriesResult.error;
-
-  const categories = Array.from(
-    new Set(((categoriesResult.data ?? []) as { category: string | null }[])
-      .map((row) => row.category)
-      .filter((cat): cat is string => Boolean(cat))),
-  ).sort();
 
   return {
     proposals: pageResult.rows,
     total: pageResult.total,
-    parties: (partiesResult.data ?? []) as PartyOption[],
-    candidates: (candidatesResult.data ?? []) as CandidateOption[],
-    categories,
-    indexPool,
+    parties: statics.parties,
+    candidates: statics.candidates,
+    categories: statics.categories,
+    indexPool: statics.indexPool,
   };
 }
 
@@ -208,7 +249,16 @@ export const Route = createFileRoute("/$lang/proposals")({
     page,
     perPage,
   }),
-  loader: ({ deps }) => loadProposals(deps),
+  // SWR caching: data considered fresh for 60s; cached entries kept for 10min.
+  // Repeat visits / back-forward navigation with the same filters render
+  // instantly from cache.
+  staleTime: 60_000,
+  gcTime: 10 * 60_000,
+  loader: ({ deps }) => {
+    // Edge cache the SSR HTML briefly; revalidate in the background.
+    setEdgeCacheHeader("public, max-age=0, s-maxage=60, stale-while-revalidate=300");
+    return loadProposals(deps);
+  },
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
     const title = translate(lang, "proposals.meta.title");
