@@ -8,7 +8,7 @@ import {
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useMemo, useState } from "react";
-import { ExternalLink, Filter, FileText, History, Landmark, Link2, RotateCcw, Search, Sparkles, UserRound } from "lucide-react";
+import { AlertTriangle, ExternalLink, Filter, FileText, History, Landmark, Link2, RotateCcw, Search, Sparkles, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
