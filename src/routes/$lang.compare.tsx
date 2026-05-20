@@ -124,9 +124,11 @@ function ComparePage() {
   const navigate = useNavigate({ from: "/$lang/compare" });
   const { lang } = Route.useParams();
   const search = Route.useSearch();
-  const { candidates, proposals } = Route.useLoaderData() as {
+  const { candidates, proposals, candidateDistricts, districts: allDistricts } = Route.useLoaderData() as {
     candidates: Candidate[];
     proposals: Proposal[];
+    candidateDistricts: Array<{ candidate_id: string; district_id: string }>;
+    districts: Array<{ id: string; number: number; name_en: string; name_mt: string | null }>;
   };
   const locale = isLocale(lang) ? lang : "en";
 
@@ -157,25 +159,39 @@ function ComparePage() {
   const remove = (id: string) => setIds(selectedIds.filter((x) => x !== id));
   const clear = () => setIds([]);
 
-  // Districts derived from candidates (so we don't need a second query).
-  const districts = useMemo(() => {
-    const seen = new Map<number, { number: number; name_en: string; name_mt: string | null }>();
+  // Full list of districts straight from the districts table — never derived
+  // from candidates, so an empty district still appears.
+  const districts = useMemo(
+    () => allDistricts.map((d) => ({ number: d.number, name_en: d.name_en, name_mt: d.name_mt })),
+    [allDistricts],
+  );
+
+  // candidate id -> all district numbers they contest in (primary + secondary).
+  const candidateDistrictNumbers = useMemo(() => {
+    const numberByDistrictId = new Map(allDistricts.map((d) => [d.id, d.number]));
+    const m = new Map<string, Set<number>>();
     for (const c of candidates) {
-      if (c.district && !seen.has(c.district.number)) {
-        seen.set(c.district.number, c.district);
-      }
+      const s = new Set<number>();
+      if (c.district?.number) s.add(c.district.number);
+      m.set(c.id, s);
     }
-    return Array.from(seen.values()).sort((a, b) => a.number - b.number);
-  }, [candidates]);
+    for (const row of candidateDistricts) {
+      const n = numberByDistrictId.get(row.district_id);
+      if (!n) continue;
+      const s = m.get(row.candidate_id);
+      if (s) s.add(n);
+    }
+    return m;
+  }, [candidates, candidateDistricts, allDistricts]);
 
   const districtCandidates = useMemo(() => {
     if (search.district === "all") return [];
     const n = Number(search.district);
     if (!Number.isFinite(n)) return [];
     return candidates
-      .filter((c) => c.district?.number === n)
+      .filter((c) => candidateDistrictNumbers.get(c.id)?.has(n))
       .sort((a, b) => a.full_name.localeCompare(b.full_name));
-  }, [candidates, search.district]);
+  }, [candidates, candidateDistrictNumbers, search.district]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
