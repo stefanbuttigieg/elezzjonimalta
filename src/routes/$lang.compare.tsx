@@ -16,6 +16,7 @@ type Candidate = {
   photo_url: string | null;
   is_incumbent: boolean;
   electoral_confirmed: boolean;
+  not_contesting_2026: boolean;
   facebook: string | null;
   twitter: string | null;
   website: string | null;
@@ -38,15 +39,20 @@ async function loadCompare() {
     supabase
       .from("candidates")
       .select(
-        "id, slug, full_name, bio_en, bio_mt, photo_url, is_incumbent, electoral_confirmed, facebook, twitter, website, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(number, name_en, name_mt)",
+        "id, slug, full_name, bio_en, bio_mt, photo_url, is_incumbent, electoral_confirmed, not_contesting_2026, facebook, twitter, website, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(number, name_en, name_mt)",
       )
       .eq("status", "published")
-      .order("full_name", { ascending: true }),
+      // Exclude anyone who has confirmed they will not contest the 2026 election.
+      .eq("not_contesting_2026", false)
+      .order("full_name", { ascending: true })
+      // Default PostgREST limit is 1000 — bump to ensure ALL contesting candidates are returned.
+      .limit(5000),
     supabase
       .from("proposals")
       .select("id, candidate_id, title_en, title_mt, description_en, description_mt, category")
       .eq("status", "published")
-      .not("candidate_id", "is", null),
+      .not("candidate_id", "is", null)
+      .limit(10000),
   ]);
   if (candRes.error) throw candRes.error;
   if (propRes.error) throw propRes.error;
@@ -55,6 +61,7 @@ async function loadCompare() {
     proposals: (propRes.data ?? []) as Proposal[],
   };
 }
+
 
 const compareSearchSchema = z.object({
   ids: fallback(z.string(), "").default(""),
