@@ -51,6 +51,31 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.contact": "Contact",
     "footer.developers": "Developer API",
     "footer.changelog": "Changelog",
+    "footer.data": "Open data catalogue",
+    "data.meta.title": "Open data catalogue — Elezzjoni",
+    "data.meta.description":
+      "DCAT-AP 3.0 metadata catalogue of datasets published by Elezzjoni, including candidates, parties, districts and proposals.",
+    "data.title": "Open data catalogue",
+    "data.intro":
+      "Every dataset we publish, described once in a DCAT-AP 3.0 compliant catalogue. Use the JSON-LD feed to harvest us into a national or European portal, or browse the cards below to discover individual datasets.",
+    "data.meta.profile": "Profile",
+    "data.meta.publisher": "Publisher",
+    "data.meta.licence": "Licence",
+    "data.meta.spatial": "Geographic coverage",
+    "data.meta.languages": "Languages",
+    "data.meta.feed": "Machine-readable feed",
+    "data.download.jsonld": "Download JSON-LD",
+    "data.developers": "Developer API docs",
+    "data.datasets": "Datasets",
+    "data.field.id": "Identifier",
+    "data.field.modified": "Last modified",
+    "data.field.issued": "First published",
+    "data.field.frequency": "Update frequency",
+    "data.field.distributions": "Distributions",
+    "data.open": "Open",
+    "data.landing": "View on site",
+    "data.footnote":
+      "Catalogue conforms to DCAT-AP 3.0 with EU controlled vocabularies for themes, frequency, file types and country. Unless noted, datasets are licensed CC BY 4.0.",
     "footer.disclaimer":
       "Independent tool. Not affiliated with any political party or the Electoral Commission.",
     "footer.sources":
