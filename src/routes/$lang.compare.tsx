@@ -125,9 +125,12 @@ function ComparePage() {
 
   const setIds = (ids: string[]) => {
     void navigate({
-      search: { ids: ids.length ? ids.join(",") : "" },
+      search: { ...search, ids: ids.length ? ids.join(",") : "" },
       replace: true,
     });
+  };
+  const setDistrict = (district: string) => {
+    void navigate({ search: { ...search, district }, replace: true });
   };
   const add = (id: string) => {
     if (selectedIds.includes(id) || selectedIds.length >= MAX) return;
@@ -136,6 +139,26 @@ function ComparePage() {
   };
   const remove = (id: string) => setIds(selectedIds.filter((x) => x !== id));
   const clear = () => setIds([]);
+
+  // Districts derived from candidates (so we don't need a second query).
+  const districts = useMemo(() => {
+    const seen = new Map<number, { number: number; name_en: string; name_mt: string | null }>();
+    for (const c of candidates) {
+      if (c.district && !seen.has(c.district.number)) {
+        seen.set(c.district.number, c.district);
+      }
+    }
+    return Array.from(seen.values()).sort((a, b) => a.number - b.number);
+  }, [candidates]);
+
+  const districtCandidates = useMemo(() => {
+    if (search.district === "all") return [];
+    const n = Number(search.district);
+    if (!Number.isFinite(n)) return [];
+    return candidates
+      .filter((c) => c.district?.number === n)
+      .sort((a, b) => a.full_name.localeCompare(b.full_name));
+  }, [candidates, search.district]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
