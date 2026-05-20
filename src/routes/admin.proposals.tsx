@@ -1378,7 +1378,7 @@ function ProposalEditor({
       } else {
         const { error } = await supabase
           .from("proposals")
-          .update(payload as never)
+          .update({ ...payload, manually_edited_at: new Date().toISOString() } as never)
           .eq("id", v.id);
         if (error) throw error;
       }
