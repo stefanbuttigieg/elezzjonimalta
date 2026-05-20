@@ -181,7 +181,7 @@ async function loadProposals({
   };
 
   const selectCols =
-    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
+    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, ai_extracted, manually_edited_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
 
   // Server-side pagination: only fetch the visible page (+ exact total).
   const pageProposalsPromise: Promise<{ rows: ProposalRecord[]; total: number }> = (async () => {
