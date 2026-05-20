@@ -51,6 +51,31 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.contact": "Contact",
     "footer.developers": "Developer API",
     "footer.changelog": "Changelog",
+    "footer.data": "Open data catalogue",
+    "data.meta.title": "Open data catalogue — Elezzjoni",
+    "data.meta.description":
+      "DCAT-AP 3.0 metadata catalogue of datasets published by Elezzjoni, including candidates, parties, districts and proposals.",
+    "data.title": "Open data catalogue",
+    "data.intro":
+      "Every dataset we publish, described once in a DCAT-AP 3.0 compliant catalogue. Use the JSON-LD feed to harvest us into a national or European portal, or browse the cards below to discover individual datasets.",
+    "data.meta.profile": "Profile",
+    "data.meta.publisher": "Publisher",
+    "data.meta.licence": "Licence",
+    "data.meta.spatial": "Geographic coverage",
+    "data.meta.languages": "Languages",
+    "data.meta.feed": "Machine-readable feed",
+    "data.download.jsonld": "Download JSON-LD",
+    "data.developers": "Developer API docs",
+    "data.datasets": "Datasets",
+    "data.field.id": "Identifier",
+    "data.field.modified": "Last modified",
+    "data.field.issued": "First published",
+    "data.field.frequency": "Update frequency",
+    "data.field.distributions": "Distributions",
+    "data.open": "Open",
+    "data.landing": "View on site",
+    "data.footnote":
+      "Catalogue conforms to DCAT-AP 3.0 with EU controlled vocabularies for themes, frequency, file types and country. Unless noted, datasets are licensed CC BY 4.0.",
     "footer.disclaimer":
       "Independent tool. Not affiliated with any political party or the Electoral Commission.",
     "footer.sources":
@@ -517,6 +542,31 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.contact": "Ikkuntattjana",
     "footer.developers": "API għall-Iżviluppaturi",
     "footer.changelog": "Reġistru tal-Bidliet",
+    "footer.data": "Katalgu Open Data",
+    "data.meta.title": "Katalgu Open Data — Elezzjoni",
+    "data.meta.description":
+      "Katalgu DCAT-AP 3.0 tad-datasets ippubblikati minn Elezzjoni: kandidati, partiti, distretti u proposti.",
+    "data.title": "Katalgu Open Data",
+    "data.intro":
+      "Kull dataset li nippubblikaw, deskritt darba waħda f'katalgu konformi ma' DCAT-AP 3.0. Uża l-feed JSON-LD biex tiġborna f'portal nazzjonali jew Ewropew, jew ibbrawżja l-cards hawn taħt.",
+    "data.meta.profile": "Profil",
+    "data.meta.publisher": "Pubblikatur",
+    "data.meta.licence": "Liċenzja",
+    "data.meta.spatial": "Kopertura ġeografika",
+    "data.meta.languages": "Lingwi",
+    "data.meta.feed": "Feed għall-magni",
+    "data.download.jsonld": "Niżżel JSON-LD",
+    "data.developers": "Dokumentazzjoni API",
+    "data.datasets": "Datasets",
+    "data.field.id": "Identifikatur",
+    "data.field.modified": "L-aħħar bidla",
+    "data.field.issued": "L-ewwel pubblikazzjoni",
+    "data.field.frequency": "Frekwenza ta' aġġornament",
+    "data.field.distributions": "Distribuzzjonijiet",
+    "data.open": "Iftaħ",
+    "data.landing": "Ara fis-sit",
+    "data.footnote":
+      "Il-katalgu jikkonforma ma' DCAT-AP 3.0 bil-vokabularji kkontrollati tal-UE. Sakemm ma jingħadx mod ieħor, id-datasets huma liċenzjati CC BY 4.0.",
     "footer.disclaimer":
       "Għodda indipendenti. M'aħniex affiljati ma' xi partit politiku jew mal-Kummissjoni Elettorali.",
     "footer.sources":
