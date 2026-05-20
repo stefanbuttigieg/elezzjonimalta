@@ -287,7 +287,98 @@ function ComparePage() {
               </ul>
             )}
           </div>
+
+          {/* District quick-pick: avoids needing to remember names */}
+          <div className="mt-5 border-t border-border pt-5">
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("compare.district.label")}
+              </span>
+              <select
+                value={search.district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary md:w-auto"
+              >
+                <option value="all">{t("compare.district.all")}</option>
+                {districts.map((d) => {
+                  const name = locale === "mt" && d.name_mt ? d.name_mt : d.name_en;
+                  return (
+                    <option key={d.number} value={String(d.number)}>
+                      {d.number} · {name}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+
+            {search.district !== "all" && (
+              <div className="mt-3">
+                {districtCandidates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("compare.district.empty")}</p>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {t("compare.district.hint", { count: districtCandidates.length })}
+                    </p>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {districtCandidates.map((c) => {
+                        const isSelected = selectedIds.includes(c.id);
+                        const isFull = selectedIds.length >= MAX;
+                        const disabled = isSelected || isFull;
+                        const accent = c.party?.color || "#64748b";
+                        return (
+                          <li key={c.id}>
+                            <button
+                              type="button"
+                              onClick={() => add(c.id)}
+                              disabled={disabled}
+                              title={
+                                isSelected
+                                  ? t("compare.alreadyAdded")
+                                  : isFull
+                                  ? t("compare.full")
+                                  : t("compare.add")
+                              }
+                              className="group inline-flex items-center gap-2 rounded-full border border-border bg-background py-1 pl-1 pr-3 text-xs font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {c.photo_url ? (
+                                <img
+                                  src={c.photo_url}
+                                  alt=""
+                                  className="h-6 w-6 rounded-full object-cover ring-1 ring-border"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <span
+                                  className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground"
+                                  aria-hidden="true"
+                                >
+                                  {c.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                </span>
+                              )}
+                              <span className="truncate max-w-[10rem]">{c.full_name}</span>
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: accent }}
+                                aria-hidden="true"
+                              />
+                              {isSelected ? (
+                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                              ) : (
+                                <span className="text-primary">+</span>
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
 
         {/* Comparison grid */}
         {selected.length === 0 ? (
