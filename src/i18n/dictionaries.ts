@@ -47,6 +47,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.cookies": "Cookie Policy",
     "footer.accessibility": "Accessibility Statement",
     "footer.about": "About & Methodology",
+    "footer.methodology": "Proposal methodology",
     "footer.contact": "Contact",
     "footer.developers": "Developer API",
     "footer.changelog": "Changelog",
