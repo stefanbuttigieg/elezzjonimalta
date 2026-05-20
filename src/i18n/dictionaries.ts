@@ -806,6 +806,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.noBio": "Għadha m'hemmx bijografija disponibbli.",
     "compare.noProposals": "Għadhom m'hemmx proposti ppubblikati.",
     "compare.viewProfile": "Ara l-profil sħiħ",
+    "compare.district.label": "Jew agħżel distrett biex tara l-kandidati kollha tiegħu",
+    "compare.district.all": "Id-distretti kollha",
+    "compare.district.hint": "{count} kandidat(i) f'dan id-distrett — agħfas biex iżżid.",
+    "compare.district.empty": "Għadhom m'hawn ebda kandidati f'dan id-distrett.",
+    "compare.alreadyAdded": "Diġà miżjud",
     "compare.meta.title": "Qabbel kandidati — Elezzjoni",
     "compare.meta.description":
       "Qiegħed kandidati tal-Elezzjoni Ġenerali Maltija 2026 ħdejn xulxin — partit, distrett, rekord, bijografija u proposti.",
