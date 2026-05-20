@@ -339,6 +339,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "compare.noBio": "No biography available yet.",
     "compare.noProposals": "No published proposals yet.",
     "compare.viewProfile": "View full profile",
+    "compare.district.label": "Or pick a district to see all its candidates",
+    "compare.district.all": "All districts",
+    "compare.district.hint": "{count} candidate(s) in this district — tap to add.",
+    "compare.district.empty": "No candidates found in this district yet.",
+    "compare.alreadyAdded": "Already added",
     "compare.meta.title": "Compare candidates — Elezzjoni",
     "compare.meta.description":
       "Place Maltese 2026 General Election candidates side by side — party, district, record, biography and proposals.",
