@@ -4,9 +4,37 @@ All notable changes to Elezzjoni Malta are documented in this file.
 
 The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] — 2026-05-13
+## [Unreleased] — 2026-05-20
+
+### Performance
+- **Proposals page overhaul.** The public `/proposals` page now uses
+  true server-side pagination via Supabase `range()` with an exact
+  count, replacing the previous "fetch up to 1000 then slice" pattern
+  that caused the loading indicator to stall and capped results at
+  1000. Per-page selector (25 / 50 / 100 / 200 / 500 / 1000 / All)
+  mirrors the admin page, and `page` / `perPage` are encoded in the
+  URL so pagination state survives refresh and back/forward.
+- **Similarity matching scoped to the visible page.** The duplicate /
+  related-proposal index now compares only the proposals on screen
+  against the lightweight index pool instead of cross-comparing the
+  entire dataset, cutting work from ~1.7M comparisons per load to
+  ~65K.
+- **Three-layer caching for proposals.** A 5-minute in-memory cache
+  for filter-independent lookups (parties, candidates, categories,
+  index pool), TanStack Router SWR caching (`staleTime: 60s`,
+  `gcTime: 10m`) so repeat visits and back/forward render instantly,
+  and an edge cache header
+  (`public, max-age=0, s-maxage=60, stale-while-revalidate=300`) for
+  SSR HTML.
+- **Database indexes for proposal queries.** Added a composite index
+  on `(status, created_at DESC)`, a partial index for published +
+  non-merged proposals, btree indexes on `party_id`, `candidate_id`,
+  `merged_into_id` and `category`, and `pg_trgm` GIN indexes on
+  `title_en`, `title_mt`, `description_en`, `description_mt` to make
+  `ILIKE` text search fast at scale.
 
 ### Added
+
 - **SEO foundations.** New `/robots.txt` (allows public, disallows
   `/admin`, `/auth`, `/api`) and a dynamic `/sitemap.xml` server route
   that enumerates every public page in both locales plus all published
