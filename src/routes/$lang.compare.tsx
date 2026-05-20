@@ -35,17 +35,15 @@ type Proposal = {
 };
 
 async function loadCompare() {
-  const [candRes, propRes] = await Promise.all([
+  const [candRes, propRes, cdRes, distRes] = await Promise.all([
     supabase
       .from("candidates")
       .select(
         "id, slug, full_name, bio_en, bio_mt, photo_url, is_incumbent, electoral_confirmed, not_contesting_2026, facebook, twitter, website, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(number, name_en, name_mt)",
       )
       .eq("status", "published")
-      // Exclude anyone who has confirmed they will not contest the 2026 election.
       .eq("not_contesting_2026", false)
       .order("full_name", { ascending: true })
-      // Default PostgREST limit is 1000 — bump to ensure ALL contesting candidates are returned.
       .limit(5000),
     supabase
       .from("proposals")
@@ -53,12 +51,24 @@ async function loadCompare() {
       .eq("status", "published")
       .not("candidate_id", "is", null)
       .limit(10000),
+    // Full candidate ↔ district mapping. Candidates often contest two districts
+    // and primary_district_id alone undercounts the chip picker.
+    supabase.from("candidate_districts").select("candidate_id, district_id").limit(10000),
+    supabase
+      .from("districts")
+      .select("id, number, name_en, name_mt")
+      .eq("status", "published")
+      .order("number", { ascending: true }),
   ]);
   if (candRes.error) throw candRes.error;
   if (propRes.error) throw propRes.error;
+  if (cdRes.error) throw cdRes.error;
+  if (distRes.error) throw distRes.error;
   return {
     candidates: (candRes.data ?? []) as unknown as Candidate[],
     proposals: (propRes.data ?? []) as Proposal[],
+    candidateDistricts: (cdRes.data ?? []) as Array<{ candidate_id: string; district_id: string }>,
+    districts: (distRes.data ?? []) as Array<{ id: string; number: number; name_en: string; name_mt: string | null }>,
   };
 }
 
