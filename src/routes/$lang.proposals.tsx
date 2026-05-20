@@ -580,6 +580,21 @@ function ProposalCard({
             {proposal.category}
           </span>
         ) : null}
+        {proposal.ai_extracted && !proposal.manually_edited_at ? (
+          <Link
+            to="/$lang/methodology"
+            params={{ lang: locale }}
+            className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
+            title={
+              locale === "mt"
+                ? "Estratta bl-AI mis-sors u għadha mhux riveduta minn editur. Ikklikkja biex tara l-metodoloġija."
+                : "Extracted by AI from the source and not yet manually reviewed. Click to read the methodology."
+            }
+          >
+            <Sparkles className="h-3 w-3" />
+            {locale === "mt" ? "Estratta bl-AI" : "AI-extracted"}
+          </Link>
+        ) : null}
       </div>
 
       <h2 className="mt-3 font-serif text-xl font-bold leading-tight text-foreground">
