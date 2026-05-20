@@ -508,6 +508,7 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.cookies": "Politika tal-Cookies",
     "footer.accessibility": "Stqarrija ta' Aċċessibbiltà",
     "footer.about": "Dwarna u Metodoloġija",
+    "footer.methodology": "Metodoloġija tal-proposti",
     "footer.contact": "Ikkuntattjana",
     "footer.developers": "API għall-Iżviluppaturi",
     "footer.changelog": "Reġistru tal-Bidliet",
