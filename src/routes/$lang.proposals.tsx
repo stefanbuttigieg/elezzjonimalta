@@ -344,6 +344,44 @@ function ProposalsPage() {
           </Link>
         </div>
 
+        <div className="mt-6 flex items-start gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-foreground">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="leading-relaxed">
+            {locale === "mt" ? (
+              <>
+                Għamilna l-aqwa sforzi tagħna biex inżommu l-proposti akkurati u
+                fidili lejn is-sors oriġinali, mingħajr ma nibdlu t-tifsira tagħhom.
+                Iżda jistgħu jiġru żbalji — speċjalment fejn it-test ikun ġie estratt
+                bl-AI. Aqra dwar il-{" "}
+                <Link to="/$lang/methodology" params={{ lang: locale }} className="font-semibold text-primary underline-offset-2 hover:underline">
+                  metodoloġija
+                </Link>
+                {" "}tagħna, jew{" "}
+                <Link to="/$lang/contact" params={{ lang: locale }} className="font-semibold text-primary underline-offset-2 hover:underline">
+                  irrapporta problema
+                </Link>
+                {" "}jekk tinnota xi ħaġa li ma taqbilx mas-sors.
+              </>
+            ) : (
+              <>
+                We make our best effort to keep proposals accurate and faithful to
+                the original source without altering their meaning. Even so, errors
+                can happen — especially where text was extracted by AI. Read about
+                our{" "}
+                <Link to="/$lang/methodology" params={{ lang: locale }} className="font-semibold text-primary underline-offset-2 hover:underline">
+                  methodology
+                </Link>
+                , or{" "}
+                <Link to="/$lang/contact" params={{ lang: locale }} className="font-semibold text-primary underline-offset-2 hover:underline">
+                  flag an issue
+                </Link>
+                {" "}if you spot something that doesn't match the source.
+              </>
+            )}
+          </p>
+        </div>
+
+
         <div className="mt-8 grid gap-3 rounded-xl border border-border bg-surface p-4 shadow-card md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto] lg:items-end">
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
