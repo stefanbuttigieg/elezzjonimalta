@@ -56,6 +56,8 @@ type ProposalRecord = {
   category: string | null;
   source_url: string | null;
   updated_at: string;
+  ai_extracted: boolean | null;
+  manually_edited_at: string | null;
   party: PartyOption | null;
   candidate: CandidateOption | null;
 };
