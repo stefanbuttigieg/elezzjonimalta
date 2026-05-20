@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buildCatalogJsonLd, resolveOrigin } from "@/lib/dataCatalogue";
 
-export const Route = createFileRoute("/api/public/v1/catalog[.]jsonld")({
+export const Route = createFileRoute("/api/public/v1/catalog.jsonld")({
   server: {
     handlers: {
       GET: async ({ request }) => {

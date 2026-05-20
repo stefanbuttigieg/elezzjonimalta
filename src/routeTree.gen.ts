@@ -67,6 +67,7 @@ import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-dist
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
 import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
 import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
+import { Route as ApiPublicV1CatalogDotjsonldRouteImport } from './routes/api/public/v1/catalog[.]jsonld'
 import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
@@ -364,6 +365,12 @@ const ApiPublicV1DistrictsRoute = ApiPublicV1DistrictsRouteImport.update({
   path: '/api/public/v1/districts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1CatalogDotjsonldRoute =
+  ApiPublicV1CatalogDotjsonldRouteImport.update({
+    id: '/api/public/v1/catalog.jsonld',
+    path: '/api/public/v1/catalog.jsonld',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
   id: '/api/public/v1/candidates',
   path: '/api/public/v1/candidates',
@@ -448,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
@@ -510,6 +518,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
@@ -575,6 +584,7 @@ export interface FileRoutesById {
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
+  '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
   '/api/public/v1/parties': typeof ApiPublicV1PartiesRoute
 }
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
+    | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
   fileRoutesByTo: FileRoutesByTo
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
+    | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
   id:
@@ -767,6 +779,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
     | '/api/public/v1/candidates'
+    | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
     | '/api/public/v1/parties'
   fileRoutesById: FileRoutesById
@@ -781,6 +794,7 @@ export interface RootRouteChildren {
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
   ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
+  ApiPublicV1CatalogDotjsonldRoute: typeof ApiPublicV1CatalogDotjsonldRoute
   ApiPublicV1DistrictsRoute: typeof ApiPublicV1DistrictsRoute
   ApiPublicV1PartiesRoute: typeof ApiPublicV1PartiesRoute
 }
@@ -1193,6 +1207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1DistrictsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/catalog.jsonld': {
+      id: '/api/public/v1/catalog.jsonld'
+      path: '/api/public/v1/catalog.jsonld'
+      fullPath: '/api/public/v1/catalog.jsonld'
+      preLoaderRoute: typeof ApiPublicV1CatalogDotjsonldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/candidates': {
       id: '/api/public/v1/candidates'
       path: '/api/public/v1/candidates'
@@ -1352,6 +1373,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,
   ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
+  ApiPublicV1CatalogDotjsonldRoute: ApiPublicV1CatalogDotjsonldRoute,
   ApiPublicV1DistrictsRoute: ApiPublicV1DistrictsRoute,
   ApiPublicV1PartiesRoute: ApiPublicV1PartiesRoute,
 }
