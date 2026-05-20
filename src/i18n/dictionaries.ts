@@ -542,6 +542,31 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "footer.contact": "Ikkuntattjana",
     "footer.developers": "API għall-Iżviluppaturi",
     "footer.changelog": "Reġistru tal-Bidliet",
+    "footer.data": "Katalgu Open Data",
+    "data.meta.title": "Katalgu Open Data — Elezzjoni",
+    "data.meta.description":
+      "Katalgu DCAT-AP 3.0 tad-datasets ippubblikati minn Elezzjoni: kandidati, partiti, distretti u proposti.",
+    "data.title": "Katalgu Open Data",
+    "data.intro":
+      "Kull dataset li nippubblikaw, deskritt darba waħda f'katalgu konformi ma' DCAT-AP 3.0. Uża l-feed JSON-LD biex tiġborna f'portal nazzjonali jew Ewropew, jew ibbrawżja l-cards hawn taħt.",
+    "data.meta.profile": "Profil",
+    "data.meta.publisher": "Pubblikatur",
+    "data.meta.licence": "Liċenzja",
+    "data.meta.spatial": "Kopertura ġeografika",
+    "data.meta.languages": "Lingwi",
+    "data.meta.feed": "Feed għall-magni",
+    "data.download.jsonld": "Niżżel JSON-LD",
+    "data.developers": "Dokumentazzjoni API",
+    "data.datasets": "Datasets",
+    "data.field.id": "Identifikatur",
+    "data.field.modified": "L-aħħar bidla",
+    "data.field.issued": "L-ewwel pubblikazzjoni",
+    "data.field.frequency": "Frekwenza ta' aġġornament",
+    "data.field.distributions": "Distribuzzjonijiet",
+    "data.open": "Iftaħ",
+    "data.landing": "Ara fis-sit",
+    "data.footnote":
+      "Il-katalgu jikkonforma ma' DCAT-AP 3.0 bil-vokabularji kkontrollati tal-UE. Sakemm ma jingħadx mod ieħor, id-datasets huma liċenzjati CC BY 4.0.",
     "footer.disclaimer":
       "Għodda indipendenti. M'aħniex affiljati ma' xi partit politiku jew mal-Kummissjoni Elettorali.",
     "footer.sources":
