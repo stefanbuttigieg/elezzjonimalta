@@ -2215,6 +2215,7 @@ export type Database = {
       }
       proposals: {
         Row: {
+          ai_extracted: boolean
           candidate_id: string | null
           category: string | null
           confirmed_in_manifesto: boolean
@@ -2229,6 +2230,7 @@ export type Database = {
           id: string
           localities: string[]
           manifesto_import_id: string | null
+          manually_edited_at: string | null
           merge_note: string | null
           merged_at: string | null
           merged_into_id: string | null
@@ -2241,6 +2243,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_extracted?: boolean
           candidate_id?: string | null
           category?: string | null
           confirmed_in_manifesto?: boolean
@@ -2255,6 +2258,7 @@ export type Database = {
           id?: string
           localities?: string[]
           manifesto_import_id?: string | null
+          manually_edited_at?: string | null
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null
@@ -2267,6 +2271,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_extracted?: boolean
           candidate_id?: string | null
           category?: string | null
           confirmed_in_manifesto?: boolean
@@ -2281,6 +2286,7 @@ export type Database = {
           id?: string
           localities?: string[]
           manifesto_import_id?: string | null
+          manually_edited_at?: string | null
           merge_note?: string | null
           merged_at?: string | null
           merged_into_id?: string | null

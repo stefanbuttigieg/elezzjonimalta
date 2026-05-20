@@ -713,6 +713,7 @@ export async function applyManifestoDecisions(args: {
             source_url: sourceUrl,
             confirmed_in_manifesto: true,
             manifesto_import_id: importId,
+            ai_extracted: true,
           } as never)
           .select("id")
           .single();

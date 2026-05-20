@@ -56,6 +56,8 @@ type ProposalRecord = {
   category: string | null;
   source_url: string | null;
   updated_at: string;
+  ai_extracted: boolean | null;
+  manually_edited_at: string | null;
   party: PartyOption | null;
   candidate: CandidateOption | null;
 };
@@ -179,7 +181,7 @@ async function loadProposals({
   };
 
   const selectCols =
-    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
+    "id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at, ai_extracted, manually_edited_at, party:parties(id, slug, name_en, name_mt, short_name, color), candidate:candidates(id, slug, full_name)";
 
   // Server-side pagination: only fetch the visible page (+ exact total).
   const pageProposalsPromise: Promise<{ rows: ProposalRecord[]; total: number }> = (async () => {
@@ -577,6 +579,21 @@ function ProposalCard({
           <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground">
             {proposal.category}
           </span>
+        ) : null}
+        {proposal.ai_extracted && !proposal.manually_edited_at ? (
+          <Link
+            to="/$lang/methodology"
+            params={{ lang: locale }}
+            className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
+            title={
+              locale === "mt"
+                ? "Estratta bl-AI mis-sors u għadha mhux riveduta minn editur. Ikklikkja biex tara l-metodoloġija."
+                : "Extracted by AI from the source and not yet manually reviewed. Click to read the methodology."
+            }
+          >
+            <Sparkles className="h-3 w-3" />
+            {locale === "mt" ? "Estratta bl-AI" : "AI-extracted"}
+          </Link>
         ) : null}
       </div>
 
