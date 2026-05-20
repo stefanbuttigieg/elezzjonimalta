@@ -14,6 +14,7 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { formatUpdatedAt } from "@/lib/formatDate";
 import { proposalSimilarity, type ProposalForMatch } from "@/lib/proposal-dedupe";
+import { setEdgeCacheHeader } from "@/lib/ssrCache";
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200, 500, 1000, -1] as const; // -1 = All
 const DEFAULT_PAGE_SIZE = 50;
