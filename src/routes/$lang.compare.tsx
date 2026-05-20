@@ -58,6 +58,7 @@ async function loadCompare() {
 
 const compareSearchSchema = z.object({
   ids: fallback(z.string(), "").default(""),
+  district: fallback(z.string(), "all").default("all"),
 });
 
 export const Route = createFileRoute("/$lang/compare")({
