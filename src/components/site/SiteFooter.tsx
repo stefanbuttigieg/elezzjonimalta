@@ -26,6 +26,7 @@ export function SiteFooter() {
     { to: `/${lang}/methodology`, label: t("footer.methodology") },
     { to: `/${lang}/contact`, label: t("footer.contact") },
     { to: `/${lang}/developers`, label: t("footer.developers") },
+    { to: `/${lang}/data`, label: t("footer.data") },
     { to: `/${lang}/changelog`, label: t("footer.changelog") },
   ];
 
