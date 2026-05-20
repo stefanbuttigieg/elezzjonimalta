@@ -51,6 +51,7 @@ import { Route as LangMethodologyRouteImport } from './routes/$lang.methodology'
 import { Route as LangFaqRouteImport } from './routes/$lang.faq'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
+import { Route as LangDataRouteImport } from './routes/$lang.data'
 import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
 import { Route as LangContactRouteImport } from './routes/$lang.contact'
 import { Route as LangCompareRouteImport } from './routes/$lang.compare'
@@ -284,6 +285,11 @@ const LangDevelopersRoute = LangDevelopersRouteImport.update({
   path: '/developers',
   getParentRoute: () => LangRoute,
 } as any)
+const LangDataRoute = LangDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangCookiesRoute = LangCookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
@@ -470,6 +477,7 @@ export interface FileRoutesByTo {
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
@@ -536,6 +544,7 @@ export interface FileRoutesById {
   '/$lang/compare': typeof LangCompareRoute
   '/$lang/contact': typeof LangContactRoute
   '/$lang/cookies': typeof LangCookiesRoute
+  '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
   '/$lang/faq': typeof LangFaqRoute
@@ -603,6 +612,7 @@ export interface FileRouteTypes {
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
+    | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
@@ -666,6 +676,7 @@ export interface FileRouteTypes {
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
+    | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
@@ -731,6 +742,7 @@ export interface FileRouteTypes {
     | '/$lang/compare'
     | '/$lang/contact'
     | '/$lang/cookies'
+    | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
     | '/$lang/faq'
@@ -1095,6 +1107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangDevelopersRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/data': {
+      id: '/$lang/data'
+      path: '/data'
+      fullPath: '/$lang/data'
+      preLoaderRoute: typeof LangDataRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/cookies': {
       id: '/$lang/cookies'
       path: '/cookies'
@@ -1254,6 +1273,7 @@ interface LangRouteChildren {
   LangCompareRoute: typeof LangCompareRoute
   LangContactRoute: typeof LangContactRoute
   LangCookiesRoute: typeof LangCookiesRoute
+  LangDataRoute: typeof LangDataRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
   LangFaqRoute: typeof LangFaqRoute
@@ -1283,6 +1303,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangCompareRoute: LangCompareRoute,
   LangContactRoute: LangContactRoute,
   LangCookiesRoute: LangCookiesRoute,
+  LangDataRoute: LangDataRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
   LangFaqRoute: LangFaqRoute,
