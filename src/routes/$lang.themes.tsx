@@ -31,6 +31,11 @@ type ProposalLite = {
   assignments: { category_id: string }[];
 };
 
+type AssignmentLite = {
+  proposal_id: string;
+  category_id: string;
+};
+
 type LoaderData = {
   parties: PartyLite[];
   categories: CategoryLite[];
@@ -61,7 +66,7 @@ async function loadGraph(): Promise<LoaderData> {
     const { data, error } = await supabase
       .from("proposals")
       .select(
-        "id, title_en, title_mt, party:parties!inner(id, slug, name_en, name_mt, short_name, color), assignments:proposal_category_assignments(category_id)",
+        "id, title_en, title_mt, party:parties!inner(id, slug, name_en, name_mt, short_name, color)",
       )
       .eq("status", "published")
       .is("merged_into_id", null)
@@ -69,15 +74,44 @@ async function loadGraph(): Promise<LoaderData> {
       .order("id")
       .range(from, from + PAGE - 1);
     if (error) throw new Error(error.message);
-    const batch = (data ?? []) as unknown as ProposalLite[];
+    const batch = ((data ?? []) as unknown as Omit<ProposalLite, "assignments">[]).map((proposal) => ({
+      ...proposal,
+      assignments: [],
+    }));
     proposals.push(...batch);
     if (batch.length < PAGE) break;
   }
 
+  const assignmentsByProposal = new Map<string, AssignmentLite[]>();
+  for (let i = 0; i < proposals.length; i += 500) {
+    const ids = proposals.slice(i, i + 500).map((proposal) => proposal.id);
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("proposal_category_assignments")
+        .select("proposal_id, category_id")
+        .in("proposal_id", ids)
+        .order("proposal_id")
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error(error.message);
+      const batch = (data ?? []) as AssignmentLite[];
+      for (const assignment of batch) {
+        const current = assignmentsByProposal.get(assignment.proposal_id) ?? [];
+        current.push(assignment);
+        assignmentsByProposal.set(assignment.proposal_id, current);
+      }
+      if (batch.length < PAGE) break;
+    }
+  }
+
+  const proposalsWithAssignments = proposals.map((proposal) => ({
+    ...proposal,
+    assignments: assignmentsByProposal.get(proposal.id) ?? [],
+  }));
+
   return {
     parties: (partiesRes.data ?? []) as PartyLite[],
     categories: (catsRes.data ?? []) as CategoryLite[],
-    proposals,
+    proposals: proposalsWithAssignments,
   };
 }
 
