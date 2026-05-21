@@ -38,7 +38,7 @@ type LoaderData = {
 };
 
 async function loadGraph(): Promise<LoaderData> {
-  const [partiesRes, catsRes, propsRes] = await Promise.all([
+  const [partiesRes, catsRes] = await Promise.all([
     supabase
       .from("parties")
       .select("id, slug, name_en, name_mt, short_name, color")
@@ -49,7 +49,16 @@ async function loadGraph(): Promise<LoaderData> {
       .select("id, slug, name_en, name_mt, description_en, sort_order")
       .order("sort_order")
       .order("name_en"),
-    supabase
+  ]);
+
+  if (partiesRes.error) throw new Error(partiesRes.error.message);
+  if (catsRes.error) throw new Error(catsRes.error.message);
+
+  // Paginate around PostgREST's hard max-rows cap (default 1000)
+  const PAGE = 1000;
+  const proposals: ProposalLite[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
       .from("proposals")
       .select(
         "id, title_en, title_mt, party:parties!inner(id, slug, name_en, name_mt, short_name, color), assignments:proposal_category_assignments(category_id)",
@@ -57,17 +66,18 @@ async function loadGraph(): Promise<LoaderData> {
       .eq("status", "published")
       .is("merged_into_id", null)
       .not("party_id", "is", null)
-      .limit(20000),
-  ]);
-
-  if (partiesRes.error) throw new Error(partiesRes.error.message);
-  if (catsRes.error) throw new Error(catsRes.error.message);
-  if (propsRes.error) throw new Error(propsRes.error.message);
+      .order("id")
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    const batch = (data ?? []) as unknown as ProposalLite[];
+    proposals.push(...batch);
+    if (batch.length < PAGE) break;
+  }
 
   return {
     parties: (partiesRes.data ?? []) as PartyLite[],
     categories: (catsRes.data ?? []) as CategoryLite[],
-    proposals: (propsRes.data ?? []) as unknown as ProposalLite[],
+    proposals,
   };
 }
 
