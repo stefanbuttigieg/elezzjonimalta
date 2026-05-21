@@ -31,6 +31,11 @@ type ProposalLite = {
   assignments: { category_id: string }[];
 };
 
+type AssignmentLite = {
+  proposal_id: string;
+  category_id: string;
+};
+
 type LoaderData = {
   parties: PartyLite[];
   categories: CategoryLite[];
@@ -61,7 +66,7 @@ async function loadGraph(): Promise<LoaderData> {
     const { data, error } = await supabase
       .from("proposals")
       .select(
-        "id, title_en, title_mt, party:parties!inner(id, slug, name_en, name_mt, short_name, color), assignments:proposal_category_assignments(category_id)",
+        "id, title_en, title_mt, party:parties!inner(id, slug, name_en, name_mt, short_name, color)",
       )
       .eq("status", "published")
       .is("merged_into_id", null)
@@ -69,15 +74,46 @@ async function loadGraph(): Promise<LoaderData> {
       .order("id")
       .range(from, from + PAGE - 1);
     if (error) throw new Error(error.message);
-    const batch = (data ?? []) as unknown as ProposalLite[];
+    const batch = ((data ?? []) as unknown as Omit<ProposalLite, "assignments">[]).map(
+      (proposal) => ({
+        ...proposal,
+        assignments: [],
+      }),
+    );
     proposals.push(...batch);
     if (batch.length < PAGE) break;
   }
 
+  const assignmentsByProposal = new Map<string, AssignmentLite[]>();
+  for (let i = 0; i < proposals.length; i += 500) {
+    const ids = proposals.slice(i, i + 500).map((proposal) => proposal.id);
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("proposal_category_assignments")
+        .select("proposal_id, category_id")
+        .in("proposal_id", ids)
+        .order("proposal_id")
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error(error.message);
+      const batch = (data ?? []) as AssignmentLite[];
+      for (const assignment of batch) {
+        const current = assignmentsByProposal.get(assignment.proposal_id) ?? [];
+        current.push(assignment);
+        assignmentsByProposal.set(assignment.proposal_id, current);
+      }
+      if (batch.length < PAGE) break;
+    }
+  }
+
+  const proposalsWithAssignments = proposals.map((proposal) => ({
+    ...proposal,
+    assignments: assignmentsByProposal.get(proposal.id) ?? [],
+  }));
+
   return {
     parties: (partiesRes.data ?? []) as PartyLite[],
     categories: (catsRes.data ?? []) as CategoryLite[],
-    proposals,
+    proposals: proposalsWithAssignments,
   };
 }
 
@@ -88,10 +124,7 @@ export const Route = createFileRoute("/$lang/themes")({
   loader: () => loadGraph(),
   head: ({ params }) => {
     const lang = params.lang as Locale;
-    const title =
-      lang === "mt"
-        ? "Temi politiċi — Elezzjoni"
-        : "Policy themes — Elezzjoni";
+    const title = lang === "mt" ? "Temi politiċi — Elezzjoni" : "Policy themes — Elezzjoni";
     const desc =
       lang === "mt"
         ? "Ara liema partiti qed jippromettu x'hiex f'kull tema politika."
@@ -130,7 +163,7 @@ function ThemesPage() {
   const [percentBasis, setPercentBasis] = useState<"party" | "category">("party");
 
   const localised = (en: string | null | undefined, mt: string | null | undefined) =>
-    locale === "mt" ? (mt?.trim() || en || "") : (en || mt || "");
+    locale === "mt" ? mt?.trim() || en || "" : en || mt || "";
 
   // Build party x category matrix of counts
   const matrix = useMemo(() => {
@@ -206,10 +239,22 @@ function ThemesPage() {
             : "Explore how each party distributes their published proposals across the major policy themes."}
         </p>
         <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <span><strong className="text-foreground">{totalProposals}</strong> {locale === "mt" ? "proposti" : "proposals"}</span>
-          <span><strong className="text-foreground">{totalCategorised}</strong> {locale === "mt" ? "ikkategorizzati" : "categorised"}</span>
-          <span><strong className="text-foreground">{data.categories.length}</strong> {locale === "mt" ? "temi" : "themes"}</span>
-          <span><strong className="text-foreground">{data.parties.length}</strong> {locale === "mt" ? "partiti" : "parties"}</span>
+          <span>
+            <strong className="text-foreground">{totalProposals}</strong>{" "}
+            {locale === "mt" ? "proposti" : "proposals"}
+          </span>
+          <span>
+            <strong className="text-foreground">{totalCategorised}</strong>{" "}
+            {locale === "mt" ? "ikkategorizzati" : "categorised"}
+          </span>
+          <span>
+            <strong className="text-foreground">{data.categories.length}</strong>{" "}
+            {locale === "mt" ? "temi" : "themes"}
+          </span>
+          <span>
+            <strong className="text-foreground">{data.parties.length}</strong>{" "}
+            {locale === "mt" ? "partiti" : "parties"}
+          </span>
         </div>
       </header>
 
@@ -284,39 +329,41 @@ function ThemesPage() {
                     onClick={() => setActiveParty(activeParty === p.id ? null : p.id)}
                   >
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.color ?? "var(--muted-foreground)" }} />
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: p.color ?? "var(--muted-foreground)" }}
+                      />
                       {p.short_name || p.name_en}
                     </span>
                   </th>
                   {orderedCategories.map((c) => {
                     const v = row?.get(c.id) ?? 0;
                     const basisTotal =
-                      percentBasis === "party"
-                        ? total
-                        : matrix.categoryTotals.get(c.id) ?? 0;
+                      percentBasis === "party" ? total : (matrix.categoryTotals.get(c.id) ?? 0);
                     const pct = basisTotal > 0 ? (v / basisTotal) * 100 : 0;
-                    const intensity =
-                      displayMode === "percent" ? pct / 100 : v / maxCell;
-                    const bg = v === 0
-                      ? "transparent"
-                      : `color-mix(in oklab, ${p.color ?? "hsl(var(--primary))"} ${Math.round(15 + intensity * 75)}%, transparent)`;
+                    const intensity = displayMode === "percent" ? pct / 100 : v / maxCell;
+                    const bg =
+                      v === 0
+                        ? "transparent"
+                        : `color-mix(in oklab, ${p.color ?? "hsl(var(--primary))"} ${Math.round(15 + intensity * 75)}%, transparent)`;
                     const isActive = activeCategory === c.id || activeParty === p.id;
                     const display =
-                      v === 0
-                        ? ""
-                        : displayMode === "percent"
-                          ? `${Math.round(pct)}%`
-                          : v;
+                      v === 0 ? "" : displayMode === "percent" ? `${Math.round(pct)}%` : v;
                     return (
                       <td
                         key={c.id}
                         className={`cursor-pointer rounded text-center font-medium transition-all ${isActive ? "ring-2 ring-foreground/30" : ""}`}
-                        style={{ backgroundColor: bg, color: v > 0 && intensity > 0.5 ? "white" : undefined, minWidth: 36, height: 28 }}
+                        style={{
+                          backgroundColor: bg,
+                          color: v > 0 && intensity > 0.5 ? "white" : undefined,
+                          minWidth: 36,
+                          height: 28,
+                        }}
                         onClick={() => {
                           setActiveCategory(c.id);
                           setActiveParty(p.id);
                         }}
-                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v} (${Math.round(pct)}% ${percentBasis === "party" ? (locale === "mt" ? "tal-partit" : "of party") : (locale === "mt" ? "tat-tema" : "of theme")})`}
+                        title={`${p.short_name || p.name_en} · ${localised(c.name_en, c.name_mt)}: ${v} (${Math.round(pct)}% ${percentBasis === "party" ? (locale === "mt" ? "tal-partit" : "of party") : locale === "mt" ? "tat-tema" : "of theme"})`}
                       >
                         {display}
                       </td>
@@ -360,29 +407,43 @@ function ThemesPage() {
                     <Tag className="h-3.5 w-3.5 text-muted-foreground" />
                     {localised(c.name_en, c.name_mt)}
                   </h3>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{total}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {total}
+                  </span>
                 </div>
                 {c.description_en && (
-                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.description_en}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                    {c.description_en}
+                  </p>
                 )}
                 <div className="mt-3 space-y-1.5">
                   {partyBreakdown.slice(0, 4).map(({ p, count }) => (
                     <div key={p.id} className="flex items-center gap-2 text-xs">
-                      <span className="w-14 shrink-0 truncate font-medium" style={{ color: p.color ?? undefined }}>
+                      <span
+                        className="w-14 shrink-0 truncate font-medium"
+                        style={{ color: p.color ?? undefined }}
+                      >
                         {p.short_name || p.name_en}
                       </span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full"
-                          style={{ width: `${(count / max) * 100}%`, backgroundColor: p.color ?? "hsl(var(--primary))" }}
+                          style={{
+                            width: `${(count / max) * 100}%`,
+                            backgroundColor: p.color ?? "hsl(var(--primary))",
+                          }}
                         />
                       </div>
-                      <span className="w-6 shrink-0 text-right tabular-nums text-muted-foreground">{count}</span>
+                      <span className="w-6 shrink-0 text-right tabular-nums text-muted-foreground">
+                        {count}
+                      </span>
                     </div>
                   ))}
                   {partyBreakdown.length === 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {locale === "mt" ? "L-ebda partit għadu ma ppromettja f'din it-tema." : "No party has promised in this theme yet."}
+                      {locale === "mt"
+                        ? "L-ebda partit għadu ma ppromettja f'din it-tema."
+                        : "No party has promised in this theme yet."}
                     </p>
                   )}
                 </div>
@@ -404,7 +465,12 @@ function ThemesPage() {
               {activeParty && (
                 <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs">
                   {orderedParties.find((p) => p.id === activeParty)?.short_name ?? "Party"}
-                  <button onClick={() => setActiveParty(null)} className="ml-1 text-muted-foreground hover:text-foreground">×</button>
+                  <button
+                    onClick={() => setActiveParty(null)}
+                    className="ml-1 text-muted-foreground hover:text-foreground"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
               {activeCategory && (
@@ -413,7 +479,12 @@ function ThemesPage() {
                     orderedCategories.find((c) => c.id === activeCategory)?.name_en ?? "",
                     orderedCategories.find((c) => c.id === activeCategory)?.name_mt ?? null,
                   )}
-                  <button onClick={() => setActiveCategory(null)} className="ml-1 text-muted-foreground hover:text-foreground">×</button>
+                  <button
+                    onClick={() => setActiveCategory(null)}
+                    className="ml-1 text-muted-foreground hover:text-foreground"
+                  >
+                    ×
+                  </button>
                 </span>
               )}
             </div>
@@ -435,7 +506,10 @@ function ThemesPage() {
                   style={{ backgroundColor: p.party?.color ?? "var(--muted-foreground)" }}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold uppercase tracking-wider" style={{ color: p.party?.color ?? undefined }}>
+                  <div
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{ color: p.party?.color ?? undefined }}
+                  >
                     {p.party?.short_name || p.party?.name_en}
                   </div>
                   <div className="text-sm text-foreground">{localised(p.title_en, p.title_mt)}</div>
