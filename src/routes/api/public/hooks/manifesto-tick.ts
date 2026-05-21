@@ -55,9 +55,17 @@ export const Route = createFileRoute("/api/public/hooks/manifesto-tick")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected = process.env.SUPABASE_ANON_KEY;
         const provided = request.headers.get("apikey");
-        if (!expected || !provided || provided !== expected) {
+        const cronSecret = request.headers.get("x-cron-secret");
+        const okApiKey =
+          !!provided &&
+          (provided === process.env.SUPABASE_ANON_KEY ||
+            provided === process.env.SUPABASE_PUBLISHABLE_KEY);
+        const okCron =
+          !!cronSecret &&
+          !!process.env.NEWS_CRON_SECRET &&
+          cronSecret === process.env.NEWS_CRON_SECRET;
+        if (!okApiKey && !okCron) {
           return new Response(JSON.stringify({ error: "unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
