@@ -56,7 +56,8 @@ async function loadGraph(): Promise<LoaderData> {
       )
       .eq("status", "published")
       .is("merged_into_id", null)
-      .not("party_id", "is", null),
+      .not("party_id", "is", null)
+      .limit(20000),
   ]);
 
   if (partiesRes.error) throw new Error(partiesRes.error.message);
