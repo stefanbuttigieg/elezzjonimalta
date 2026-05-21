@@ -1,0 +1,1 @@
+UPDATE manifesto_imports SET updated_at = now() - interval '1 minute', stage = 'Queued', progress = 0, error = NULL, error_stack = NULL WHERE id = '1bf67718-59a3-41bc-a749-dae1177af937';
