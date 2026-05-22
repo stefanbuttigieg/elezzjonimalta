@@ -70,6 +70,7 @@ import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/p
 import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
 import { Route as ApiPublicV1CatalogDotjsonldRouteImport } from './routes/api/public/v1/catalog[.]jsonld'
 import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
 import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
@@ -382,6 +383,12 @@ const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
   path: '/api/public/v1/candidates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTelegramPollRoute =
   ApiPublicHooksTelegramPollRouteImport.update({
     id: '/api/public/hooks/telegram-poll',
@@ -461,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -525,6 +533,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -592,6 +601,7 @@ export interface FileRoutesById {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -660,6 +670,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -724,6 +735,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -790,6 +802,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -805,6 +818,7 @@ export interface RootRouteChildren {
   ApiPublicHooksManifestoTickRoute: typeof ApiPublicHooksManifestoTickRoute
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
   ApiPublicV1CatalogDotjsonldRoute: typeof ApiPublicV1CatalogDotjsonldRoute
   ApiPublicV1DistrictsRoute: typeof ApiPublicV1DistrictsRoute
@@ -1240,6 +1254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/telegram-poll': {
       id: '/api/public/hooks/telegram-poll'
       path: '/api/public/hooks/telegram-poll'
@@ -1393,6 +1414,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksManifestoTickRoute: ApiPublicHooksManifestoTickRoute,
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
   ApiPublicV1CatalogDotjsonldRoute: ApiPublicV1CatalogDotjsonldRoute,
   ApiPublicV1DistrictsRoute: ApiPublicV1DistrictsRoute,
@@ -1401,12 +1423,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
