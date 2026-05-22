@@ -1,17 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/integrations/supabase/client.server';
 import { type StripeEnv, verifyWebhook } from '@/lib/stripe.server';
-
-let _supabase: ReturnType<typeof createClient> | null = null;
-function getSupabase() {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
-  }
-  return _supabase;
-}
 
 function extractFromMetadata(meta: Record<string, string> | undefined | null) {
   if (!meta) return null;
@@ -19,8 +8,8 @@ function extractFromMetadata(meta: Record<string, string> | undefined | null) {
   const displayName = (meta.display_name ?? '').trim();
   if (!show || !displayName) return null;
   return {
-    display_name: displayName.slice(0, 60),
-    message: (meta.message ?? '').trim().slice(0, 280) || null,
+    displayName: displayName.slice(0, 60),
+    message: ((meta.message ?? '').trim().slice(0, 280) || null) as string | null,
     kind: meta.kind === 'monthly' ? 'monthly' : 'one_off',
   };
 }
@@ -34,9 +23,8 @@ async function recordPublicDonation(opts: {
   kind: string;
 }) {
   if ((opts.currency ?? '').toLowerCase() !== 'eur') return;
-  const amountEur = opts.amountCents != null ? Number(opts.amountCents) / 100 : null;
-  // Upsert by stripe_session_id so retries don't duplicate.
-  await getSupabase()
+  const amount_eur = opts.amountCents != null ? Number(opts.amountCents) / 100 : null;
+  await supabaseAdmin
     .from('public_donations')
     .upsert(
       {
@@ -44,7 +32,7 @@ async function recordPublicDonation(opts: {
         display_name: opts.displayName,
         message: opts.message,
         kind: opts.kind,
-        amount_eur: amountEur,
+        amount_eur,
         show_publicly: true,
       },
       { onConflict: 'stripe_session_id' },
@@ -54,23 +42,19 @@ async function recordPublicDonation(opts: {
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session: any = event.data.object;
-      if (session.payment_status !== 'paid' && session.status !== 'complete') break;
-      const extracted = extractFromMetadata(session.metadata);
-      if (!extracted) break;
-      await recordPublicDonation({
-        sessionId: session.id,
-        amountCents: session.amount_total,
-        currency: session.currency,
-        ...extracted,
-      });
-      break;
-    }
-    default:
-      // ignore — we only display opt-in supporters.
-      break;
+  if (event.type === 'checkout.session.completed') {
+    const session: any = event.data.object;
+    if (session.payment_status !== 'paid' && session.status !== 'complete') return;
+    const extracted = extractFromMetadata(session.metadata);
+    if (!extracted) return;
+    await recordPublicDonation({
+      sessionId: session.id,
+      amountCents: session.amount_total,
+      currency: session.currency,
+      displayName: extracted.displayName,
+      message: extracted.message,
+      kind: extracted.kind,
+    });
   }
 }
 
