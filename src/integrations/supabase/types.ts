@@ -1972,6 +1972,42 @@ export type Database = {
         }
         Relationships: []
       }
+      patrons: {
+        Row: {
+          created_at: string
+          disclosure_note: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          published: boolean
+          sort_order: number
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          disclosure_note?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          published?: boolean
+          sort_order?: number
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          disclosure_note?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          published?: boolean
+          sort_order?: number
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       profession_buckets: {
         Row: {
           created_at: string
@@ -2336,6 +2372,42 @@ export type Database = {
           },
         ]
       }
+      public_donations: {
+        Row: {
+          amount_eur: number | null
+          created_at: string
+          display_name: string
+          id: string
+          kind: string
+          message: string | null
+          show_publicly: boolean
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_eur?: number | null
+          created_at?: string
+          display_name: string
+          id?: string
+          kind?: string
+          message?: string | null
+          show_publicly?: boolean
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_eur?: number | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          kind?: string
+          message?: string | null
+          show_publicly?: boolean
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_disclaimers: {
         Row: {
           created_at: string
@@ -2366,6 +2438,36 @@ export type Database = {
           title?: string
           updated_at?: string
           variant?: string
+        }
+        Relationships: []
+      }
+      site_finance: {
+        Row: {
+          currency: string
+          id: string
+          monthly_cost_eur: number
+          notes: string | null
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          currency?: string
+          id?: string
+          monthly_cost_eur?: number
+          notes?: string | null
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          currency?: string
+          id?: string
+          monthly_cost_eur?: number
+          notes?: string | null
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
