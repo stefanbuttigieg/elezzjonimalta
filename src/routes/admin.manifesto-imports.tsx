@@ -90,7 +90,12 @@ function ManifestoImportsAdmin() {
         </div>
       ) : null}
 
-      <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
+      <ActivePanel rows={rows} />
+
+      <h2 className="mt-8 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        All imports
+      </h2>
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-accent/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
