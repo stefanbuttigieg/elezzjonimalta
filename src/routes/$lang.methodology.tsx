@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/types";
+import { SupportNudge } from "@/components/site/SupportNudge";
 
 export const Route = createFileRoute("/$lang/methodology")({
   head: ({ params }) => {
@@ -62,6 +63,7 @@ function MethodologyPage() {
           .
         </p>
       </div>
+      <SupportNudge />
     </article>
   );
 }

@@ -15,6 +15,7 @@ import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
@@ -41,6 +42,8 @@ import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
 import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
 import { Route as LangThemesRouteImport } from './routes/$lang.themes'
 import { Route as LangTermsRouteImport } from './routes/$lang.terms'
+import { Route as LangSupportersRouteImport } from './routes/$lang.supporters'
+import { Route as LangSupportRouteImport } from './routes/$lang.support'
 import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
 import { Route as LangSearchRouteImport } from './routes/$lang.search'
 import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
@@ -70,6 +73,7 @@ import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/p
 import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
 import { Route as ApiPublicV1CatalogDotjsonldRouteImport } from './routes/api/public/v1/catalog[.]jsonld'
 import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
 import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
@@ -103,6 +107,11 @@ const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LangRoute,
+} as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
@@ -233,6 +242,16 @@ const LangThemesRoute = LangThemesRouteImport.update({
 const LangTermsRoute = LangTermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSupportersRoute = LangSupportersRouteImport.update({
+  id: '/supporters',
+  path: '/supporters',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSupportRoute = LangSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => LangRoute,
 } as any)
 const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
@@ -382,6 +401,12 @@ const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
   path: '/api/public/v1/candidates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTelegramPollRoute =
   ApiPublicHooksTelegramPollRouteImport.update({
     id: '/api/public/hooks/telegram-poll',
@@ -424,6 +449,8 @@ export interface FileRoutesByFullPath {
   '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/support': typeof LangSupportRoute
+  '/$lang/supporters': typeof LangSupportersRoute
   '/$lang/terms': typeof LangTermsRoute
   '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
@@ -450,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
@@ -461,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -488,6 +517,8 @@ export interface FileRoutesByTo {
   '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/support': typeof LangSupportRoute
+  '/$lang/supporters': typeof LangSupportersRoute
   '/$lang/terms': typeof LangTermsRoute
   '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
@@ -514,6 +545,7 @@ export interface FileRoutesByTo {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
@@ -525,6 +557,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -555,6 +588,8 @@ export interface FileRoutesById {
   '/$lang/resources': typeof LangResourcesRoute
   '/$lang/search': typeof LangSearchRoute
   '/$lang/sitting-mps': typeof LangSittingMpsRoute
+  '/$lang/support': typeof LangSupportRoute
+  '/$lang/supporters': typeof LangSupportersRoute
   '/$lang/terms': typeof LangTermsRoute
   '/$lang/themes': typeof LangThemesRoute
   '/admin/api-logs': typeof AdminApiLogsRoute
@@ -581,6 +616,7 @@ export interface FileRoutesById {
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/voting-faqs': typeof AdminVotingFaqsRoute
   '/auth/login': typeof AuthLoginRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
@@ -592,6 +628,7 @@ export interface FileRoutesById {
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/api/public/v1/candidates': typeof ApiPublicV1CandidatesRoute
   '/api/public/v1/catalog.jsonld': typeof ApiPublicV1CatalogDotjsonldRoute
   '/api/public/v1/districts': typeof ApiPublicV1DistrictsRoute
@@ -623,6 +660,8 @@ export interface FileRouteTypes {
     | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
+    | '/$lang/support'
+    | '/$lang/supporters'
     | '/$lang/terms'
     | '/$lang/themes'
     | '/admin/api-logs'
@@ -649,6 +688,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
+    | '/checkout/return'
     | '/$lang/'
     | '/admin/'
     | '/$lang/candidates/$slug'
@@ -660,6 +700,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -687,6 +728,8 @@ export interface FileRouteTypes {
     | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
+    | '/$lang/support'
+    | '/$lang/supporters'
     | '/$lang/terms'
     | '/$lang/themes'
     | '/admin/api-logs'
@@ -713,6 +756,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
+    | '/checkout/return'
     | '/$lang'
     | '/admin'
     | '/$lang/candidates/$slug'
@@ -724,6 +768,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -753,6 +798,8 @@ export interface FileRouteTypes {
     | '/$lang/resources'
     | '/$lang/search'
     | '/$lang/sitting-mps'
+    | '/$lang/support'
+    | '/$lang/supporters'
     | '/$lang/terms'
     | '/$lang/themes'
     | '/admin/api-logs'
@@ -779,6 +826,7 @@ export interface FileRouteTypes {
     | '/admin/translations'
     | '/admin/voting-faqs'
     | '/auth/login'
+    | '/checkout/return'
     | '/$lang/'
     | '/admin/'
     | '/$lang/candidates/$slug'
@@ -790,6 +838,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
+    | '/api/public/payments/webhook'
     | '/api/public/v1/candidates'
     | '/api/public/v1/catalog.jsonld'
     | '/api/public/v1/districts'
@@ -802,9 +851,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicHooksManifestoTickRoute: typeof ApiPublicHooksManifestoTickRoute
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   ApiPublicV1CandidatesRoute: typeof ApiPublicV1CandidatesRoute
   ApiPublicV1CatalogDotjsonldRoute: typeof ApiPublicV1CatalogDotjsonldRoute
   ApiPublicV1DistrictsRoute: typeof ApiPublicV1DistrictsRoute
@@ -854,6 +905,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$lang/'
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/auth/login': {
       id: '/auth/login'
@@ -1035,6 +1093,20 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/$lang/terms'
       preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/supporters': {
+      id: '/$lang/supporters'
+      path: '/supporters'
+      fullPath: '/$lang/supporters'
+      preLoaderRoute: typeof LangSupportersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/support': {
+      id: '/$lang/support'
+      path: '/support'
+      fullPath: '/$lang/support'
+      preLoaderRoute: typeof LangSupportRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/sitting-mps': {
@@ -1240,6 +1312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/telegram-poll': {
       id: '/api/public/hooks/telegram-poll'
       path: '/api/public/hooks/telegram-poll'
@@ -1284,6 +1363,8 @@ interface LangRouteChildren {
   LangResourcesRoute: typeof LangResourcesRoute
   LangSearchRoute: typeof LangSearchRoute
   LangSittingMpsRoute: typeof LangSittingMpsRoute
+  LangSupportRoute: typeof LangSupportRoute
+  LangSupportersRoute: typeof LangSupportersRoute
   LangTermsRoute: typeof LangTermsRoute
   LangThemesRoute: typeof LangThemesRoute
   LangIndexRoute: typeof LangIndexRoute
@@ -1314,6 +1395,8 @@ const LangRouteChildren: LangRouteChildren = {
   LangResourcesRoute: LangResourcesRoute,
   LangSearchRoute: LangSearchRoute,
   LangSittingMpsRoute: LangSittingMpsRoute,
+  LangSupportRoute: LangSupportRoute,
+  LangSupportersRoute: LangSupportersRoute,
   LangTermsRoute: LangTermsRoute,
   LangThemesRoute: LangThemesRoute,
   LangIndexRoute: LangIndexRoute,
@@ -1390,9 +1473,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthLoginRoute: AuthLoginRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicHooksManifestoTickRoute: ApiPublicHooksManifestoTickRoute,
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   ApiPublicV1CandidatesRoute: ApiPublicV1CandidatesRoute,
   ApiPublicV1CatalogDotjsonldRoute: ApiPublicV1CatalogDotjsonldRoute,
   ApiPublicV1DistrictsRoute: ApiPublicV1DistrictsRoute,
