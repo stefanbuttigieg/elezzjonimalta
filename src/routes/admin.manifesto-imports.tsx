@@ -90,7 +90,12 @@ function ManifestoImportsAdmin() {
         </div>
       ) : null}
 
-      <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
+      <ActivePanel rows={rows} />
+
+      <h2 className="mt-8 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        All imports
+      </h2>
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
         <table className="w-full text-sm">
           <thead className="bg-accent/40 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <tr>
@@ -273,3 +278,134 @@ function formatDateTime(iso: string): string {
     return iso.slice(0, 16);
   }
 }
+
+function ActivePanel({ rows }: { rows: Row[] }) {
+  const active = rows.filter((r) => r.status === "processing" || r.status === "ready");
+  const recentFailed = rows
+    .filter((r) => r.status === "failed")
+    .slice(0, 3);
+
+  if (active.length === 0 && recentFailed.length === 0) return null;
+
+  return (
+    <div className="mt-6 space-y-3">
+      {active.length > 0 ? (
+        <div>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Active imports ({active.length})
+          </h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {active.map((r) => (
+              <ActiveCard key={r.id} row={r} />
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {recentFailed.length > 0 ? (
+        <div>
+          <h2 className="mb-3 mt-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Recent failures
+          </h2>
+          <div className="space-y-2">
+            {recentFailed.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-foreground">
+                    {r.party?.short_name || r.party?.name_en || "—"}
+                  </div>
+                  <StatusPill status={r.status} />
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Stopped at: <span className="font-medium text-foreground">{r.stage ?? "—"}</span>
+                  {" · "}
+                  {r.progress ?? 0}%
+                </div>
+                {r.error ? (
+                  <p className="mt-1.5 text-xs text-destructive whitespace-pre-wrap break-words">
+                    {r.error}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ActiveCard({ row }: { row: Row }) {
+  const partyLabel = row.party?.short_name || row.party?.name_en || "—";
+  const pct = row.progress ?? 0;
+  const elapsedMs = Date.now() - new Date(row.updated_at).getTime();
+  const stalled = elapsedMs > 60_000; // no progress for 1+ min
+  return (
+    <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-serif text-base font-bold text-foreground truncate">
+              {partyLabel}
+            </span>
+            <StatusPill status={row.status} />
+          </div>
+          <div className="mt-0.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+            {row.language} · {row.source_kind}
+          </div>
+        </div>
+        <Link
+          to="/admin/proposals"
+          search={{ import: row.id }}
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold hover:bg-accent"
+        >
+          {row.status === "ready" ? "Review" : "Open"}
+        </Link>
+      </div>
+
+      <div className="mt-3">
+        <div className="flex items-baseline justify-between text-sm">
+          <span className="font-medium text-foreground truncate">{row.stage ?? "Queued"}</span>
+          <span className="tabular-nums font-semibold text-foreground">{pct}%</span>
+        </div>
+        <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={
+              "h-full rounded-full transition-[width] duration-500 ease-out " +
+              (row.status === "ready" ? "bg-emerald-500" : "bg-primary")
+            }
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
+          <span>Updated {formatRelative(elapsedMs)} ago</span>
+          {stalled ? (
+            <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
+              <AlertTriangle className="h-3 w-3" />
+              No progress — cron will retry
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      {row.error ? (
+        <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs text-destructive whitespace-pre-wrap break-words">
+          <span className="font-semibold">Last error: </span>
+          {row.error}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function formatRelative(ms: number): string {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return `${s}s`;
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.round(m / 60);
+  return `${h}h`;
+}
+
