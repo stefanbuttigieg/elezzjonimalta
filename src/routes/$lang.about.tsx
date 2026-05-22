@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/site/LegalPage";
 import { LEGAL_CONTENT } from "@/components/site/legal-content";
+import { SupportNudge } from "@/components/site/SupportNudge";
 import { isLocale, type Locale } from "@/i18n/types";
 
 export const Route = createFileRoute("/$lang/about")({
@@ -10,6 +11,13 @@ export const Route = createFileRoute("/$lang/about")({
   },
   component: () => {
     const { lang } = Route.useParams();
-    return <LegalPage slug="about" lang={lang} />;
+    return (
+      <>
+        <LegalPage slug="about" lang={lang} />
+        <div className="container mx-auto max-w-3xl px-4 pb-16">
+          <SupportNudge />
+        </div>
+      </>
+    );
   },
 });

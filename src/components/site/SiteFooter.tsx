@@ -28,6 +28,8 @@ export function SiteFooter() {
     { to: `/${lang}/developers`, label: t("footer.developers") },
     { to: `/${lang}/data`, label: t("footer.data") },
     { to: `/${lang}/changelog`, label: t("footer.changelog") },
+    { to: `/${lang}/support`, label: lang === "mt" ? "Appoġġja l-proġett" : "Support this project" },
+    { to: `/${lang}/supporters`, label: lang === "mt" ? "Sostenituri" : "Supporters" },
   ];
 
   return (
