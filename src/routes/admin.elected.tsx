@@ -113,10 +113,10 @@ function ElectedBulkEditor() {
     void (async () => {
       const [d, p] = await Promise.all([
         supabase.from("districts").select("id, number, name_en").order("number"),
-        supabase.from("parties").select("id, name").order("name"),
+        supabase.from("parties").select("id, name_en").order("name_en"),
       ]);
       setDistricts((d.data ?? []) as DistrictOpt[]);
-      setParties((p.data ?? []) as PartyOpt[]);
+      setParties(((p.data ?? []) as { id: string; name_en: string }[]).map((x) => ({ id: x.id, name: x.name_en })));
     })();
   }, []);
 
