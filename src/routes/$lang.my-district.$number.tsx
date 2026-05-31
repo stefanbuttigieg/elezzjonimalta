@@ -54,6 +54,7 @@ type CandidateRow = {
   leadership_role: "leader" | "deputy_leader" | null;
   party: PartyLite | null;
   primary_district_id: string | null;
+  elected_here: boolean;
 };
 
 type ProposalRow = {
