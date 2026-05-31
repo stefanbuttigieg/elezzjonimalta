@@ -136,10 +136,12 @@ function ElectedBulkEditor() {
       if (electedFilter === "elected" && !r.elected) return false;
       if (electedFilter === "not" && r.elected) return false;
       if (electedFilter === "gcm" && !r.elected_via_gcm) return false;
+      if (electedFilter === "prop" && !r.elected_via_proportionality) return false;
       if (
         modifiedOnly &&
         r.elected === r.initial_elected &&
         r.elected_via_gcm === r.initial_elected_via_gcm &&
+        r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.votes === r.initial_votes
       )
         return false;
