@@ -167,11 +167,19 @@ async function loadElectedSummary(): Promise<ElectedSummary> {
   type PartyTally = ElectedSummary["byParty"][number];
   const partyMap = new Map<string, PartyTally>();
   const items: Array<Row & { sortKey: number }> = [];
+  const seenCandidates = new Set<string>();
+  const candidateDistricts = new Map<string, Set<number>>();
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
     districts.add(r.district.number);
     items.push({ ...r, sortKey: r.updated_at ? new Date(r.updated_at).getTime() : 0 });
+    const slug = r.candidate.slug;
+    const set = candidateDistricts.get(slug) ?? new Set<number>();
+    set.add(r.district.number);
+    candidateDistricts.set(slug, set);
+    if (seenCandidates.has(slug)) continue;
+    seenCandidates.add(slug);
     const p = r.candidate.party;
     const key = p?.slug ?? "__independent";
     const existing =
@@ -189,24 +197,37 @@ async function loadElectedSummary(): Promise<ElectedSummary> {
   }
 
   items.sort((a, b) => b.sortKey - a.sortKey);
-  const recent = items.slice(0, 8).map((r) => ({
-    slug: r.candidate!.slug,
-    full_name: r.candidate!.full_name,
-    photo_url: r.candidate!.photo_url,
-    district_number: r.district!.number,
-    district_name_en: r.district!.name_en,
-    district_name_mt: r.district!.name_mt,
-    party_short: r.candidate!.party?.short_name ?? null,
-    party_name_en: r.candidate!.party?.name_en ?? null,
-    party_name_mt: r.candidate!.party?.name_mt ?? null,
-    party_color: r.candidate!.party?.color ?? null,
-  }));
+  const recentSeen = new Set<string>();
+  const recent = items
+    .filter((r) => {
+      const s = r.candidate!.slug;
+      if (recentSeen.has(s)) return false;
+      recentSeen.add(s);
+      return true;
+    })
+    .slice(0, 8)
+    .map((r) => ({
+      slug: r.candidate!.slug,
+      full_name: r.candidate!.full_name,
+      photo_url: r.candidate!.photo_url,
+      district_number: r.district!.number,
+      district_name_en: r.district!.name_en,
+      district_name_mt: r.district!.name_mt,
+      party_short: r.candidate!.party?.short_name ?? null,
+      party_name_en: r.candidate!.party?.name_en ?? null,
+      party_name_mt: r.candidate!.party?.name_mt ?? null,
+      party_color: r.candidate!.party?.color ?? null,
+      district_count: candidateDistricts.get(r.candidate!.slug)?.size ?? 1,
+    }));
+
+  const multiDistrict = Array.from(candidateDistricts.values()).filter((s) => s.size > 1).length;
 
   return {
-    total: items.length,
+    total: seenCandidates.size,
     districtsWithResults: districts.size,
     byParty: Array.from(partyMap.values()).sort((a, b) => b.count - a.count),
     recent,
+    multiDistrict,
   };
 }
 
