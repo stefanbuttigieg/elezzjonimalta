@@ -438,7 +438,7 @@ function StatsSection({
     { icon: Users, value: stats?.candidates ?? 0, label: t("home.stats.candidates"), to: `/${lang}/candidates` },
     { icon: Flag, value: stats?.parties ?? 0, label: t("home.stats.parties"), to: `/${lang}/parties` },
     { icon: FileText, value: stats?.proposals ?? 0, label: t("home.stats.proposals"), to: `/${lang}/proposals` },
-    { icon: Map, value: stats?.districts ?? 0, label: t("home.stats.districts"), to: `/${lang}/districts` },
+    { icon: MapIcon, value: stats?.districts ?? 0, label: t("home.stats.districts"), to: `/${lang}/districts` },
     { icon: Landmark, value: stats?.sittingMps ?? 0, label: t("home.stats.sittingMps"), to: `/${lang}/sitting-mps` },
     { icon: HelpCircle, value: stats?.faqs ?? 0, label: t("home.stats.faqs"), to: `/${lang}/faq` },
     { icon: CalendarDays, value: daysToGo, label: t("home.stats.daysToGo"), accent: true },
@@ -632,7 +632,7 @@ function EntryGrid({
     },
     {
       to: `/${lang}/districts`,
-      icon: Map,
+      icon: MapIcon,
       title: t("home.entry.districts.title"),
       desc: t("home.entry.districts.desc"),
     },
