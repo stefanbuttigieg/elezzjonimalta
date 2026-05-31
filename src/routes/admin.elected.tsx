@@ -67,7 +67,7 @@ function ElectedBulkEditor() {
           .from("candidate_districts")
           .select(
             "id, candidate_id, district_id, election_year, elected, votes_first_count, " +
-              "candidates!inner(full_name, slug, party_id, parties(name)), " +
+              "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
           .eq("election_year", year)
