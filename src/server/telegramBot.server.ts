@@ -553,7 +553,7 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
 
 // Commands where feedback is meaningful. We skip /help and unknown commands
 // since rating those would just be noise.
-const FEEDBACK_COMMANDS = new Set(["candidates", "party", "proposals", "faq", "ask"]);
+const FEEDBACK_COMMANDS = new Set(["candidates", "elected", "party", "proposals", "faq", "ask"]);
 
 async function processMessage(update: TgUpdate): Promise<void> {
   const msg = update.message;
