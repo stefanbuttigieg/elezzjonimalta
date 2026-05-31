@@ -256,7 +256,7 @@ function HeaderSearch({ lang }: { lang: Locale }) {
       onSubmit={submit}
       role="search"
       aria-label={t("nav.search")}
-      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary xl:inline-flex"
+      className="hidden items-center gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground focus-within:ring-2 focus-within:ring-primary 2xl:inline-flex"
     >
       <Search className="h-3.5 w-3.5 text-muted-foreground" />
       <input
@@ -265,7 +265,7 @@ function HeaderSearch({ lang }: { lang: Locale }) {
         onChange={(e) => setQ(e.target.value)}
         placeholder={t("search.headerPlaceholder")}
         aria-label={t("nav.search")}
-        className="w-36 bg-transparent text-xs outline-none placeholder:text-muted-foreground xl:w-48"
+        className="w-36 bg-transparent text-xs outline-none placeholder:text-muted-foreground 2xl:w-48"
       />
     </form>
   );
