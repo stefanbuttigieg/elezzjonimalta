@@ -96,6 +96,7 @@ async function loadElected(): Promise<LoaderData> {
       full_name: r.candidate.full_name,
       photo_url: r.candidate.photo_url,
       votes: r.votes_first_count,
+      elected_via_gcm: !!r.elected_via_gcm,
       party: r.candidate.party,
     });
     groupMap.set(r.district.number, g);
