@@ -18,6 +18,7 @@ type ElectedRow = {
   candidate_id: string;
   district_id: string;
   votes_first_count: number | null;
+  elected_via_gcm: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -38,6 +39,7 @@ type ElectedCandidate = {
   full_name: string;
   photo_url: string | null;
   votes: number | null;
+  elected_via_gcm: boolean;
   party: PartyLite | null;
 };
 
