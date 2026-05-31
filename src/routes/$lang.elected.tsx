@@ -433,6 +433,14 @@ function ElectedPage() {
                               {t("elected.gcm.short")}
                             </p>
                           ) : null}
+                          {c.elected_via_proportionality ? (
+                            <p
+                              className="mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-700 dark:text-sky-300"
+                              title={t("elected.prop.badge")}
+                            >
+                              {t("elected.prop.short")}
+                            </p>
+                          ) : null}
                           {c.votes != null ? (
                             <p className="mt-0.5 text-xs font-medium tabular-nums text-emerald-700 dark:text-emerald-300">
                               {t("elected.votes", { count: c.votes.toLocaleString() })}
