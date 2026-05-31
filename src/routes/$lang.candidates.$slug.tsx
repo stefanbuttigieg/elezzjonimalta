@@ -183,7 +183,7 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
 function CandidatePage() {
   const t = useT();
   const { lang } = Route.useParams();
-  const { candidate, proposals, sources } = Route.useLoaderData();
+  const { candidate, proposals, sources, electedDistricts } = Route.useLoaderData();
   const locale: Locale = isLocale(lang) ? lang : "en";
 
   const bio =
