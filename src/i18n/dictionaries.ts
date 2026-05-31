@@ -146,7 +146,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.districtEmpty": "No results recorded yet for this district.",
     "elected.votes": "{count} first-count votes",
     "elected.districtHeading": "District {number} — {name}",
-    "elected.byParty": "Elected by party",
+    "elected.byParty": "Seats won by party",
+    "elected.byParty.subtitle":
+      "Total seats won per party — counts every seat awarded, including duplicates from candidates elected in two districts and seats from the proportionality adjustment.",
+    "elected.byParty.uniqueShort": "unique",
+    "elected.byParty.tooltip": "{seats} total seats · {unique} unique candidates",
     "elected.gcm.badge": "Gender corrective mechanism",
     "elected.gcm.short": "GCM",
     "elected.gcm.sectionTitle": "Elected via the Gender Corrective Mechanism",
