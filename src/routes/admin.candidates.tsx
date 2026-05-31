@@ -777,6 +777,16 @@ function CandidateEditor({
     setDistrictIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+    // If unchecking a district, also clear its elected flag.
+    setElectedIds((prev) => prev.filter((x) => x !== id));
+  };
+
+  const toggleElected = (id: string) => {
+    setElectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+    // Ensure the district is also marked as contesting.
+    setDistrictIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   };
 
   const save = async () => {
