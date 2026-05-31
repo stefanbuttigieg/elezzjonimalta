@@ -169,7 +169,7 @@ function ElectedPage() {
   const t = useT();
   const { lang } = Route.useParams();
   const locale: Locale = isLocale(lang) ? lang : "en";
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as LoaderData;
 
   const districtsWithResults = new Set(data.groups.map((g) => g.number));
   const pending = data.allDistricts.filter((d) => !districtsWithResults.has(d.number));
