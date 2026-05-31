@@ -41,6 +41,7 @@ type ElectedCandidate = {
   votes: number | null;
   elected_via_gcm: boolean;
   party: PartyLite | null;
+  also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
 
 type DistrictGroup = {
@@ -54,9 +55,19 @@ type PartyTally = PartyLite & { count: number };
 
 type DistrictLite = { number: number; name_en: string; name_mt: string | null };
 
+type MultiDistrictWinner = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  party: PartyLite | null;
+  districts: Array<{ number: number; name_en: string; name_mt: string | null; votes: number | null }>;
+};
+
 type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
+  totalSeats: number;
+  multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
 };
