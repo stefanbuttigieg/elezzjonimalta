@@ -753,6 +753,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "common.backHome": "Lura għad-dar",
     "common.sittingMp": "Membru Parlamentari",
     "common.electoralConfirmed": "Ikkonfermat permezz ta' sorsi tal-aħbarijiet",
+    "common.elected": "Elett/a",
+    "common.electedInDistrict": "Elett/a — Distrett {number}",
     "common.partyList": "Fuq il-lista tal-partit",
     "common.draft": "Abbozz",
     "common.viewAll": "Ara kollox",
