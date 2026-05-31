@@ -88,6 +88,56 @@ async function buildAuthoritativeFacts(
   lines.push(
     "- If a person appears in the retrieved context as a candidate of a party, that does NOT make them the party leader. Use this list for leadership questions.",
   );
+
+  // Elected candidates (2026), grouped by district. Sourced from
+  // candidate_districts.elected — updated live as official results come in.
+  const { data: electedRows } = await supabase
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, district:districts(number, name_en), candidate:candidates(full_name, party:parties(short_name, name_en))",
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+
+  type ElectedRow = {
+    votes_first_count: number | null;
+    district: { number?: number; name_en?: string } | null;
+    candidate: {
+      full_name?: string;
+      party: { short_name?: string | null; name_en?: string | null } | null;
+    } | null;
+  };
+  const byDistrict = new Map<number, Array<{ name: string; party: string; votes: number | null }>>();
+  for (const row of (electedRows ?? []) as ElectedRow[]) {
+    const n = row.district?.number;
+    if (!n || !row.candidate?.full_name) continue;
+    const arr = byDistrict.get(n) ?? [];
+    arr.push({
+      name: row.candidate.full_name,
+      party: row.candidate.party?.short_name || row.candidate.party?.name_en || "Independent",
+      votes: row.votes_first_count ?? null,
+    });
+    byDistrict.set(n, arr);
+  }
+
+  lines.push("");
+  lines.push("- Elected candidates for the 2026 General Election (live results, may be incomplete while counting continues — Partit Laburista has been declared the overall winner):");
+  if (byDistrict.size === 0) {
+    lines.push("  • No elected candidates have been recorded yet in the database. Counting is ongoing.");
+  } else {
+    const sortedDistricts = Array.from(byDistrict.keys()).sort((a, b) => a - b);
+    for (const n of sortedDistricts) {
+      const list = byDistrict.get(n)!.sort((a, b) => a.name.localeCompare(b.name));
+      const items = list
+        .map((c) => `${c.name} (${c.party})${c.votes != null ? ` — ${c.votes} first-count votes` : ""}`)
+        .join("; ");
+      lines.push(`  • District ${n}: ${items}.`);
+    }
+    lines.push(
+      "- If asked who was elected from a district, use ONLY this list. If a district is missing above, say results are not yet recorded for that district.",
+    );
+  }
+
   return lines.join("\n");
 }
 
