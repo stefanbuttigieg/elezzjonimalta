@@ -53,7 +53,7 @@ type DistrictGroup = {
   elected: ElectedCandidate[];
 };
 
-type PartyTally = PartyLite & { count: number };
+type PartyTally = PartyLite & { count: number; seats: number; propSeats: number };
 
 type DistrictLite = { number: number; name_en: string; name_mt: string | null };
 
@@ -136,13 +136,16 @@ async function loadElected(): Promise<LoaderData> {
     });
     candidateInfo.set(r.candidate.slug, info);
 
-    if (candidateSeen.has(r.candidate.slug)) continue;
+    const p = r.candidate.party;
+    const isFirstSeat = !candidateSeen.has(r.candidate.slug);
     candidateSeen.add(r.candidate.slug);
 
-    const p = r.candidate.party;
     if (p) {
-      const existing = partyMap.get(p.slug) ?? { ...p, count: 0 };
-      existing.count += 1;
+      const existing =
+        partyMap.get(p.slug) ?? { ...p, count: 0, seats: 0, propSeats: 0 };
+      existing.seats += 1;
+      if (r.elected_via_proportionality) existing.propSeats += 1;
+      if (isFirstSeat) existing.count += 1;
       partyMap.set(p.slug, existing);
     } else {
       const key = "__independent";
@@ -154,8 +157,12 @@ async function loadElected(): Promise<LoaderData> {
           name_mt: "Indipendenti",
           color: null,
           count: 0,
+          seats: 0,
+          propSeats: 0,
         };
-      existing.count += 1;
+      existing.seats += 1;
+      if (r.elected_via_proportionality) existing.propSeats += 1;
+      if (isFirstSeat) existing.count += 1;
       partyMap.set(key, existing);
     }
   }
@@ -176,7 +183,7 @@ async function loadElected(): Promise<LoaderData> {
   }
 
   const groups = Array.from(groupMap.values()).sort((a, b) => a.number - b.number);
-  const byParty = Array.from(partyMap.values()).sort((a, b) => b.count - a.count);
+  const byParty = Array.from(partyMap.values()).sort((a, b) => b.seats - a.seats || b.count - a.count);
   const multiDistrictWinners = Array.from(candidateInfo.values())
     .filter((w) => w.districts.length > 1)
     .sort((a, b) => b.districts.length - a.districts.length || a.full_name.localeCompare(b.full_name));
@@ -284,11 +291,19 @@ function ElectedPage() {
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {t("elected.byParty")}
             </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("elected.byParty.subtitle")}
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {data.byParty.map((p) => (
                 <span
                   key={p.slug}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground"
+                  title={
+                    p.seats !== p.count
+                      ? t("elected.byParty.tooltip", { seats: p.seats, unique: p.count })
+                      : undefined
+                  }
                 >
                   <span
                     className="h-2.5 w-2.5 rounded-full"
@@ -300,8 +315,21 @@ function ElectedPage() {
                     {p.short_name ? ` (${p.short_name})` : ""}
                   </span>
                   <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    {p.count}
+                    {p.seats}
                   </span>
+                  {p.propSeats > 0 ? (
+                    <span
+                      className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300"
+                      title={t("elected.prop.badge")}
+                    >
+                      +{p.propSeats} {t("elected.prop.short")}
+                    </span>
+                  ) : null}
+                  {p.seats !== p.count ? (
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      ({p.count} {t("elected.byParty.uniqueShort")})
+                    </span>
+                  ) : null}
                 </span>
               ))}
             </div>
