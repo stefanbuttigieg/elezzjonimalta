@@ -196,6 +196,7 @@ const EMPTY_DATA: LoaderData = {
   groups: [],
   totalElected: 0,
   totalSeats: 0,
+  proportionalitySeats: 0,
   multiDistrictWinners: [],
   byParty: [],
   allDistricts: [],
