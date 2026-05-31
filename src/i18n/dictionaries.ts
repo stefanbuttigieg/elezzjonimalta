@@ -643,6 +643,26 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "API pubbliku, bla ħlas u dokumentat. Uża d-data fir-riċerka u r-rappurtaġġ tiegħek.",
 
+    "home.elected.eyebrow": "Riżultati ħajjin",
+    "home.elected.title": "Eletti — Elezzjoni Ġenerali 2026",
+    "home.elected.subtitle":
+      "Il-Partit Laburista ġie ddikjarat rebbieħ. Il-kandidati eletti jiżdiedu hawn hekk kif jiġu kkonfermati r-riżultati uffiċjali tad-distretti.",
+    "home.elected.viewAll": "Ara l-kandidati eletti kollha",
+    "home.elected.empty": "Għadhom ma ġewx irreġistrati kandidati eletti. L-għadd għadu għaddej.",
+    "home.elected.countSummary": "{total} eletti s'issa minn {districts} distrett(i)",
+
+    "elected.meta.title": "Kandidati eletti — Elezzjoni Ġenerali 2026",
+    "elected.meta.description":
+      "Lista aġġornata tal-kandidati kollha eletti fil-Kamra tar-Rappreżentanti fl-Elezzjoni Ġenerali ta' Malta 2026, miġburin skont id-distrett.",
+    "elected.title": "Eletti — Elezzjoni Ġenerali 2026",
+    "elected.subtitle":
+      "Aġġornata ħajjin hekk kif jiġu kkonfermati r-riżultati uffiċjali. Il-Partit Laburista ġie ddikjarat ir-rebbieħ ġenerali.",
+    "elected.empty": "Għadhom ma ġewx irreġistrati kandidati eletti. Erġa' lura dalwaqt.",
+    "elected.districtEmpty": "Għadhom ma ġewx irreġistrati riżultati għal dan id-distrett.",
+    "elected.votes": "{count} voti ta' l-ewwel għadd",
+    "elected.districtHeading": "Distrett {number} — {name}",
+    "elected.byParty": "Eletti skont il-partit",
+
     "candidates.meta.title": "Kandidati — Elezzjoni",
     "candidates.meta.description":
       "Fittex kandidati ppubblikati għall-Elezzjoni Ġenerali 2026 skont l-isem, id-distrett u l-partit politiku.",
