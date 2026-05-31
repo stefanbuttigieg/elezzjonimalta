@@ -291,11 +291,19 @@ function ElectedPage() {
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {t("elected.byParty")}
             </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("elected.byParty.subtitle")}
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {data.byParty.map((p) => (
                 <span
                   key={p.slug}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground"
+                  title={
+                    p.seats !== p.count
+                      ? t("elected.byParty.tooltip", { seats: p.seats, unique: p.count })
+                      : undefined
+                  }
                 >
                   <span
                     className="h-2.5 w-2.5 rounded-full"
@@ -307,8 +315,21 @@ function ElectedPage() {
                     {p.short_name ? ` (${p.short_name})` : ""}
                   </span>
                   <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    {p.count}
+                    {p.seats}
                   </span>
+                  {p.propSeats > 0 ? (
+                    <span
+                      className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-bold text-sky-700 dark:text-sky-300"
+                      title={t("elected.prop.badge")}
+                    >
+                      +{p.propSeats} {t("elected.prop.short")}
+                    </span>
+                  ) : null}
+                  {p.seats !== p.count ? (
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      ({p.count} {t("elected.byParty.uniqueShort")})
+                    </span>
+                  ) : null}
                 </span>
               ))}
             </div>
