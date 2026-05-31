@@ -147,6 +147,15 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.votes": "{count} first-count votes",
     "elected.districtHeading": "District {number} — {name}",
     "elected.byParty": "Elected by party",
+    "elected.gcm.badge": "Gender corrective mechanism",
+    "elected.gcm.short": "GCM",
+    "elected.gcm.sectionTitle": "Elected via the Gender Corrective Mechanism",
+    "elected.gcm.sectionSubtitle":
+      "Additional seats awarded under Malta's gender corrective mechanism to address gender imbalance in the House of Representatives.",
+    "elected.gcm.empty": "No GCM seats recorded yet.",
+    "elected.gcm.count": "{count} GCM seat(s)",
+    "home.elected.countSummaryWithGcm":
+      "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
 
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
