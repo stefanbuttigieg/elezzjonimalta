@@ -73,7 +73,7 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          className="hidden items-center gap-0.5 md:flex xl:hidden"
+          className="hidden items-center gap-0.5 md:flex 2xl:hidden"
           aria-label="Primary"
         >
           {navItems.map((item) => {
@@ -93,7 +93,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1 2xl:flex" aria-label="Primary">
           {navItems.map((item) => (
             <Link
               key={item.to}
@@ -111,7 +111,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event("elezzjoni:open-command-palette"))}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-foreground hover:bg-accent xl:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-foreground hover:bg-accent 2xl:hidden"
             aria-label={t("nav.search")}
             title={t("nav.search")}
           >
@@ -121,7 +121,7 @@ export function SiteHeader() {
             <Link
               to="/$lang/my-district/$number"
               params={{ lang, number: String(preferred.number) }}
-              className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 xl:inline-flex"
+              className="hidden items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 2xl:inline-flex"
               title={t("home.welcomeBack.cta")}
             >
               <MapPin className="h-3.5 w-3.5" />
@@ -129,13 +129,25 @@ export function SiteHeader() {
             </Link>
           ) : null}
           {isStaff ? (
-            <Link
-              to="/admin"
-              className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent xl:inline-flex"
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Admin
-            </Link>
+            <>
+              {/* Icon-only Admin button on md→xl to save horizontal space */}
+              <Link
+                to="/admin"
+                title="Admin"
+                aria-label="Admin"
+                className="hidden h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-foreground hover:bg-accent md:inline-flex 2xl:hidden"
+              >
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              {/* Full Admin pill at 2xl where there's room for labels */}
+              <Link
+                to="/admin"
+                className="hidden items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-accent 2xl:inline-flex"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Admin
+              </Link>
+            </>
           ) : null}
           <LanguageToggle currentLang={lang} currentPath={location.pathname} />
           <button
