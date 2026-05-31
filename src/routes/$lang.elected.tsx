@@ -74,6 +74,7 @@ type LoaderData = {
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
+  pnLive: PnLiveResults | null;
 };
 
 async function loadElected(): Promise<LoaderData> {
