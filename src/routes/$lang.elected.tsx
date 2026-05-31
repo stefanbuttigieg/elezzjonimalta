@@ -77,7 +77,9 @@ type LoaderData = {
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
   pnLive: PnLiveResults | null;
+  elcomFirstCount: ElcomFirstCount | null;
 };
+
 
 async function loadElected(): Promise<LoaderData> {
   const [electedRes, districtsRes] = await Promise.all([
