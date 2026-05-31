@@ -33,6 +33,7 @@ import {
   BookUp,
   Search,
   Languages,
+  Star,
 } from "lucide-react";
 import {
   Sheet,
@@ -69,6 +70,7 @@ const items: NavItem[] = [
   { to: "/admin/candidate-suggestions", label: "AI suggestions", icon: Sparkles },
   { to: "/admin/parties", label: "Parties", icon: Landmark },
   { to: "/admin/districts", label: "Districts", icon: MapIcon },
+  { to: "/admin/elected", label: "Elected (bulk)", icon: Star },
   { to: "/admin/proposals", label: "Proposals", icon: FileText },
   { to: "/admin/manifesto-imports", label: "Manifesto imports", icon: BookUp },
   { to: "/admin/community-proposals", label: "Community proposals", icon: Users },
