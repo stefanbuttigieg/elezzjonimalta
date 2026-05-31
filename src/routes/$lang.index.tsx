@@ -414,6 +414,19 @@ function Hero({
 
             <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
               <Link
+                to="/$lang/elected"
+                params={{ lang }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 font-semibold text-primary hover:bg-primary/15"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                <Landmark className="h-3.5 w-3.5" />
+                {lang === "mt" ? "Riżultati Live — Eletti 2026" : "Live results — Elected 2026"}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+              <Link
                 to="/$lang/candidates"
                 params={{ lang }}
                 className="inline-flex items-center gap-1.5 font-semibold text-foreground/80 hover:text-foreground"
