@@ -350,6 +350,7 @@ export type Database = {
           created_at: string
           district_id: string
           elected: boolean
+          elected_via_gcm: boolean
           election_year: number
           id: string
           updated_at: string
@@ -360,6 +361,7 @@ export type Database = {
           created_at?: string
           district_id: string
           elected?: boolean
+          elected_via_gcm?: boolean
           election_year: number
           id?: string
           updated_at?: string
@@ -370,6 +372,7 @@ export type Database = {
           created_at?: string
           district_id?: string
           elected?: boolean
+          elected_via_gcm?: boolean
           election_year?: number
           id?: string
           updated_at?: string
@@ -1270,6 +1273,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      gcm_allocations: {
+        Row: {
+          created_at: string
+          election_year: number
+          gender: string
+          id: string
+          notes: string | null
+          party_id: string | null
+          seats: number
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          election_year: number
+          gender: string
+          id?: string
+          notes?: string | null
+          party_id?: string | null
+          seats?: number
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          election_year?: number
+          gender?: string
+          id?: string
+          notes?: string | null
+          party_id?: string | null
+          seats?: number
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gcm_allocations_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       knowledge_chunks: {
         Row: {
