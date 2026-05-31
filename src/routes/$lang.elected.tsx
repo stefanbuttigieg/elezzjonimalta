@@ -432,6 +432,102 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        {pnLive ? (
+          <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <Radio className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                {locale === "mt" ? "Riżultati nazzjonali — l-ewwel għadd" : "National first-count results"}
+                {pnLive.national.percentCounted != null ? (
+                  <span className="ml-1 rounded-full bg-background px-2 py-0.5 text-[10px] font-bold text-foreground">
+                    {pnLive.national.percentCounted}% {locale === "mt" ? "magħduda" : "counted"}
+                  </span>
+                ) : null}
+              </h2>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Partit Nazzjonalista</p>
+                <p className="mt-1 font-serif text-2xl font-bold tabular-nums text-foreground">
+                  {pnLive.national.pnPercent != null ? `${pnLive.national.pnPercent}%` : "—"}
+                </p>
+                <p className="text-xs tabular-nums text-muted-foreground">
+                  {pnLive.national.pnVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">Partit Laburista</p>
+                <p className="mt-1 font-serif text-2xl font-bold tabular-nums text-foreground">
+                  {pnLive.national.plPercent != null ? `${pnLive.national.plPercent}%` : "—"}
+                </p>
+                <p className="text-xs tabular-nums text-muted-foreground">
+                  {pnLive.national.plVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-300">ADPD</p>
+                <p className="mt-1 font-serif text-2xl font-bold tabular-nums text-foreground">
+                  {pnLive.national.adpdVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Momentum</p>
+                <p className="mt-1 font-serif text-2xl font-bold tabular-nums text-foreground">
+                  {pnLive.national.momentumVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+            </div>
+            {pnLive.national.totalVotes != null ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {locale === "mt" ? "Total voti magħduda: " : "Total votes counted: "}
+                <span className="font-semibold tabular-nums text-foreground">{pnLive.national.totalVotes.toLocaleString()}</span>
+              </p>
+            ) : null}
+            {pnLive.projection ? (
+              <div className="mt-4 rounded-xl border border-dashed border-border bg-background/40 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  TBASSIR · {locale === "mt" ? "Projezzjoni" : "Projection"}
+                </p>
+                <div className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+                  <span className="font-semibold text-sky-700 dark:text-sky-300 tabular-nums">
+                    PN {pnLive.projection.pnPercent ?? "—"}%
+                  </span>
+                  <span className="font-semibold text-rose-700 dark:text-rose-300 tabular-nums">
+                    PL {pnLive.projection.plPercent ?? "—"}%
+                  </span>
+                  {pnLive.projection.leadParty && pnLive.projection.leadPercent != null ? (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                        pnLive.projection.leadParty === "PL"
+                          ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
+                          : "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                      }`}
+                    >
+                      {pnLive.projection.leadParty} +{pnLive.projection.leadPercent}%
+                      {pnLive.projection.leadVotes != null
+                        ? ` (+${pnLive.projection.leadVotes.toLocaleString()} ${locale === "mt" ? "voti" : "votes"})`
+                        : ""}
+                    </span>
+                  ) : null}
+                </div>
+                {pnLive.projection.pnSeatPercent != null && pnLive.projection.plSeatPercent != null ? (
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    {locale === "mt" ? "Sehem ta' siġġijiet projettat" : "Projected seat share"}:{" "}
+                    <span className="font-semibold text-sky-700 dark:text-sky-300 tabular-nums">
+                      PN {pnLive.projection.pnSeatPercent}%
+                    </span>{" "}·{" "}
+                    <span className="font-semibold text-rose-700 dark:text-rose-300 tabular-nums">
+                      PL {pnLive.projection.plSeatPercent}%
+                    </span>
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            <PnAttribution locale={locale} updatedAt={pnLive.updatedAt} />
+          </div>
+        ) : null}
+
+
         {data.multiDistrictWinners.length > 0 ? (
           <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 shadow-card ring-1 ring-amber-500/20">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300">
