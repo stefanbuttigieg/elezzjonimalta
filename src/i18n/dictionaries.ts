@@ -154,6 +154,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Additional seats awarded under Malta's gender corrective mechanism to address gender imbalance in the House of Representatives.",
     "elected.gcm.empty": "No GCM seats recorded yet.",
     "elected.gcm.count": "{count} GCM seat(s)",
+    "elected.prop.badge": "Proportionality adjustment",
+    "elected.prop.short": "PROP",
+    "elected.prop.tally": "{count} via proportionality adjustment",
     "home.elected.countSummaryWithGcm":
       "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
     "home.elected.multiDistrict": "{count} elected in 2 districts",
@@ -684,6 +687,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Siġġijiet addizzjonali mogħtija taħt il-mekkaniżmu korrettiv tas-sessi ta' Malta biex jindirizza l-iżbilanċ bejn is-sessi fil-Kamra tar-Rappreżentanti.",
     "elected.gcm.empty": "Għad m'hemm l-ebda siġġijiet MKS irreġistrati.",
     "elected.gcm.count": "{count} siġġu/siġġijiet MKS",
+    "elected.prop.badge": "Aġġustament tal-proporzjonalità",
+    "elected.prop.short": "PROP",
+    "elected.prop.tally": "{count} permezz tal-aġġustament tal-proporzjonalità",
     "home.elected.countSummaryWithGcm":
       "{total} eletti s'issa minn {districts} distrett(i) — inkluż {gcm} permezz tal-mekkaniżmu korrettiv tas-sessi",
     "home.elected.multiDistrict": "{count} eletti f'żewġ distretti",

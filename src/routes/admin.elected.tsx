@@ -30,6 +30,8 @@ interface Row {
   initial_elected: boolean;
   elected_via_gcm: boolean;
   initial_elected_via_gcm: boolean;
+  elected_via_proportionality: boolean;
+  initial_elected_via_proportionality: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
 }
@@ -51,7 +53,7 @@ function ElectedBulkEditor() {
   const [districtFilter, setDistrictFilter] = useState<string>("all");
   const [partyFilter, setPartyFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not" | "gcm">("all");
+  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not" | "gcm" | "prop">("all");
   const [modifiedOnly, setModifiedOnly] = useState(false);
 
   // selection for bulk
@@ -68,7 +70,7 @@ function ElectedBulkEditor() {
         const { data, error } = await supabase
           .from("candidate_districts")
           .select(
-            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, votes_first_count, " +
+            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, votes_first_count, " +
               "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
@@ -92,6 +94,8 @@ function ElectedBulkEditor() {
           initial_elected: !!r.elected,
           elected_via_gcm: !!r.elected_via_gcm,
           initial_elected_via_gcm: !!r.elected_via_gcm,
+          elected_via_proportionality: !!r.elected_via_proportionality,
+          initial_elected_via_proportionality: !!r.elected_via_proportionality,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
@@ -132,10 +136,12 @@ function ElectedBulkEditor() {
       if (electedFilter === "elected" && !r.elected) return false;
       if (electedFilter === "not" && r.elected) return false;
       if (electedFilter === "gcm" && !r.elected_via_gcm) return false;
+      if (electedFilter === "prop" && !r.elected_via_proportionality) return false;
       if (
         modifiedOnly &&
         r.elected === r.initial_elected &&
         r.elected_via_gcm === r.initial_elected_via_gcm &&
+        r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.votes === r.initial_votes
       )
         return false;
@@ -151,6 +157,7 @@ function ElectedBulkEditor() {
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.votes !== r.initial_votes,
       ).length,
     [rows],
@@ -196,6 +203,7 @@ function ElectedBulkEditor() {
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
@@ -213,6 +221,7 @@ function ElectedBulkEditor() {
               .update({
                 elected: r.elected,
                 elected_via_gcm: r.elected_via_gcm,
+                elected_via_proportionality: r.elected_via_proportionality,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -227,6 +236,7 @@ function ElectedBulkEditor() {
                 ...r,
                 initial_elected: r.elected,
                 initial_elected_via_gcm: r.elected_via_gcm,
+                initial_elected_via_proportionality: r.elected_via_proportionality,
                 initial_votes: r.votes,
               }
             : r,
@@ -241,7 +251,7 @@ function ElectedBulkEditor() {
 
   const exportCsv = () => {
     const header =
-      "candidate_slug,candidate_name,district_number,district_name,party,elected,elected_via_gcm,votes_first_count";
+      "candidate_slug,candidate_name,district_number,district_name,party,elected,elected_via_gcm,elected_via_proportionality,votes_first_count";
     const lines = filtered.map((r) =>
       [
         r.candidate_slug,
@@ -251,6 +261,7 @@ function ElectedBulkEditor() {
         csvCell(r.party_name ?? ""),
         r.elected ? "true" : "false",
         r.elected_via_gcm ? "true" : "false",
+        r.elected_via_proportionality ? "true" : "false",
         r.votes,
       ].join(","),
     );
@@ -296,6 +307,11 @@ function ElectedBulkEditor() {
           if ("elected_via_gcm" in p) {
             row.elected_via_gcm = /^(1|true|yes|y|t)$/i.test(
               (p.elected_via_gcm ?? "").trim(),
+            );
+          }
+          if ("elected_via_proportionality" in p) {
+            row.elected_via_proportionality = /^(1|true|yes|y|t)$/i.test(
+              (p.elected_via_proportionality ?? "").trim(),
             );
           }
           if ("votes_first_count" in p) {
@@ -379,13 +395,14 @@ function ElectedBulkEditor() {
           Status
           <select
             value={electedFilter}
-            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm")}
+            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm" | "prop")}
             className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground"
           >
             <option value="all">All</option>
             <option value="elected">Elected only</option>
             <option value="not">Not elected</option>
             <option value="gcm">GCM only</option>
+            <option value="prop">Proportionality only</option>
           </select>
         </label>
 
@@ -523,6 +540,7 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2">Party</th>
                 <th className="px-2 py-2 text-center">Elected</th>
                 <th className="px-2 py-2 text-center">GCM</th>
+                <th className="px-2 py-2 text-center">Prop.</th>
                 <th className="px-2 py-2">Votes (1st)</th>
               </tr>
             </thead>
@@ -531,6 +549,7 @@ maria-vella,9,false,`}
                 const dirty =
                   r.elected !== r.initial_elected ||
                   r.elected_via_gcm !== r.initial_elected_via_gcm ||
+                  r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
                   r.votes !== r.initial_votes;
                 return (
                   <tr
@@ -584,6 +603,21 @@ maria-vella,9,false,`}
                             })
                           }
                           className="h-4 w-4 accent-fuchsia-600"
+                        />
+                      </label>
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label className="inline-flex cursor-pointer items-center" title="Elected via the Proportionality Adjustment">
+                        <input
+                          type="checkbox"
+                          checked={r.elected_via_proportionality}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              elected_via_proportionality: e.target.checked,
+                              elected: e.target.checked ? true : r.elected,
+                            })
+                          }
+                          className="h-4 w-4 accent-sky-600"
                         />
                       </label>
                     </td>

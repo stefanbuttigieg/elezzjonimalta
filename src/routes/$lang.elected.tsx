@@ -19,6 +19,7 @@ type ElectedRow = {
   district_id: string;
   votes_first_count: number | null;
   elected_via_gcm: boolean | null;
+  elected_via_proportionality: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -40,6 +41,7 @@ type ElectedCandidate = {
   photo_url: string | null;
   votes: number | null;
   elected_via_gcm: boolean;
+  elected_via_proportionality: boolean;
   party: PartyLite | null;
   also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
@@ -67,6 +69,7 @@ type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
   totalSeats: number;
+  proportionalitySeats: number;
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
@@ -77,7 +80,7 @@ async function loadElected(): Promise<LoaderData> {
     supabase
       .from("candidate_districts")
       .select(
-        "candidate_id, district_id, votes_first_count, elected_via_gcm, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
+        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
       )
       .eq("election_year", 2026)
       .eq("elected", true),
@@ -94,10 +97,12 @@ async function loadElected(): Promise<LoaderData> {
   const candidateSeen = new Set<string>();
   const candidateInfo = new Map<string, MultiDistrictWinner>();
   let totalSeats = 0;
+  let proportionalitySeats = 0;
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
     totalSeats += 1;
+    if (r.elected_via_proportionality) proportionalitySeats += 1;
     const g = groupMap.get(r.district.number) ?? {
       number: r.district.number,
       name_en: r.district.name_en,
@@ -110,6 +115,7 @@ async function loadElected(): Promise<LoaderData> {
       photo_url: r.candidate.photo_url,
       votes: r.votes_first_count,
       elected_via_gcm: !!r.elected_via_gcm,
+      elected_via_proportionality: !!r.elected_via_proportionality,
       party: r.candidate.party,
       also_in: [],
     });
@@ -179,6 +185,7 @@ async function loadElected(): Promise<LoaderData> {
     groups,
     totalElected: candidateSeen.size,
     totalSeats,
+    proportionalitySeats,
     multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
@@ -189,6 +196,7 @@ const EMPTY_DATA: LoaderData = {
   groups: [],
   totalElected: 0,
   totalSeats: 0,
+  proportionalitySeats: 0,
   multiDistrictWinners: [],
   byParty: [],
   allDistricts: [],
@@ -260,6 +268,11 @@ function ElectedPage() {
               {data.multiDistrictWinners.length > 0 ? (
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300">
                   {t("home.elected.multiDistrict", { count: data.multiDistrictWinners.length })}
+                </p>
+              ) : null}
+              {data.proportionalitySeats > 0 ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-3 py-1.5 text-sm font-semibold text-sky-800 dark:text-sky-300">
+                  {t("elected.prop.tally", { count: data.proportionalitySeats })}
                 </p>
               ) : null}
             </div>
@@ -428,6 +441,14 @@ function ElectedPage() {
                           {c.elected_via_gcm ? (
                             <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-fuchsia-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-700 dark:text-fuchsia-300">
                               {t("elected.gcm.short")}
+                            </p>
+                          ) : null}
+                          {c.elected_via_proportionality ? (
+                            <p
+                              className="mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-700 dark:text-sky-300"
+                              title={t("elected.prop.badge")}
+                            >
+                              {t("elected.prop.short")}
                             </p>
                           ) : null}
                           {c.votes != null ? (
