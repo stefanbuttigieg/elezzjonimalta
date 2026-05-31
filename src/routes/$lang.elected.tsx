@@ -203,6 +203,7 @@ async function loadElected(): Promise<LoaderData> {
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
     pnLive: null,
+    elcomFirstCount: null,
   };
 }
 
@@ -215,16 +216,18 @@ const EMPTY_DATA: LoaderData = {
   byParty: [],
   allDistricts: [],
   pnLive: null,
+  elcomFirstCount: null,
 };
 
 export const Route = createFileRoute("/$lang/elected")({
   loader: async (): Promise<LoaderData> => {
     setEdgeCacheHeader("public, s-maxage=30, stale-while-revalidate=120");
-    const [base, pnLive] = await Promise.all([
+    const [base, pnLive, elcomFirstCount] = await Promise.all([
       loadElected().catch(() => EMPTY_DATA),
       getPnLiveResults().catch(() => null),
+      getElcomFirstCount().catch(() => null),
     ]);
-    return { ...base, pnLive: pnLive ?? null };
+    return { ...base, pnLive: pnLive ?? null, elcomFirstCount: elcomFirstCount ?? null };
   },
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
