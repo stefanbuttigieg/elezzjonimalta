@@ -293,6 +293,11 @@ function ElectedBulkEditor() {
             continue;
           }
           row.elected = /^(1|true|yes|y|t)$/i.test((p.elected ?? "").trim());
+          if ("elected_via_gcm" in p) {
+            row.elected_via_gcm = /^(1|true|yes|y|t)$/i.test(
+              (p.elected_via_gcm ?? "").trim(),
+            );
+          }
           if ("votes_first_count" in p) {
             const v = (p.votes_first_count ?? "").trim();
             row.votes = v;
