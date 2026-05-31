@@ -791,12 +791,20 @@ function ElectedHighlight({
             <p className="mt-2 text-base leading-relaxed text-muted-foreground">
               {t("home.elected.subtitle")}
             </p>
-            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-              {t("home.elected.countSummary", {
-                total: elected.total,
-                districts: elected.districtsWithResults,
-              })}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <p className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                {t("home.elected.countSummary", {
+                  total: elected.total,
+                  districts: elected.districtsWithResults,
+                })}
+              </p>
+              {elected.multiDistrict > 0 ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                  <Sparkles className="h-3 w-3" aria-hidden="true" />
+                  {t("home.elected.multiDistrict", { count: elected.multiDistrict })}
+                </p>
+              ) : null}
+            </div>
           </div>
           <Link
             to="/$lang/elected"
