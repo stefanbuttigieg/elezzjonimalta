@@ -462,7 +462,7 @@ async function handleElected(arg: string): Promise<string> {
 
   const header = districtFilter
     ? `⭐ <b>Elected — District ${districtFilter.number}</b>`
-    : `⭐ <b>Elected candidates — 2026 General Election</b> (${total} so far across ${districts.size} district(s))\n<i>Live results, may be incomplete while counting continues.</i>`;
+    : `⭐ <b>Elected candidates — 2026 General Election</b> (${total} so far across ${districts.length} district(s))\n<i>Live results, may be incomplete while counting continues.</i>`;
 
   return `${header}\n\n${blocks.join("\n\n")}`;
 }
