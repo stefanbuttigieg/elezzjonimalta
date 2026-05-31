@@ -726,27 +726,35 @@ function CandidateEditor({
   const [autofillUrls, setAutofillUrls] = useState("");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
+  const [electedIds, setElectedIds] = useState<string[]>([]);
+  const [initialElectedIds, setInitialElectedIds] = useState<string[]>([]);
   const isNew = !v.id;
 
   useEffect(() => {
     if (!v.id) {
       setDistrictIds([]);
       setInitialDistrictIds([]);
+      setElectedIds([]);
+      setInitialElectedIds([]);
       return;
     }
     void (async () => {
       const { data, error } = await supabase
         .from("candidate_districts")
-        .select("district_id")
+        .select("district_id, elected")
         .eq("candidate_id", v.id)
         .eq("election_year", 2026);
       if (error) {
         toast.error(error.message);
         return;
       }
-      const ids = (data ?? []).map((r: { district_id: string }) => r.district_id);
+      const rows = (data ?? []) as { district_id: string; elected: boolean | null }[];
+      const ids = rows.map((r) => r.district_id);
+      const elected = rows.filter((r) => r.elected).map((r) => r.district_id);
       setDistrictIds(ids);
       setInitialDistrictIds(ids);
+      setElectedIds(elected);
+      setInitialElectedIds(elected);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.id]);
@@ -769,6 +777,16 @@ function CandidateEditor({
     setDistrictIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+    // If unchecking a district, also clear its elected flag.
+    setElectedIds((prev) => prev.filter((x) => x !== id));
+  };
+
+  const toggleElected = (id: string) => {
+    setElectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+    // Ensure the district is also marked as contesting.
+    setDistrictIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   };
 
   const save = async () => {
@@ -842,6 +860,7 @@ function CandidateEditor({
             candidate_id: candidateId,
             district_id,
             election_year: 2026,
+            elected: electedIds.includes(district_id),
           }))
         );
         if (error) throw error;
@@ -853,6 +872,33 @@ function CandidateEditor({
           .eq("candidate_id", candidateId)
           .eq("election_year", 2026)
           .in("district_id", toRemove);
+        if (error) throw error;
+      }
+
+      // Sync elected flag for rows that already existed.
+      const keptIds = finalIds.filter((id) => initialDistrictIds.includes(id));
+      const electedToSet = keptIds.filter(
+        (id) => electedIds.includes(id) && !initialElectedIds.includes(id)
+      );
+      const electedToClear = keptIds.filter(
+        (id) => !electedIds.includes(id) && initialElectedIds.includes(id)
+      );
+      if (electedToSet.length > 0) {
+        const { error } = await supabase
+          .from("candidate_districts")
+          .update({ elected: true })
+          .eq("candidate_id", candidateId)
+          .eq("election_year", 2026)
+          .in("district_id", electedToSet);
+        if (error) throw error;
+      }
+      if (electedToClear.length > 0) {
+        const { error } = await supabase
+          .from("candidate_districts")
+          .update({ elected: false })
+          .eq("candidate_id", candidateId)
+          .eq("election_year", 2026)
+          .in("district_id", electedToClear);
         if (error) throw error;
       }
 
@@ -979,35 +1025,58 @@ function CandidateEditor({
           <p className="mb-2 text-xs text-muted-foreground">
             Select every district this candidate is contesting in 2026. The
             primary district above is used as the main display affiliation.
+            Tick <strong>Elected</strong> once results confirm them as a winner
+            in that district.
           </p>
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3">
             {districts.map((d) => {
               const checked = effectiveDistrictIds.includes(d.id);
               const isPrimary = d.id === v.primary_district_id;
+              const isElected = electedIds.includes(d.id);
               return (
-                <label
+                <div
                   key={d.id}
-                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
-                    checked
+                  className={`flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    isElected
+                      ? "border-emerald-500 bg-emerald-500/10 text-foreground"
+                      : checked
                       ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                      : "border-border bg-background text-muted-foreground"
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleDistrict(d.id)}
-                    className="h-3.5 w-3.5"
-                  />
-                  <span className="truncate">
-                    {d.number} · {d.name_en}
-                    {isPrimary ? (
-                      <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-                        primary
-                      </span>
-                    ) : null}
-                  </span>
-                </label>
+                  <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleDistrict(d.id)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <span className="truncate">
+                      {d.number} · {d.name_en}
+                      {isPrimary ? (
+                        <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          primary
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                  <label
+                    className={`flex shrink-0 cursor-pointer items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      isElected
+                        ? "bg-emerald-500 text-white"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                    title="Mark as elected from this district"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isElected}
+                      onChange={() => toggleElected(d.id)}
+                      className="h-3 w-3"
+                    />
+                    ★ Elected
+                  </label>
+                </div>
               );
             })}
           </div>

@@ -105,7 +105,7 @@ async function loadCandidate(slug: string) {
 
   const candidate = data as CandidateDetail;
 
-  const [proposalsRes, sourcesRes] = await Promise.all([
+  const [proposalsRes, sourcesRes, electedRes] = await Promise.all([
     supabase
       .from("proposals")
       .select("id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at")
@@ -117,15 +117,29 @@ async function loadCandidate(slug: string) {
       .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
       .eq("candidate_id", candidate.id)
       .order("retrieved_at", { ascending: false }),
+    supabase
+      .from("candidate_districts")
+      .select("election_year, elected, district:districts(id, number, name_en, name_mt)")
+      .eq("candidate_id", candidate.id)
+      .eq("elected", true),
   ]);
 
   if (proposalsRes.error) throw proposalsRes.error;
   if (sourcesRes.error) throw sourcesRes.error;
 
+  const electedDistricts = ((electedRes.data ?? []) as Array<{
+    election_year: number;
+    district: { id: string; number: number; name_en: string; name_mt: string | null } | null;
+  }>)
+    .filter((r) => r.district)
+    .map((r) => ({ election_year: r.election_year, ...r.district! }))
+    .sort((a, b) => b.election_year - a.election_year || a.number - b.number);
+
   return {
     candidate,
     proposals: (proposalsRes.data ?? []) as ProposalRow[],
     sources: (sourcesRes.data ?? []) as CandidateSource[],
+    electedDistricts,
   };
 }
 
@@ -169,7 +183,7 @@ export const Route = createFileRoute("/$lang/candidates/$slug")({
 function CandidatePage() {
   const t = useT();
   const { lang } = Route.useParams();
-  const { candidate, proposals, sources } = Route.useLoaderData();
+  const { candidate, proposals, sources, electedDistricts } = Route.useLoaderData();
   const locale: Locale = isLocale(lang) ? lang : "en";
 
   const bio =
@@ -214,6 +228,14 @@ function CandidatePage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
+              {electedDistricts.map((d: { id: string; number: number }) => (
+                <span
+                  key={d.id}
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow-sm"
+                >
+                  ★ {t("common.electedInDistrict", { number: d.number })}
+                </span>
+              ))}
               {candidate.is_incumbent ? <Pill label={t("common.sittingMp")} /> : null}
               {candidate.not_contesting_2026 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">

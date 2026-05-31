@@ -54,6 +54,7 @@ type CandidateRow = {
   leadership_role: "leader" | "deputy_leader" | null;
   party: PartyLite | null;
   primary_district_id: string | null;
+  elected_here: boolean;
 };
 
 type ProposalRow = {
@@ -99,7 +100,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
   const linkedRes = await supabase
     .from("candidate_districts")
     .select(
-      "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, commission_confirmed, leadership_role, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
+      "candidate_id, election_year, elected, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, commission_confirmed, leadership_role, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
     )
     .eq("district_id", districtTyped.id)
     .eq("election_year", 2026);
@@ -108,18 +109,17 @@ async function loadMyDistrict(rawNumber: string): Promise<{
 
   const byId = new Map<string, CandidateRow>();
   for (const link of (linkedRes.data ?? []) as Array<{
-    candidate: (CandidateRow & { status: string }) | null;
+    elected: boolean | null;
+    candidate: (Omit<CandidateRow, "elected_here"> & { status: string }) | null;
   }>) {
     const c = link.candidate;
     if (!c || c.status !== "published") continue;
-    // Sitting MPs (incumbents) only appear on a district page once they've
-    // been confirmed as contesting the 2026 election. Non-incumbents always
-    // show, since they wouldn't be in candidate_districts otherwise.
     if (c.is_incumbent && !c.electoral_confirmed) continue;
-    if (!byId.has(c.id)) byId.set(c.id, c);
+    if (!byId.has(c.id)) byId.set(c.id, { ...c, elected_here: link.elected === true });
   }
 
   const candidates = Array.from(byId.values()).sort((a, b) => {
+    if (a.elected_here !== b.elected_here) return a.elected_here ? -1 : 1;
     if (a.electoral_confirmed !== b.electoral_confirmed) {
       return a.electoral_confirmed ? -1 : 1;
     }
@@ -413,7 +413,12 @@ function MyDistrictPage() {
                             <Link
                               to="/$lang/candidates/$slug"
                               params={{ lang: locale, slug: c.slug }}
-                              className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+                              className={
+                                "flex items-center gap-3 rounded-xl border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated " +
+                                (c.elected_here
+                                  ? "border-emerald-500/60 ring-1 ring-emerald-500/40"
+                                  : "border-border")
+                              }
                             >
                               <CandidateAvatar
                                 src={c.photo_url}
@@ -432,8 +437,13 @@ function MyDistrictPage() {
                                     ? t("myDistrict.candidates.confirmed")
                                     : t("myDistrict.candidates.prospective")}
                                 </span>
-                                {(c.leadership_role || c.commission_confirmed) ? (
+                                {(c.elected_here || c.leadership_role || c.commission_confirmed) ? (
                                   <span className="mt-1 flex flex-wrap gap-1">
+                                    {c.elected_here ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                                        ★ {t("myDistrict.candidates.elected")}
+                                      </span>
+                                    ) : null}
                                     {c.leadership_role === "leader" ? (
                                       <span className="inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                                         {t("myDistrict.candidates.leader")}
