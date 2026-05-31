@@ -4,7 +4,7 @@ import { setEdgeCacheHeader } from "@/lib/ssrCache";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  Map,
+  Map as MapIcon,
   Users,
   Landmark,
   GitCompareArrows,
@@ -40,6 +40,31 @@ import {
 
 const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
 
+type ElectedSummary = {
+  total: number;
+  districtsWithResults: number;
+  byParty: Array<{
+    slug: string;
+    short_name: string | null;
+    name_en: string;
+    name_mt: string | null;
+    color: string | null;
+    count: number;
+  }>;
+  recent: Array<{
+    slug: string;
+    full_name: string;
+    photo_url: string | null;
+    district_number: number;
+    district_name_en: string;
+    district_name_mt: string | null;
+    party_short: string | null;
+    party_name_en: string | null;
+    party_name_mt: string | null;
+    party_color: string | null;
+  }>;
+};
+
 type LandingStats = {
   candidates: number;
   parties: number;
@@ -49,6 +74,7 @@ type LandingStats = {
   faqs: number;
   districtCandidateCounts: Record<number, number>;
   lastUpdated: string | null;
+  elected: ElectedSummary;
 };
 
 async function loadLandingStats(): Promise<LandingStats> {
@@ -93,6 +119,9 @@ async function loadLandingStats(): Promise<LandingStats> {
     ? updates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b))
     : null;
 
+  // Elected summary for the homepage feature.
+  const elected = await loadElectedSummary();
+
   return {
     candidates: candidates.count ?? 0,
     parties: parties.count ?? 0,
@@ -102,6 +131,82 @@ async function loadLandingStats(): Promise<LandingStats> {
     faqs: faqs.count ?? 0,
     districtCandidateCounts,
     lastUpdated,
+    elected,
+  };
+}
+
+async function loadElectedSummary(): Promise<ElectedSummary> {
+  const { data } = await supabase
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, updated_at, candidate:candidates(slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(number, name_en, name_mt)"
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+
+  type Row = {
+    votes_first_count: number | null;
+    updated_at: string | null;
+    candidate: {
+      slug: string;
+      full_name: string;
+      photo_url: string | null;
+      party: {
+        slug: string;
+        short_name: string | null;
+        name_en: string;
+        name_mt: string | null;
+        color: string | null;
+      } | null;
+    } | null;
+    district: { number: number; name_en: string; name_mt: string | null } | null;
+  };
+
+  const rows = (data ?? []) as unknown as Row[];
+  const districts = new Set<number>();
+  type PartyTally = ElectedSummary["byParty"][number];
+  const partyMap = new Map<string, PartyTally>();
+  const items: Array<Row & { sortKey: number }> = [];
+
+  for (const r of rows) {
+    if (!r.candidate || !r.district) continue;
+    districts.add(r.district.number);
+    items.push({ ...r, sortKey: r.updated_at ? new Date(r.updated_at).getTime() : 0 });
+    const p = r.candidate.party;
+    const key = p?.slug ?? "__independent";
+    const existing =
+      partyMap.get(key) ??
+      ({
+        slug: key,
+        short_name: p?.short_name ?? null,
+        name_en: p?.name_en ?? "Independent",
+        name_mt: p?.name_mt ?? "Indipendenti",
+        color: p?.color ?? null,
+        count: 0,
+      } as ElectedSummary["byParty"][number]);
+    existing.count += 1;
+    partyMap.set(key, existing);
+  }
+
+  items.sort((a, b) => b.sortKey - a.sortKey);
+  const recent = items.slice(0, 8).map((r) => ({
+    slug: r.candidate!.slug,
+    full_name: r.candidate!.full_name,
+    photo_url: r.candidate!.photo_url,
+    district_number: r.district!.number,
+    district_name_en: r.district!.name_en,
+    district_name_mt: r.district!.name_mt,
+    party_short: r.candidate!.party?.short_name ?? null,
+    party_name_en: r.candidate!.party?.name_en ?? null,
+    party_name_mt: r.candidate!.party?.name_mt ?? null,
+    party_color: r.candidate!.party?.color ?? null,
+  }));
+
+  return {
+    total: items.length,
+    districtsWithResults: districts.size,
+    byParty: Array.from(partyMap.values()).sort((a, b) => b.count - a.count),
+    recent,
   };
 }
 
@@ -185,6 +290,9 @@ function HomePage() {
         </div>
       ) : null}
       <Hero lang={locale} t={t} />
+      {stats?.elected && stats.elected.total > 0 ? (
+        <ElectedHighlight lang={locale} t={t} elected={stats.elected} />
+      ) : null}
       <EligibilitySection t={t} />
       <StatsSection stats={stats} lang={locale} t={t} />
       <DistrictsMapSection lang={locale} t={t} candidateCounts={stats?.districtCandidateCounts} />
@@ -333,7 +441,7 @@ function StatsSection({
     { icon: Users, value: stats?.candidates ?? 0, label: t("home.stats.candidates"), to: `/${lang}/candidates` },
     { icon: Flag, value: stats?.parties ?? 0, label: t("home.stats.parties"), to: `/${lang}/parties` },
     { icon: FileText, value: stats?.proposals ?? 0, label: t("home.stats.proposals"), to: `/${lang}/proposals` },
-    { icon: Map, value: stats?.districts ?? 0, label: t("home.stats.districts"), to: `/${lang}/districts` },
+    { icon: MapIcon, value: stats?.districts ?? 0, label: t("home.stats.districts"), to: `/${lang}/districts` },
     { icon: Landmark, value: stats?.sittingMps ?? 0, label: t("home.stats.sittingMps"), to: `/${lang}/sitting-mps` },
     { icon: HelpCircle, value: stats?.faqs ?? 0, label: t("home.stats.faqs"), to: `/${lang}/faq` },
     { icon: CalendarDays, value: daysToGo, label: t("home.stats.daysToGo"), accent: true },
@@ -527,7 +635,7 @@ function EntryGrid({
     },
     {
       to: `/${lang}/districts`,
-      icon: Map,
+      icon: MapIcon,
       title: t("home.entry.districts.title"),
       desc: t("home.entry.districts.desc"),
     },
@@ -631,6 +739,103 @@ function Principles({ t }: { t: (k: string, v?: Record<string, string | number>)
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ElectedHighlight({
+  lang,
+  t,
+  elected,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+  elected: ElectedSummary;
+}) {
+  return (
+    <section className="border-b border-border bg-gradient-to-b from-emerald-500/5 via-background to-background">
+      <div className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("home.elected.eyebrow")}
+            </p>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-4xl">
+              {t("home.elected.title")}
+            </h2>
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+              {t("home.elected.subtitle")}
+            </p>
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+              {t("home.elected.countSummary", {
+                total: elected.total,
+                districts: elected.districtsWithResults,
+              })}
+            </p>
+          </div>
+          <Link
+            to="/$lang/elected"
+            params={{ lang }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+          >
+            {t("home.elected.viewAll")}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {elected.byParty.length > 0 ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {elected.byParty.map((p) => (
+              <span
+                key={p.slug}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-sm font-medium text-foreground"
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ background: p.color ?? "hsl(var(--muted-foreground))" }}
+                  aria-hidden="true"
+                />
+                <span>
+                  {(lang === "mt" ? p.name_mt : p.name_en) ?? p.name_en}
+                  {p.short_name ? ` (${p.short_name})` : ""}
+                </span>
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  {p.count}
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {elected.recent.map((c) => (
+            <li key={c.slug + c.district_number}>
+              <Link
+                to="/$lang/candidates/$slug"
+                params={{ lang, slug: c.slug }}
+                className="group flex h-full flex-col rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3 ring-1 ring-emerald-500/20 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10"
+              >
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("common.elected")}
+                </div>
+                <p className="mt-1 font-semibold text-foreground group-hover:text-primary">
+                  {c.full_name}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {c.party_short || c.party_name_en || (lang === "mt" ? "Indipendenti" : "Independent")}
+                  {" · "}
+                  {t("elected.districtHeading", {
+                    number: c.district_number,
+                    name: (lang === "mt" ? c.district_name_mt : c.district_name_en) ?? c.district_name_en,
+                  })}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

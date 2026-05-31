@@ -53,6 +53,7 @@ import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
 import { Route as LangPartiesCompareRouteImport } from './routes/$lang.parties-compare'
 import { Route as LangMethodologyRouteImport } from './routes/$lang.methodology'
 import { Route as LangFaqRouteImport } from './routes/$lang.faq'
+import { Route as LangElectedRouteImport } from './routes/$lang.elected'
 import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
 import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
 import { Route as LangDataRouteImport } from './routes/$lang.data'
@@ -300,6 +301,11 @@ const LangFaqRoute = LangFaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => LangRoute,
 } as any)
+const LangElectedRoute = LangElectedRouteImport.update({
+  id: '/elected',
+  path: '/elected',
+  getParentRoute: () => LangRoute,
+} as any)
 const LangDistrictsRoute = LangDistrictsRouteImport.update({
   id: '/districts',
   path: '/districts',
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -516,6 +523,7 @@ export interface FileRoutesByTo {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -588,6 +596,7 @@ export interface FileRoutesById {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -661,6 +670,7 @@ export interface FileRouteTypes {
     | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/elected'
     | '/$lang/faq'
     | '/$lang/methodology'
     | '/$lang/parties-compare'
@@ -730,6 +740,7 @@ export interface FileRouteTypes {
     | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/elected'
     | '/$lang/faq'
     | '/$lang/methodology'
     | '/$lang/parties-compare'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/$lang/data'
     | '/$lang/developers'
     | '/$lang/districts'
+    | '/$lang/elected'
     | '/$lang/faq'
     | '/$lang/methodology'
     | '/$lang/parties-compare'
@@ -1184,6 +1196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangFaqRouteImport
       parentRoute: typeof LangRoute
     }
+    '/$lang/elected': {
+      id: '/$lang/elected'
+      path: '/elected'
+      fullPath: '/$lang/elected'
+      preLoaderRoute: typeof LangElectedRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/$lang/districts': {
       id: '/$lang/districts'
       path: '/districts'
@@ -1374,6 +1393,7 @@ interface LangRouteChildren {
   LangDataRoute: typeof LangDataRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
+  LangElectedRoute: typeof LangElectedRoute
   LangFaqRoute: typeof LangFaqRoute
   LangMethodologyRoute: typeof LangMethodologyRoute
   LangPartiesCompareRoute: typeof LangPartiesCompareRoute
@@ -1406,6 +1426,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangDataRoute: LangDataRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
+  LangElectedRoute: LangElectedRoute,
   LangFaqRoute: LangFaqRoute,
   LangMethodologyRoute: LangMethodologyRoute,
   LangPartiesCompareRoute: LangPartiesCompareRoute,

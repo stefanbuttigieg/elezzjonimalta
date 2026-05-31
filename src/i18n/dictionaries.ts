@@ -128,6 +128,26 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "A free, documented public API. Use the data in your own research and reporting.",
 
+    "home.elected.eyebrow": "Live results",
+    "home.elected.title": "Elected — 2026 General Election",
+    "home.elected.subtitle":
+      "Partit Laburista has been declared the winner. Elected candidates are added here as official district results are confirmed.",
+    "home.elected.viewAll": "See all elected candidates",
+    "home.elected.empty": "No elected candidates have been recorded yet. Counting is ongoing.",
+    "home.elected.countSummary": "{total} elected so far across {districts} district(s)",
+
+    "elected.meta.title": "Elected candidates — 2026 General Election",
+    "elected.meta.description":
+      "Running list of every candidate elected to Malta's House of Representatives in the 2026 General Election, grouped by district.",
+    "elected.title": "Elected — 2026 General Election",
+    "elected.subtitle":
+      "Live, updated as official district results are confirmed. Partit Laburista has been declared the overall winner.",
+    "elected.empty": "No elected candidates have been recorded yet. Check back soon.",
+    "elected.districtEmpty": "No results recorded yet for this district.",
+    "elected.votes": "{count} first-count votes",
+    "elected.districtHeading": "District {number} — {name}",
+    "elected.byParty": "Elected by party",
+
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
       "Search published Malta 2026 General Election candidates by name, district, and political party.",
@@ -622,6 +642,26 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.title": "Data miftuħa",
     "home.principles.open.desc":
       "API pubbliku, bla ħlas u dokumentat. Uża d-data fir-riċerka u r-rappurtaġġ tiegħek.",
+
+    "home.elected.eyebrow": "Riżultati ħajjin",
+    "home.elected.title": "Eletti — Elezzjoni Ġenerali 2026",
+    "home.elected.subtitle":
+      "Il-Partit Laburista ġie ddikjarat rebbieħ. Il-kandidati eletti jiżdiedu hawn hekk kif jiġu kkonfermati r-riżultati uffiċjali tad-distretti.",
+    "home.elected.viewAll": "Ara l-kandidati eletti kollha",
+    "home.elected.empty": "Għadhom ma ġewx irreġistrati kandidati eletti. L-għadd għadu għaddej.",
+    "home.elected.countSummary": "{total} eletti s'issa minn {districts} distrett(i)",
+
+    "elected.meta.title": "Kandidati eletti — Elezzjoni Ġenerali 2026",
+    "elected.meta.description":
+      "Lista aġġornata tal-kandidati kollha eletti fil-Kamra tar-Rappreżentanti fl-Elezzjoni Ġenerali ta' Malta 2026, miġburin skont id-distrett.",
+    "elected.title": "Eletti — Elezzjoni Ġenerali 2026",
+    "elected.subtitle":
+      "Aġġornata ħajjin hekk kif jiġu kkonfermati r-riżultati uffiċjali. Il-Partit Laburista ġie ddikjarat ir-rebbieħ ġenerali.",
+    "elected.empty": "Għadhom ma ġewx irreġistrati kandidati eletti. Erġa' lura dalwaqt.",
+    "elected.districtEmpty": "Għadhom ma ġewx irreġistrati riżultati għal dan id-distrett.",
+    "elected.votes": "{count} voti ta' l-ewwel għadd",
+    "elected.districtHeading": "Distrett {number} — {name}",
+    "elected.byParty": "Eletti skont il-partit",
 
     "candidates.meta.title": "Kandidati — Elezzjoni",
     "candidates.meta.description":
