@@ -251,7 +251,7 @@ function ElectedBulkEditor() {
 
   const exportCsv = () => {
     const header =
-      "candidate_slug,candidate_name,district_number,district_name,party,elected,elected_via_gcm,votes_first_count";
+      "candidate_slug,candidate_name,district_number,district_name,party,elected,elected_via_gcm,elected_via_proportionality,votes_first_count";
     const lines = filtered.map((r) =>
       [
         r.candidate_slug,
@@ -261,6 +261,7 @@ function ElectedBulkEditor() {
         csvCell(r.party_name ?? ""),
         r.elected ? "true" : "false",
         r.elected_via_gcm ? "true" : "false",
+        r.elected_via_proportionality ? "true" : "false",
         r.votes,
       ].join(","),
     );
