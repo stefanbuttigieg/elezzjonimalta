@@ -51,9 +51,9 @@ function LangLayout() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-clip">
+      <DisclaimerBanner placement="global" as="topbar" />
       <SiteHeader />
       <main id="main" className="flex-1 overflow-x-clip">
-        <DisclaimerBanner placement="global" className="container mx-auto max-w-6xl px-4 pt-4" />
         <Outlet />
       </main>
       <SiteFooter />
