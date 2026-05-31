@@ -591,6 +591,12 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        <div className="mt-6">
+          <ElcomCandidateCountsPanel />
+        </div>
+
+
+
         {pnLive ? (
           <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
