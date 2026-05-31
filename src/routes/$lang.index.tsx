@@ -164,7 +164,8 @@ async function loadElectedSummary(): Promise<ElectedSummary> {
 
   const rows = (data ?? []) as unknown as Row[];
   const districts = new Set<number>();
-  const partyMap = new Map<string, ElectedSummary["byParty"][number]>();
+  type PartyTally = ElectedSummary["byParty"][number];
+  const partyMap = new Map<string, PartyTally>();
   const items: Array<Row & { sortKey: number }> = [];
 
   for (const r of rows) {
