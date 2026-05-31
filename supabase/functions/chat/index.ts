@@ -169,7 +169,7 @@ async function buildIntentBoost(
     const { data: links } = await supabase
       .from("candidate_districts")
       .select(
-        "candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
+        "elected, votes_first_count, candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
       )
       .eq("district_id", district.id)
       .eq("election_year", 2026);
@@ -179,9 +179,13 @@ async function buildIntentBoost(
       party: string;
       confirmed: boolean;
       incumbent: boolean;
+      elected: boolean;
+      votes: number | null;
       slug: string;
     }> = [];
     for (const row of (links ?? []) as Array<{
+      elected: boolean | null;
+      votes_first_count: number | null;
       candidate: {
         full_name: string;
         slug: string;
@@ -201,28 +205,43 @@ async function buildIntentBoost(
         party: c.party?.short_name || c.party?.name_en || "Independent",
         confirmed: !!c.electoral_confirmed,
         incumbent: !!c.is_incumbent,
+        elected: !!row.elected,
+        votes: row.votes_first_count ?? null,
         slug: c.slug,
       });
     }
     cands.sort((a, b) => {
+      if (a.elected !== b.elected) return a.elected ? -1 : 1;
       if (a.confirmed !== b.confirmed) return a.confirmed ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
 
     const lines: string[] = [];
+    const electedList = cands.filter((c) => c.elected);
     lines.push(
-      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026):`,
+      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026; ${electedList.length} elected so far):`,
     );
     if (district.localities_en) {
       lines.push(`Localities: ${district.localities_en}`);
+    }
+    if (electedList.length > 0) {
+      lines.push(
+        `Elected from District ${district.number}: ${electedList
+          .map((c) => `${c.name} (${c.party})${c.votes != null ? ` — ${c.votes} votes` : ""}`)
+          .join("; ")}.`,
+      );
+    } else {
+      lines.push(`No elected candidates recorded yet for District ${district.number} (counting may still be ongoing).`);
     }
     if (cands.length === 0) {
       lines.push("No candidates are currently linked to this district in the database.");
     } else {
       for (const c of cands) {
         const flags = [
+          c.elected ? "ELECTED" : null,
           c.confirmed ? "confirmed for 2026" : "not yet confirmed",
           c.incumbent ? "sitting MP" : null,
+          c.votes != null ? `${c.votes} first-count votes` : null,
         ]
           .filter(Boolean)
           .join(", ");
