@@ -183,7 +183,7 @@ async function loadElected(): Promise<LoaderData> {
   }
 
   const groups = Array.from(groupMap.values()).sort((a, b) => a.number - b.number);
-  const byParty = Array.from(partyMap.values()).sort((a, b) => b.count - a.count);
+  const byParty = Array.from(partyMap.values()).sort((a, b) => b.seats - a.seats || b.count - a.count);
   const multiDistrictWinners = Array.from(candidateInfo.values())
     .filter((w) => w.districts.length > 1)
     .sort((a, b) => b.districts.length - a.districts.length || a.full_name.localeCompare(b.full_name));
