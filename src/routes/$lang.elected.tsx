@@ -377,7 +377,11 @@ function ElectedPage() {
                       <Link
                         to="/$lang/candidates/$slug"
                         params={{ lang: locale, slug: c.slug }}
-                        className="group flex items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3 ring-1 ring-emerald-500/20 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10"
+                        className={`group flex items-center gap-3 rounded-xl border p-3 ring-1 transition-colors ${
+                          c.also_in.length > 0
+                            ? "border-amber-500/50 bg-amber-500/5 ring-amber-500/30 hover:border-amber-500/70 hover:bg-amber-500/10"
+                            : "border-emerald-500/40 bg-emerald-500/5 ring-emerald-500/20 hover:border-emerald-500/60 hover:bg-emerald-500/10"
+                        }`}
                       >
                         <CandidateAvatar
                           src={c.photo_url}
