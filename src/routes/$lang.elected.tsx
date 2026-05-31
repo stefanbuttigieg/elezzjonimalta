@@ -244,13 +244,25 @@ function ElectedPage() {
             {t("elected.subtitle")}
           </p>
           {data.totalElected > 0 ? (
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-              <Trophy className="h-4 w-4" aria-hidden="true" />
-              {t("home.elected.countSummary", {
-                total: data.totalElected,
-                districts: data.groups.length,
-              })}
-            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <p className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                <Trophy className="h-4 w-4" aria-hidden="true" />
+                {t("home.elected.countSummary", {
+                  total: data.totalElected,
+                  districts: data.groups.length,
+                })}
+              </p>
+              {data.totalSeats !== data.totalElected ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                  {t("elected.seatsAwarded", { count: data.totalSeats })}
+                </p>
+              ) : null}
+              {data.multiDistrictWinners.length > 0 ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300">
+                  {t("home.elected.multiDistrict", { count: data.multiDistrictWinners.length })}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </header>
 
