@@ -156,6 +156,12 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.gcm.count": "{count} GCM seat(s)",
     "home.elected.countSummaryWithGcm":
       "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
+    "home.elected.multiDistrict": "{count} elected in 2 districts",
+    "elected.seatsAwarded": "{count} seats awarded",
+    "elected.alsoElectedIn": "Also elected in {districts}",
+    "elected.multiDistrict.title": "Elected in more than one district",
+    "elected.multiDistrict.subtitle":
+      "These candidates won a seat in two districts. Under Maltese law they must vacate one seat, which is then filled via a casual election.",
 
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
