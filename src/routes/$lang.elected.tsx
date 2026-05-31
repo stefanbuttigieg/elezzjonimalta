@@ -6,6 +6,14 @@ import { translate, useT } from "@/i18n/useT";
 import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 import { setEdgeCacheHeader } from "@/lib/ssrCache";
 
+type PartyLite = {
+  slug: string;
+  short_name: string | null;
+  name_en: string;
+  name_mt: string | null;
+  color: string | null;
+};
+
 type ElectedRow = {
   candidate_id: string;
   district_id: string;
@@ -15,13 +23,7 @@ type ElectedRow = {
     slug: string;
     full_name: string;
     photo_url: string | null;
-    party: {
-      slug: string;
-      short_name: string | null;
-      name_en: string;
-      name_mt: string | null;
-      color: string | null;
-    } | null;
+    party: PartyLite | null;
   } | null;
   district: {
     id: string;
@@ -31,29 +33,33 @@ type ElectedRow = {
   } | null;
 };
 
+type ElectedCandidate = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  votes: number | null;
+  party: PartyLite | null;
+};
+
 type DistrictGroup = {
   number: number;
   name_en: string;
   name_mt: string | null;
-  elected: Array<{
-    slug: string;
-    full_name: string;
-    photo_url: string | null;
-    votes: number | null;
-    party: ElectedRow["candidate"] extends infer C
-      ? C extends { party: infer P }
-        ? P
-        : null
-      : null;
-  }>;
+  elected: ElectedCandidate[];
 };
 
-async function loadElected(): Promise<{
+type PartyTally = PartyLite & { count: number };
+
+type DistrictLite = { number: number; name_en: string; name_mt: string | null };
+
+type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
-  byParty: Array<{ slug: string; short_name: string | null; name_en: string; name_mt: string | null; color: string | null; count: number }>;
-  allDistricts: Array<{ number: number; name_en: string; name_mt: string | null }>;
-}> {
+  byParty: PartyTally[];
+  allDistricts: DistrictLite[];
+};
+
+async function loadElected(): Promise<LoaderData> {
   const [electedRes, districtsRes] = await Promise.all([
     supabase
       .from("candidate_districts")
@@ -69,12 +75,9 @@ async function loadElected(): Promise<{
       .order("number"),
   ]);
 
-  const rows = (electedRes.data ?? []) as ElectedRow[];
+  const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
   const groupMap = new Map<number, DistrictGroup>();
-  const partyMap = new Map<
-    string,
-    { slug: string; short_name: string | null; name_en: string; name_mt: string | null; color: string | null; count: number }
-  >();
+  const partyMap = new Map<string, PartyTally>();
   let total = 0;
 
   for (const r of rows) {
@@ -102,20 +105,20 @@ async function loadElected(): Promise<{
       partyMap.set(p.slug, existing);
     } else {
       const key = "__independent";
-      const existing = partyMap.get(key) ?? {
-        slug: key,
-        short_name: null,
-        name_en: "Independent",
-        name_mt: "Indipendenti",
-        color: null,
-        count: 0,
-      };
+      const existing =
+        partyMap.get(key) ?? {
+          slug: key,
+          short_name: null,
+          name_en: "Independent",
+          name_mt: "Indipendenti",
+          color: null,
+          count: 0,
+        };
       existing.count += 1;
       partyMap.set(key, existing);
     }
   }
 
-  // Sort candidates inside each group: by votes desc, then name
   for (const g of groupMap.values()) {
     g.elected.sort((a, b) => {
       if ((b.votes ?? -1) !== (a.votes ?? -1)) return (b.votes ?? -1) - (a.votes ?? -1);
@@ -130,23 +133,16 @@ async function loadElected(): Promise<{
     groups,
     totalElected: total,
     byParty,
-    allDistricts: (districtsRes.data ?? []) as Array<{
-      number: number;
-      name_en: string;
-      name_mt: string | null;
-    }>,
+    allDistricts: (districtsRes.data ?? []) as DistrictLite[],
   };
 }
 
+const EMPTY_DATA: LoaderData = { groups: [], totalElected: 0, byParty: [], allDistricts: [] };
+
 export const Route = createFileRoute("/$lang/elected")({
-  loader: async () => {
+  loader: async (): Promise<LoaderData> => {
     setEdgeCacheHeader("public, s-maxage=30, stale-while-revalidate=120");
-    return loadElected().catch(() => ({
-      groups: [],
-      totalElected: 0,
-      byParty: [],
-      allDistricts: [],
-    }));
+    return loadElected().catch(() => EMPTY_DATA);
   },
   head: ({ params }) => {
     const lang = (isLocale(params.lang) ? params.lang : "en") as Locale;
@@ -257,7 +253,7 @@ function ElectedPage() {
                     className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
                   >
                     <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                    {t("home.elected.viewAll").replace(/ all.*/, "")}{" "}
+                    {locale === "mt" ? "Iddettal id-distrett" : "District details"}{" "}
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Link>
                 </div>
@@ -270,21 +266,25 @@ function ElectedPage() {
                         className="group flex items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3 ring-1 ring-emerald-500/20 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10"
                       >
                         <CandidateAvatar
+                          src={c.photo_url}
                           name={c.full_name}
-                          photoUrl={c.photo_url}
-                          size="md"
-                          partyColor={c.party?.color ?? null}
+                          className="h-12 w-12 rounded-full object-cover"
+                          fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
-                            <Star className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500" aria-hidden="true" />
+                            <Star
+                              className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500"
+                              aria-hidden="true"
+                            />
                             <p className="truncate font-semibold text-foreground group-hover:text-primary">
                               {c.full_name}
                             </p>
                           </div>
                           <p className="truncate text-xs text-muted-foreground">
                             {c.party
-                              ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
+                              ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ??
+                                c.party.name_en
                               : locale === "mt"
                                 ? "Indipendenti"
                                 : "Independent"}
@@ -308,7 +308,9 @@ function ElectedPage() {
         {pending.length > 0 ? (
           <div className="mt-10 rounded-2xl border border-dashed border-border bg-surface/50 p-5">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              {locale === "mt" ? "Distretti li għad iridu jiġu kkonfermati" : "Districts still being counted"}
+              {locale === "mt"
+                ? "Distretti li għad iridu jiġu kkonfermati"
+                : "Districts still being counted"}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {pending.map((d) => (
