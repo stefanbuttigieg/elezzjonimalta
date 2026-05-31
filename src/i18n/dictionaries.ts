@@ -683,7 +683,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.districtEmpty": "Għadhom ma ġewx irreġistrati riżultati għal dan id-distrett.",
     "elected.votes": "{count} voti ta' l-ewwel għadd",
     "elected.districtHeading": "Distrett {number} — {name}",
-    "elected.byParty": "Eletti skont il-partit",
+    "elected.byParty": "Siġġijiet skont il-partit",
+    "elected.byParty.subtitle":
+      "Total tas-siġġijiet mirbuħa minn kull partit — jgħodd kull siġġu mogħti, inkluż dawk minn kandidati eletti f'żewġ distretti u s-siġġijiet mill-aġġustament tal-proporzjonalità.",
+    "elected.byParty.uniqueShort": "uniċi",
+    "elected.byParty.tooltip": "{seats} siġġijiet b'kollox · {unique} kandidati uniċi",
     "elected.gcm.badge": "Mekkaniżmu korrettiv tas-sessi",
     "elected.gcm.short": "MKS",
     "elected.gcm.sectionTitle": "Eletti permezz tal-Mekkaniżmu Korrettiv tas-Sessi",
