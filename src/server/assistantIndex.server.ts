@@ -60,7 +60,7 @@ async function buildCandidates(maxItems: number): Promise<BuiltChunk[]> {
   const { data, error } = await supabaseAdmin
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, profession, languages, is_incumbent, electoral_confirmed, not_contesting_2026, leadership_role, party:parties(name_en, short_name), district:districts!candidates_primary_district_id_fkey(number, name_en)"
+      "id, slug, full_name, bio_en, bio_mt, profession, languages, is_incumbent, electoral_confirmed, not_contesting_2026, leadership_role, party:parties(name_en, short_name), district:districts!candidates_primary_district_id_fkey(number, name_en), elected_districts:candidate_districts(elected, votes_first_count, district:districts(number, name_en), election_year)"
     )
     .or("status.eq.published,is_incumbent.eq.true")
     .limit(maxItems);
@@ -69,10 +69,25 @@ async function buildCandidates(maxItems: number): Promise<BuiltChunk[]> {
     const party = (c.party as { name_en?: string; short_name?: string | null } | null)?.name_en ?? "Independent";
     const district = c.district as { number?: number; name_en?: string } | null;
     const districtStr = district ? `District ${district.number} (${district.name_en})` : "";
+
+    const electedLinks = (c.elected_districts as Array<{
+      elected: boolean | null;
+      votes_first_count: number | null;
+      election_year: number | null;
+      district: { number?: number; name_en?: string } | null;
+    }> | null) ?? [];
+    const electedIn = electedLinks
+      .filter((l) => l.elected && l.election_year === 2026 && l.district?.number)
+      .map((l) => `District ${l.district!.number} — ${l.district!.name_en}${l.votes_first_count != null ? ` (${l.votes_first_count} first-count votes)` : ""}`);
+    const electedStr = electedIn.length > 0
+      ? ` ELECTED in the 2026 General Election from: ${electedIn.join("; ")}.`
+      : "";
+
     const flags = [
       c.is_incumbent ? "sitting MP" : null,
       c.electoral_confirmed ? "confirmed 2026 candidate" : null,
       c.not_contesting_2026 ? "not contesting 2026" : null,
+      electedIn.length > 0 ? "elected 2026" : null,
       c.leadership_role,
     ]
       .filter(Boolean)
@@ -80,7 +95,7 @@ async function buildCandidates(maxItems: number): Promise<BuiltChunk[]> {
     const bio = trim(c.bio_en || c.bio_mt, 1200);
     const content = `Candidate: ${c.full_name}. Party: ${party}. ${districtStr}${flags ? ". " + flags : ""}.${
       c.profession ? " Profession: " + c.profession + "." : ""
-    }${bio ? "\n\n" + bio : ""}`;
+    }${electedStr}${bio ? "\n\n" + bio : ""}`;
     return {
       source_key: "candidates" as const,
       entity_type: "candidate",
@@ -89,7 +104,7 @@ async function buildCandidates(maxItems: number): Promise<BuiltChunk[]> {
       title: c.full_name,
       content,
       url: `/candidates/${c.slug}`,
-      metadata: { party, district: district?.number ?? null, is_incumbent: c.is_incumbent },
+      metadata: { party, district: district?.number ?? null, is_incumbent: c.is_incumbent, elected_2026: electedIn.length > 0 },
     };
   });
 }
