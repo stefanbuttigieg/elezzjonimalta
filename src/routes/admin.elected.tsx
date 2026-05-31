@@ -606,6 +606,21 @@ maria-vella,9,false,`}
                         />
                       </label>
                     </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label className="inline-flex cursor-pointer items-center" title="Elected via the Proportionality Adjustment">
+                        <input
+                          type="checkbox"
+                          checked={r.elected_via_proportionality}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              elected_via_proportionality: e.target.checked,
+                              elected: e.target.checked ? true : r.elected,
+                            })
+                          }
+                          className="h-4 w-4 accent-sky-600"
+                        />
+                      </label>
+                    </td>
                     <td className="px-2 py-1.5">
                       <input
                         type="number"
