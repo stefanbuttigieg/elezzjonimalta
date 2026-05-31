@@ -128,6 +128,26 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "home.principles.open.desc":
       "A free, documented public API. Use the data in your own research and reporting.",
 
+    "home.elected.eyebrow": "Live results",
+    "home.elected.title": "Elected — 2026 General Election",
+    "home.elected.subtitle":
+      "Partit Laburista has been declared the winner. Elected candidates are added here as official district results are confirmed.",
+    "home.elected.viewAll": "See all elected candidates",
+    "home.elected.empty": "No elected candidates have been recorded yet. Counting is ongoing.",
+    "home.elected.countSummary": "{total} elected so far across {districts} district(s)",
+
+    "elected.meta.title": "Elected candidates — 2026 General Election",
+    "elected.meta.description":
+      "Running list of every candidate elected to Malta's House of Representatives in the 2026 General Election, grouped by district.",
+    "elected.title": "Elected — 2026 General Election",
+    "elected.subtitle":
+      "Live, updated as official district results are confirmed. Partit Laburista has been declared the overall winner.",
+    "elected.empty": "No elected candidates have been recorded yet. Check back soon.",
+    "elected.districtEmpty": "No results recorded yet for this district.",
+    "elected.votes": "{count} first-count votes",
+    "elected.districtHeading": "District {number} — {name}",
+    "elected.byParty": "Elected by party",
+
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
       "Search published Malta 2026 General Election candidates by name, district, and political party.",
