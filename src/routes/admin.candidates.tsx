@@ -860,6 +860,7 @@ function CandidateEditor({
             candidate_id: candidateId,
             district_id,
             election_year: 2026,
+            elected: electedIds.includes(district_id),
           }))
         );
         if (error) throw error;
@@ -871,6 +872,33 @@ function CandidateEditor({
           .eq("candidate_id", candidateId)
           .eq("election_year", 2026)
           .in("district_id", toRemove);
+        if (error) throw error;
+      }
+
+      // Sync elected flag for rows that already existed.
+      const keptIds = finalIds.filter((id) => initialDistrictIds.includes(id));
+      const electedToSet = keptIds.filter(
+        (id) => electedIds.includes(id) && !initialElectedIds.includes(id)
+      );
+      const electedToClear = keptIds.filter(
+        (id) => !electedIds.includes(id) && initialElectedIds.includes(id)
+      );
+      if (electedToSet.length > 0) {
+        const { error } = await supabase
+          .from("candidate_districts")
+          .update({ elected: true })
+          .eq("candidate_id", candidateId)
+          .eq("election_year", 2026)
+          .in("district_id", electedToSet);
+        if (error) throw error;
+      }
+      if (electedToClear.length > 0) {
+        const { error } = await supabase
+          .from("candidate_districts")
+          .update({ elected: false })
+          .eq("candidate_id", candidateId)
+          .eq("election_year", 2026)
+          .in("district_id", electedToClear);
         if (error) throw error;
       }
 
