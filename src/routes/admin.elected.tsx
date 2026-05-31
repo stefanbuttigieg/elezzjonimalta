@@ -94,6 +94,8 @@ function ElectedBulkEditor() {
           initial_elected: !!r.elected,
           elected_via_gcm: !!r.elected_via_gcm,
           initial_elected_via_gcm: !!r.elected_via_gcm,
+          elected_via_proportionality: !!r.elected_via_proportionality,
+          initial_elected_via_proportionality: !!r.elected_via_proportionality,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
