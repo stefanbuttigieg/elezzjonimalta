@@ -532,6 +532,9 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
     case "candidates":
     case "candidate":
       return { command: "candidates", response: await handleCandidates(arg) };
+    case "elected":
+    case "winners":
+      return { command: "elected", response: await handleElected(arg) };
     case "party":
     case "parties":
       return { command: "party", response: await handleParty(arg) };
