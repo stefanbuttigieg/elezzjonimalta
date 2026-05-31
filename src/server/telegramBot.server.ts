@@ -444,25 +444,46 @@ async function handleElected(arg: string): Promise<string> {
   }
 
   const districts = Array.from(grouped.keys()).sort((a, b) => a - b);
+
+  // Build per-candidate district list to flag those elected in two districts
+  const byCandidate = new Map<string, { name: string; slug: string; districts: number[] }>();
+  for (const [n, g] of grouped.entries()) {
+    for (const it of g.items) {
+      const e = byCandidate.get(it.slug) ?? { name: it.name, slug: it.slug, districts: [] };
+      e.districts.push(n);
+      byCandidate.set(it.slug, e);
+    }
+  }
+  const multi = Array.from(byCandidate.values()).filter((c) => c.districts.length > 1);
+
   const blocks: string[] = [];
-  let total = 0;
+  let totalSeats = 0;
   for (const n of districts) {
     const g = grouped.get(n)!;
     g.items.sort((a, b) => a.name.localeCompare(b.name));
-    total += g.items.length;
+    totalSeats += g.items.length;
     const lines = g.items.map((c) => {
       const link = siteLink(`/en/candidates/${c.slug}`, c.name);
       const votes = c.votes != null ? ` — <i>${c.votes} first-count votes</i>` : "";
-      return `  • ${link} — <i>${escapeHtml(c.party)}</i>${votes}`;
+      const dual = (byCandidate.get(c.slug)?.districts.length ?? 1) > 1 ? " ⚡ <b>×2 districts</b>" : "";
+      return `  • ${link} — <i>${escapeHtml(c.party)}</i>${votes}${dual}`;
     });
     blocks.push(
       `<b>District ${n} — ${escapeHtml(g.name_en)}</b>\n${lines.join("\n")}`
     );
   }
 
+  const uniqueWinners = byCandidate.size;
+  const multiLine =
+    multi.length > 0
+      ? `\n⚡ <b>Elected in TWO districts:</b> ${multi
+          .map((c) => `${escapeHtml(c.name)} (Districts ${c.districts.sort((a, b) => a - b).join(" & ")})`)
+          .join("; ")}`
+      : "";
+
   const header = districtFilter
     ? `⭐ <b>Elected — District ${districtFilter.number}</b>`
-    : `⭐ <b>Elected candidates — 2026 General Election</b> (${total} so far across ${districts.length} district(s))\n<i>Live results, may be incomplete while counting continues.</i>`;
+    : `⭐ <b>Elected candidates — 2026 General Election</b>\n${uniqueWinners} unique candidate(s) elected across ${districts.length} district(s) — ${totalSeats} seats awarded.${multiLine}\n<i>Live results, may be incomplete while counting continues.</i>`;
 
   return `${header}\n\n${blocks.join("\n\n")}`;
 }
