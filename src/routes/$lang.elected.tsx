@@ -136,13 +136,16 @@ async function loadElected(): Promise<LoaderData> {
     });
     candidateInfo.set(r.candidate.slug, info);
 
-    if (candidateSeen.has(r.candidate.slug)) continue;
+    const p = r.candidate.party;
+    const isFirstSeat = !candidateSeen.has(r.candidate.slug);
     candidateSeen.add(r.candidate.slug);
 
-    const p = r.candidate.party;
     if (p) {
-      const existing = partyMap.get(p.slug) ?? { ...p, count: 0 };
-      existing.count += 1;
+      const existing =
+        partyMap.get(p.slug) ?? { ...p, count: 0, seats: 0, propSeats: 0 };
+      existing.seats += 1;
+      if (r.elected_via_proportionality) existing.propSeats += 1;
+      if (isFirstSeat) existing.count += 1;
       partyMap.set(p.slug, existing);
     } else {
       const key = "__independent";
@@ -154,8 +157,12 @@ async function loadElected(): Promise<LoaderData> {
           name_mt: "Indipendenti",
           color: null,
           count: 0,
+          seats: 0,
+          propSeats: 0,
         };
-      existing.count += 1;
+      existing.seats += 1;
+      if (r.elected_via_proportionality) existing.propSeats += 1;
+      if (isFirstSeat) existing.count += 1;
       partyMap.set(key, existing);
     }
   }
