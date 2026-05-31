@@ -244,6 +244,77 @@ export const Route = createFileRoute("/$lang/elected")({
   component: ElectedPage,
 });
 
+const PN_REFRESH_MS = 5 * 60 * 1000;
+
+function formatRelative(fromIso: string, now: number, locale: Locale): string {
+  const t = new Date(fromIso).getTime();
+  if (!Number.isFinite(t)) return "—";
+  const diff = Math.max(0, Math.floor((now - t) / 1000));
+  if (locale === "mt") {
+    if (diff < 10) return "issa";
+    if (diff < 60) return `${diff}s ilu`;
+    const m = Math.floor(diff / 60);
+    if (m < 60) return `${m} min ilu`;
+    const h = Math.floor(m / 60);
+    return `${h}s ilu`;
+  }
+  if (diff < 10) return "just now";
+  if (diff < 60) return `${diff}s ago`;
+  const m = Math.floor(diff / 60);
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  return `${h}h ago`;
+}
+
+function PnLiveStatus({ generatedAt, locale }: { generatedAt: string; locale: Locale }) {
+  const router = useRouter();
+  const [now, setNow] = useState(() => Date.now());
+
+  // Tick the relative timestamp every 15s for a fresh display.
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(tick);
+  }, []);
+
+  // Auto-refresh on the same cadence as the Firecrawl cache (5 min).
+  useEffect(() => {
+    const fetched = new Date(generatedAt).getTime();
+    const elapsed = Date.now() - (Number.isFinite(fetched) ? fetched : Date.now());
+    const firstDelay = Math.max(5_000, PN_REFRESH_MS - elapsed);
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const firstTimer = setTimeout(() => {
+      void router.invalidate();
+      interval = setInterval(() => {
+        void router.invalidate();
+      }, PN_REFRESH_MS);
+    }, firstDelay);
+    return () => {
+      clearTimeout(firstTimer);
+      if (interval) clearInterval(interval);
+    };
+  }, [generatedAt, router]);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+      <span className="inline-flex items-center gap-1 rounded-full bg-background px-2 py-0.5 font-medium text-foreground/80">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        </span>
+        {locale === "mt" ? "Dirett" : "Live"}
+      </span>
+      <span>
+        {locale === "mt" ? "Aġġornat l-aħħar " : "Last updated "}
+        <span className="font-medium text-foreground/80">{formatRelative(generatedAt, now, locale)}</span>
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <RefreshCw className="h-3 w-3" aria-hidden="true" />
+        {locale === "mt" ? "jiġġedded kull 5 min" : "auto-refresh every 5 min"}
+      </span>
+    </div>
+  );
+}
+
 function PnAttribution({ locale, updatedAt }: { locale: Locale; updatedAt: string | null }) {
   return (
     <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
