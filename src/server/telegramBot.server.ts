@@ -161,7 +161,7 @@ async function handleCandidates(arg: string): Promise<string> {
     const { data: linkedCandidates } = await supabaseAdmin
       .from("candidate_districts")
       .select(
-        "candidate_id, election_year, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
+        "candidate_id, election_year, elected, votes_first_count, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
       )
       .eq("district_id", d.id)
       .eq("election_year", 2026);
@@ -173,11 +173,15 @@ async function handleCandidates(arg: string): Promise<string> {
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
+        elected: boolean;
+        votes: number | null;
         party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       }
     >();
 
     for (const link of (linkedCandidates ?? []) as Array<{
+      elected: boolean | null;
+      votes_first_count: number | null;
       candidate: {
         id: string;
         slug: string;
@@ -189,12 +193,24 @@ async function handleCandidates(arg: string): Promise<string> {
       } | null;
     }>) {
       const c = link.candidate;
-      if (!c || c.status !== "published") continue;
-      if (c.is_incumbent && !c.electoral_confirmed) continue;
-      if (!byId.has(c.id)) byId.set(c.id, c);
+      if (!c) continue;
+      if (c.status !== "published" && !c.is_incumbent) continue;
+      if (c.is_incumbent && !c.electoral_confirmed && !link.elected) continue;
+      if (!byId.has(c.id)) {
+        byId.set(c.id, {
+          slug: c.slug,
+          full_name: c.full_name,
+          electoral_confirmed: c.electoral_confirmed,
+          is_incumbent: c.is_incumbent,
+          elected: !!link.elected,
+          votes: link.votes_first_count ?? null,
+          party: c.party,
+        });
+      }
     }
 
     const cands = Array.from(byId.values()).sort((a, b) => {
+      if (a.elected !== b.elected) return a.elected ? -1 : 1;
       if (a.electoral_confirmed !== b.electoral_confirmed) {
         return a.electoral_confirmed ? -1 : 1;
       }
@@ -205,13 +221,23 @@ async function handleCandidates(arg: string): Promise<string> {
     if (cands.length === 0) {
       return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.\n\n🔗 ${districtLink}`;
     }
+    const electedCount = cands.filter((c) => c.elected).length;
     const lines = cands.map((c) => {
       const p = c.party;
       const party = p?.short_name || p?.name_en || "Independent";
       const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
-      return `• ${link} — <i>${escapeHtml(party)}</i>`;
+      const badges = [
+        c.elected ? "⭐ <b>ELECTED</b>" : null,
+        c.votes != null ? `${c.votes} votes` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      return `• ${link} — <i>${escapeHtml(party)}</i>${badges ? ` — ${badges}` : ""}`;
     });
-    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
+    const header = `<b>District ${n} — ${escapeHtml(d.name_en)}</b>${
+      electedCount > 0 ? `\n⭐ ${electedCount} elected so far` : ""
+    }`;
+    return `${header}\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
   }
 
   // Name search
