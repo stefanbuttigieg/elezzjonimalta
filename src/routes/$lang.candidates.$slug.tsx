@@ -228,6 +228,14 @@ function CandidatePage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
+              {electedDistricts.map((d) => (
+                <span
+                  key={d.id}
+                  className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow-sm"
+                >
+                  ★ {t("common.electedInDistrict", { number: d.number })}
+                </span>
+              ))}
               {candidate.is_incumbent ? <Pill label={t("common.sittingMp")} /> : null}
               {candidate.not_contesting_2026 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
