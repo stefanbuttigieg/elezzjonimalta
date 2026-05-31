@@ -1,10 +1,11 @@
 import { createFileRoute, ErrorComponent, Link } from "@tanstack/react-router";
-import { Star, MapPin, ArrowRight, Trophy } from "lucide-react";
+import { Star, MapPin, ArrowRight, Trophy, Radio, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
 import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 import { setEdgeCacheHeader } from "@/lib/ssrCache";
+import { getPnLiveResults, type PnLiveResults, type PnDistrictResult } from "@/lib/pnLiveResults.functions";
 
 type PartyLite = {
   slug: string;
