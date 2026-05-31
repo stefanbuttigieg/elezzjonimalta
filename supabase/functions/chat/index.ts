@@ -125,6 +125,30 @@ async function buildAuthoritativeFacts(
   if (byDistrict.size === 0) {
     lines.push("  • No elected candidates have been recorded yet in the database. Counting is ongoing.");
   } else {
+    // Build per-candidate district list to identify those elected in two districts
+    const byCandidate = new Map<string, number[]>();
+    for (const [n, list] of byDistrict.entries()) {
+      for (const c of list) {
+        const arr = byCandidate.get(c.name) ?? [];
+        arr.push(n);
+        byCandidate.set(c.name, arr);
+      }
+    }
+    const uniqueWinners = byCandidate.size;
+    const totalSeats = Array.from(byDistrict.values()).reduce((s, l) => s + l.length, 0);
+    const multi = Array.from(byCandidate.entries()).filter(([, ds]) => ds.length > 1);
+
+    lines.push(
+      `  • Totals: ${uniqueWinners} unique candidates elected across ${byDistrict.size} district(s); ${totalSeats} seats awarded in total (a candidate elected in two districts must vacate one seat, filled by a casual election).`,
+    );
+    if (multi.length > 0) {
+      lines.push(
+        `  • Elected in TWO districts: ${multi
+          .map(([name, ds]) => `${name} (Districts ${ds.sort((a, b) => a - b).join(" & ")})`)
+          .join("; ")}.`,
+      );
+    }
+
     const sortedDistricts = Array.from(byDistrict.keys()).sort((a, b) => a - b);
     for (const n of sortedDistricts) {
       const list = byDistrict.get(n)!.sort((a, b) => a.name.localeCompare(b.name));
@@ -136,7 +160,11 @@ async function buildAuthoritativeFacts(
     lines.push(
       "- If asked who was elected from a district, use ONLY this list. If a district is missing above, say results are not yet recorded for that district.",
     );
+    lines.push(
+      "- When reporting overall counts, use 'unique candidates elected' (not seat totals) so candidates elected in two districts are not double-counted. Highlight any candidate elected in two districts.",
+    );
   }
+
 
   return lines.join("\n");
 }

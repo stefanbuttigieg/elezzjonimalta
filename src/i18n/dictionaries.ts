@@ -156,6 +156,12 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.gcm.count": "{count} GCM seat(s)",
     "home.elected.countSummaryWithGcm":
       "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
+    "home.elected.multiDistrict": "{count} elected in 2 districts",
+    "elected.seatsAwarded": "{count} seats awarded",
+    "elected.alsoElectedIn": "Also elected in {districts}",
+    "elected.multiDistrict.title": "Elected in more than one district",
+    "elected.multiDistrict.subtitle":
+      "These candidates won a seat in two districts. Under Maltese law they must vacate one seat, which is then filled via a casual election.",
 
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
@@ -680,6 +686,12 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.gcm.count": "{count} siġġu/siġġijiet MKS",
     "home.elected.countSummaryWithGcm":
       "{total} eletti s'issa minn {districts} distrett(i) — inkluż {gcm} permezz tal-mekkaniżmu korrettiv tas-sessi",
+    "home.elected.multiDistrict": "{count} eletti f'żewġ distretti",
+    "elected.seatsAwarded": "{count} siġġijiet mogħtija",
+    "elected.alsoElectedIn": "Ġie elett ukoll fi {districts}",
+    "elected.multiDistrict.title": "Eletti f'aktar minn distrett wieħed",
+    "elected.multiDistrict.subtitle":
+      "Dawn il-kandidati rebħu siġġu f'żewġ distretti. Skont il-liġi Maltija għandhom jirrinunzjaw għal wieħed mis-siġġijiet, li mbagħad jimtela b'elezzjoni każwali.",
 
     "candidates.meta.title": "Kandidati — Elezzjoni",
     "candidates.meta.description":

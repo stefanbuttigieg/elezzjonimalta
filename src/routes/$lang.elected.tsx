@@ -41,6 +41,7 @@ type ElectedCandidate = {
   votes: number | null;
   elected_via_gcm: boolean;
   party: PartyLite | null;
+  also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
 
 type DistrictGroup = {
@@ -54,9 +55,19 @@ type PartyTally = PartyLite & { count: number };
 
 type DistrictLite = { number: number; name_en: string; name_mt: string | null };
 
+type MultiDistrictWinner = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  party: PartyLite | null;
+  districts: Array<{ number: number; name_en: string; name_mt: string | null; votes: number | null }>;
+};
+
 type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
+  totalSeats: number;
+  multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
 };
@@ -80,11 +91,13 @@ async function loadElected(): Promise<LoaderData> {
   const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
   const groupMap = new Map<number, DistrictGroup>();
   const partyMap = new Map<string, PartyTally>();
-  let total = 0;
+  const candidateSeen = new Set<string>();
+  const candidateInfo = new Map<string, MultiDistrictWinner>();
+  let totalSeats = 0;
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
-    total += 1;
+    totalSeats += 1;
     const g = groupMap.get(r.district.number) ?? {
       number: r.district.number,
       name_en: r.district.name_en,
@@ -98,8 +111,27 @@ async function loadElected(): Promise<LoaderData> {
       votes: r.votes_first_count,
       elected_via_gcm: !!r.elected_via_gcm,
       party: r.candidate.party,
+      also_in: [],
     });
     groupMap.set(r.district.number, g);
+
+    const info = candidateInfo.get(r.candidate.slug) ?? {
+      slug: r.candidate.slug,
+      full_name: r.candidate.full_name,
+      photo_url: r.candidate.photo_url,
+      party: r.candidate.party,
+      districts: [],
+    };
+    info.districts.push({
+      number: r.district.number,
+      name_en: r.district.name_en,
+      name_mt: r.district.name_mt,
+      votes: r.votes_first_count,
+    });
+    candidateInfo.set(r.candidate.slug, info);
+
+    if (candidateSeen.has(r.candidate.slug)) continue;
+    candidateSeen.add(r.candidate.slug);
 
     const p = r.candidate.party;
     if (p) {
@@ -122,7 +154,15 @@ async function loadElected(): Promise<LoaderData> {
     }
   }
 
+  // Fill also_in (other districts) per card
   for (const g of groupMap.values()) {
+    for (const c of g.elected) {
+      const info = candidateInfo.get(c.slug);
+      if (!info || info.districts.length <= 1) continue;
+      c.also_in = info.districts
+        .filter((d) => d.number !== g.number)
+        .map((d) => ({ number: d.number, name_en: d.name_en, name_mt: d.name_mt }));
+    }
     g.elected.sort((a, b) => {
       if ((b.votes ?? -1) !== (a.votes ?? -1)) return (b.votes ?? -1) - (a.votes ?? -1);
       return a.full_name.localeCompare(b.full_name);
@@ -131,16 +171,28 @@ async function loadElected(): Promise<LoaderData> {
 
   const groups = Array.from(groupMap.values()).sort((a, b) => a.number - b.number);
   const byParty = Array.from(partyMap.values()).sort((a, b) => b.count - a.count);
+  const multiDistrictWinners = Array.from(candidateInfo.values())
+    .filter((w) => w.districts.length > 1)
+    .sort((a, b) => b.districts.length - a.districts.length || a.full_name.localeCompare(b.full_name));
 
   return {
     groups,
-    totalElected: total,
+    totalElected: candidateSeen.size,
+    totalSeats,
+    multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
   };
 }
 
-const EMPTY_DATA: LoaderData = { groups: [], totalElected: 0, byParty: [], allDistricts: [] };
+const EMPTY_DATA: LoaderData = {
+  groups: [],
+  totalElected: 0,
+  totalSeats: 0,
+  multiDistrictWinners: [],
+  byParty: [],
+  allDistricts: [],
+};
 
 export const Route = createFileRoute("/$lang/elected")({
   loader: async (): Promise<LoaderData> => {
@@ -192,13 +244,25 @@ function ElectedPage() {
             {t("elected.subtitle")}
           </p>
           {data.totalElected > 0 ? (
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-              <Trophy className="h-4 w-4" aria-hidden="true" />
-              {t("home.elected.countSummary", {
-                total: data.totalElected,
-                districts: data.groups.length,
-              })}
-            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <p className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                <Trophy className="h-4 w-4" aria-hidden="true" />
+                {t("home.elected.countSummary", {
+                  total: data.totalElected,
+                  districts: data.groups.length,
+                })}
+              </p>
+              {data.totalSeats !== data.totalElected ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground">
+                  {t("elected.seatsAwarded", { count: data.totalSeats })}
+                </p>
+              ) : null}
+              {data.multiDistrictWinners.length > 0 ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300">
+                  {t("home.elected.multiDistrict", { count: data.multiDistrictWinners.length })}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </header>
 
@@ -228,6 +292,53 @@ function ElectedPage() {
                 </span>
               ))}
             </div>
+          </div>
+        ) : null}
+
+        {data.multiDistrictWinners.length > 0 ? (
+          <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 shadow-card ring-1 ring-amber-500/20">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300">
+              <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("elected.multiDistrict.title")}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("elected.multiDistrict.subtitle")}
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.multiDistrictWinners.map((w) => (
+                <li key={w.slug}>
+                  <Link
+                    to="/$lang/candidates/$slug"
+                    params={{ lang: locale, slug: w.slug }}
+                    className="group flex items-center gap-3 rounded-xl border border-amber-500/40 bg-background p-3 transition-colors hover:border-amber-500/70"
+                  >
+                    <CandidateAvatar
+                      src={w.photo_url}
+                      name={w.full_name}
+                      className="h-12 w-12 rounded-full object-cover"
+                      fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground group-hover:text-primary">
+                        {w.full_name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {w.party
+                          ? (locale === "mt" ? w.party.name_mt : w.party.name_en) ?? w.party.name_en
+                          : locale === "mt"
+                            ? "Indipendenti"
+                            : "Independent"}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                        {w.districts
+                          .map((d) => `${d.number} — ${(locale === "mt" ? d.name_mt : d.name_en) ?? d.name_en}`)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
 
@@ -266,7 +377,11 @@ function ElectedPage() {
                       <Link
                         to="/$lang/candidates/$slug"
                         params={{ lang: locale, slug: c.slug }}
-                        className="group flex items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3 ring-1 ring-emerald-500/20 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10"
+                        className={`group flex items-center gap-3 rounded-xl border p-3 ring-1 transition-colors ${
+                          c.also_in.length > 0
+                            ? "border-amber-500/50 bg-amber-500/5 ring-amber-500/30 hover:border-amber-500/70 hover:bg-amber-500/10"
+                            : "border-emerald-500/40 bg-emerald-500/5 ring-emerald-500/20 hover:border-emerald-500/60 hover:bg-emerald-500/10"
+                        }`}
                       >
                         <CandidateAvatar
                           src={c.photo_url}
@@ -275,15 +390,32 @@ function ElectedPage() {
                           fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <Star
-                              className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500"
+                              className={`h-3.5 w-3.5 ${c.also_in.length > 0 ? "fill-amber-500 text-amber-500" : "fill-emerald-500 text-emerald-500"}`}
                               aria-hidden="true"
                             />
                             <p className="truncate font-semibold text-foreground group-hover:text-primary">
                               {c.full_name}
                             </p>
+                            {c.also_in.length > 0 ? (
+                              <span
+                                className="inline-flex items-center rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300"
+                                title={c.also_in
+                                  .map((d) => `${d.number} — ${(locale === "mt" ? d.name_mt : d.name_en) ?? d.name_en}`)
+                                  .join(", ")}
+                              >
+                                ×{c.also_in.length + 1}
+                              </span>
+                            ) : null}
                           </div>
+                          {c.also_in.length > 0 ? (
+                            <p className="mt-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                              {t("elected.alsoElectedIn", {
+                                districts: c.also_in.map((d) => `#${d.number}`).join(", "),
+                              })}
+                            </p>
+                          ) : null}
                           <p className="truncate text-xs text-muted-foreground">
                             {c.party
                               ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ??
