@@ -154,6 +154,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Additional seats awarded under Malta's gender corrective mechanism to address gender imbalance in the House of Representatives.",
     "elected.gcm.empty": "No GCM seats recorded yet.",
     "elected.gcm.count": "{count} GCM seat(s)",
+    "elected.prop.badge": "Proportionality adjustment",
+    "elected.prop.short": "PROP",
+    "elected.prop.tally": "{count} via proportionality adjustment",
     "home.elected.countSummaryWithGcm":
       "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
     "home.elected.multiDistrict": "{count} elected in 2 districts",
