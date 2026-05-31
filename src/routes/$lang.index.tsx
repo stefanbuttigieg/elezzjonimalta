@@ -40,6 +40,31 @@ import {
 
 const ELECTION_DATE_ISO = "2026-05-30T07:00:00+02:00";
 
+type ElectedSummary = {
+  total: number;
+  districtsWithResults: number;
+  byParty: Array<{
+    slug: string;
+    short_name: string | null;
+    name_en: string;
+    name_mt: string | null;
+    color: string | null;
+    count: number;
+  }>;
+  recent: Array<{
+    slug: string;
+    full_name: string;
+    photo_url: string | null;
+    district_number: number;
+    district_name_en: string;
+    district_name_mt: string | null;
+    party_short: string | null;
+    party_name_en: string | null;
+    party_name_mt: string | null;
+    party_color: string | null;
+  }>;
+};
+
 type LandingStats = {
   candidates: number;
   parties: number;
@@ -49,6 +74,7 @@ type LandingStats = {
   faqs: number;
   districtCandidateCounts: Record<number, number>;
   lastUpdated: string | null;
+  elected: ElectedSummary;
 };
 
 async function loadLandingStats(): Promise<LandingStats> {
