@@ -80,7 +80,7 @@ function ElectedBulkEditor() {
           candidate_id: r.candidate_id,
           candidate_name: r.candidates?.full_name ?? "—",
           candidate_slug: r.candidates?.slug ?? "",
-          party_name: r.candidates?.parties?.name ?? null,
+          party_name: r.candidates?.parties?.name_en ?? null,
           party_id: r.candidates?.party_id ?? null,
           district_id: r.district_id,
           district_number: r.districts?.number ?? 0,
