@@ -390,15 +390,32 @@ function ElectedPage() {
                           fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <Star
-                              className="h-3.5 w-3.5 fill-emerald-500 text-emerald-500"
+                              className={`h-3.5 w-3.5 ${c.also_in.length > 0 ? "fill-amber-500 text-amber-500" : "fill-emerald-500 text-emerald-500"}`}
                               aria-hidden="true"
                             />
                             <p className="truncate font-semibold text-foreground group-hover:text-primary">
                               {c.full_name}
                             </p>
+                            {c.also_in.length > 0 ? (
+                              <span
+                                className="inline-flex items-center rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300"
+                                title={c.also_in
+                                  .map((d) => `${d.number} — ${(locale === "mt" ? d.name_mt : d.name_en) ?? d.name_en}`)
+                                  .join(", ")}
+                              >
+                                ×{c.also_in.length + 1}
+                              </span>
+                            ) : null}
                           </div>
+                          {c.also_in.length > 0 ? (
+                            <p className="mt-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                              {t("elected.alsoElectedIn", {
+                                districts: c.also_in.map((d) => `#${d.number}`).join(", "),
+                              })}
+                            </p>
+                          ) : null}
                           <p className="truncate text-xs text-muted-foreground">
                             {c.party
                               ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ??
