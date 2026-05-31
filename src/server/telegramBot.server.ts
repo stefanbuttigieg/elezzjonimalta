@@ -117,6 +117,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 
 <b>Commands</b>
 /candidates [district|name] — list or search candidates
+/elected [district] — show elected candidates (live results)
 /party [name|short] — show party info and proposals
 /proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
@@ -126,6 +127,8 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 Examples:
 <code>/candidates 5</code>
 <code>/candidates abela</code>
+<code>/elected</code>
+<code>/elected 7</code>
 <code>/party PL</code>
 <code>/proposals housing</code>
 <code>/proposals PL</code>
@@ -158,7 +161,7 @@ async function handleCandidates(arg: string): Promise<string> {
     const { data: linkedCandidates } = await supabaseAdmin
       .from("candidate_districts")
       .select(
-        "candidate_id, election_year, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
+        "candidate_id, election_year, elected, votes_first_count, candidate:candidates(id, slug, full_name, electoral_confirmed, is_incumbent, status, party:parties(slug, short_name, name_en))"
       )
       .eq("district_id", d.id)
       .eq("election_year", 2026);
@@ -170,11 +173,15 @@ async function handleCandidates(arg: string): Promise<string> {
         full_name: string;
         electoral_confirmed: boolean;
         is_incumbent: boolean;
+        elected: boolean;
+        votes: number | null;
         party: { slug?: string | null; short_name?: string | null; name_en?: string | null } | null;
       }
     >();
 
     for (const link of (linkedCandidates ?? []) as Array<{
+      elected: boolean | null;
+      votes_first_count: number | null;
       candidate: {
         id: string;
         slug: string;
@@ -186,12 +193,24 @@ async function handleCandidates(arg: string): Promise<string> {
       } | null;
     }>) {
       const c = link.candidate;
-      if (!c || c.status !== "published") continue;
-      if (c.is_incumbent && !c.electoral_confirmed) continue;
-      if (!byId.has(c.id)) byId.set(c.id, c);
+      if (!c) continue;
+      if (c.status !== "published" && !c.is_incumbent) continue;
+      if (c.is_incumbent && !c.electoral_confirmed && !link.elected) continue;
+      if (!byId.has(c.id)) {
+        byId.set(c.id, {
+          slug: c.slug,
+          full_name: c.full_name,
+          electoral_confirmed: c.electoral_confirmed,
+          is_incumbent: c.is_incumbent,
+          elected: !!link.elected,
+          votes: link.votes_first_count ?? null,
+          party: c.party,
+        });
+      }
     }
 
     const cands = Array.from(byId.values()).sort((a, b) => {
+      if (a.elected !== b.elected) return a.elected ? -1 : 1;
       if (a.electoral_confirmed !== b.electoral_confirmed) {
         return a.electoral_confirmed ? -1 : 1;
       }
@@ -202,13 +221,23 @@ async function handleCandidates(arg: string): Promise<string> {
     if (cands.length === 0) {
       return `District ${n} (${escapeHtml(d.name_en)}): no published candidates yet.\n\n🔗 ${districtLink}`;
     }
+    const electedCount = cands.filter((c) => c.elected).length;
     const lines = cands.map((c) => {
       const p = c.party;
       const party = p?.short_name || p?.name_en || "Independent";
       const link = siteLink(`/en/candidates/${c.slug}`, c.full_name);
-      return `• ${link} — <i>${escapeHtml(party)}</i>`;
+      const badges = [
+        c.elected ? "⭐ <b>ELECTED</b>" : null,
+        c.votes != null ? `${c.votes} votes` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      return `• ${link} — <i>${escapeHtml(party)}</i>${badges ? ` — ${badges}` : ""}`;
     });
-    return `<b>District ${n} — ${escapeHtml(d.name_en)}</b>\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
+    const header = `<b>District ${n} — ${escapeHtml(d.name_en)}</b>${
+      electedCount > 0 ? `\n⭐ ${electedCount} elected so far` : ""
+    }`;
+    return `${header}\n${lines.join("\n")}\n\n🔗 ${districtLink}`;
   }
 
   // Name search
@@ -348,6 +377,96 @@ async function handleFaq(arg: string): Promise<string> {
   return blocks.join("\n\n");
 }
 
+async function handleElected(arg: string): Promise<string> {
+  const a = arg.trim();
+
+  // Optional district number filter
+  let districtFilter: { id: string; number: number; name_en: string } | null = null;
+  if (a) {
+    const n = Number(a);
+    if (Number.isInteger(n) && n >= 1 && n <= 13) {
+      const { data: d } = await supabaseAdmin
+        .from("districts")
+        .select("id, number, name_en")
+        .eq("number", n)
+        .eq("status", "published")
+        .maybeSingle();
+      if (!d) return `No published district found for number ${n}.`;
+      districtFilter = d;
+    } else {
+      return "Usage: <code>/elected</code> or <code>/elected &lt;district number 1-13&gt;</code>";
+    }
+  }
+
+  let query = supabaseAdmin
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, district:districts(number, name_en), candidate:candidates(slug, full_name, party:parties(short_name, name_en))"
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+  if (districtFilter) query = query.eq("district_id", districtFilter.id);
+
+  const { data: rows } = await query;
+
+  type Row = {
+    votes_first_count: number | null;
+    district: { number?: number; name_en?: string } | null;
+    candidate: {
+      slug?: string;
+      full_name?: string;
+      party: { short_name?: string | null; name_en?: string | null } | null;
+    } | null;
+  };
+
+  const grouped = new Map<
+    number,
+    { name_en: string; items: Array<{ name: string; slug: string; party: string; votes: number | null }> }
+  >();
+  for (const r of (rows ?? []) as Row[]) {
+    const n = r.district?.number;
+    if (!n || !r.candidate?.full_name || !r.candidate.slug) continue;
+    const bucket = grouped.get(n) ?? { name_en: r.district?.name_en ?? "", items: [] };
+    bucket.items.push({
+      name: r.candidate.full_name,
+      slug: r.candidate.slug,
+      party: r.candidate.party?.short_name || r.candidate.party?.name_en || "Independent",
+      votes: r.votes_first_count ?? null,
+    });
+    grouped.set(n, bucket);
+  }
+
+  if (grouped.size === 0) {
+    if (districtFilter) {
+      return `⭐ No elected candidates recorded yet for District ${districtFilter.number} — ${escapeHtml(districtFilter.name_en)}. Counting may still be in progress.`;
+    }
+    return "⭐ No elected candidates have been recorded yet. Counting is ongoing — check back soon.";
+  }
+
+  const districts = Array.from(grouped.keys()).sort((a, b) => a - b);
+  const blocks: string[] = [];
+  let total = 0;
+  for (const n of districts) {
+    const g = grouped.get(n)!;
+    g.items.sort((a, b) => a.name.localeCompare(b.name));
+    total += g.items.length;
+    const lines = g.items.map((c) => {
+      const link = siteLink(`/en/candidates/${c.slug}`, c.name);
+      const votes = c.votes != null ? ` — <i>${c.votes} first-count votes</i>` : "";
+      return `  • ${link} — <i>${escapeHtml(c.party)}</i>${votes}`;
+    });
+    blocks.push(
+      `<b>District ${n} — ${escapeHtml(g.name_en)}</b>\n${lines.join("\n")}`
+    );
+  }
+
+  const header = districtFilter
+    ? `⭐ <b>Elected — District ${districtFilter.number}</b>`
+    : `⭐ <b>Elected candidates — 2026 General Election</b> (${total} so far across ${districts.length} district(s))\n<i>Live results, may be incomplete while counting continues.</i>`;
+
+  return `${header}\n\n${blocks.join("\n\n")}`;
+}
+
 async function handleAsk(arg: string): Promise<string> {
   const q = arg.trim();
   if (!q) return "Usage: <code>/ask &lt;your question&gt;</code>";
@@ -413,6 +532,9 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
     case "candidates":
     case "candidate":
       return { command: "candidates", response: await handleCandidates(arg) };
+    case "elected":
+    case "winners":
+      return { command: "elected", response: await handleElected(arg) };
     case "party":
     case "parties":
       return { command: "party", response: await handleParty(arg) };
@@ -431,7 +553,7 @@ async function routeCommand(text: string): Promise<{ command: string; response: 
 
 // Commands where feedback is meaningful. We skip /help and unknown commands
 // since rating those would just be noise.
-const FEEDBACK_COMMANDS = new Set(["candidates", "party", "proposals", "faq", "ask"]);
+const FEEDBACK_COMMANDS = new Set(["candidates", "elected", "party", "proposals", "faq", "ask"]);
 
 async function processMessage(update: TgUpdate): Promise<void> {
   const msg = update.message;

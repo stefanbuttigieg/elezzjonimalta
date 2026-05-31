@@ -88,6 +88,56 @@ async function buildAuthoritativeFacts(
   lines.push(
     "- If a person appears in the retrieved context as a candidate of a party, that does NOT make them the party leader. Use this list for leadership questions.",
   );
+
+  // Elected candidates (2026), grouped by district. Sourced from
+  // candidate_districts.elected — updated live as official results come in.
+  const { data: electedRows } = await supabase
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, district:districts(number, name_en), candidate:candidates(full_name, party:parties(short_name, name_en))",
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+
+  type ElectedRow = {
+    votes_first_count: number | null;
+    district: { number?: number; name_en?: string } | null;
+    candidate: {
+      full_name?: string;
+      party: { short_name?: string | null; name_en?: string | null } | null;
+    } | null;
+  };
+  const byDistrict = new Map<number, Array<{ name: string; party: string; votes: number | null }>>();
+  for (const row of (electedRows ?? []) as ElectedRow[]) {
+    const n = row.district?.number;
+    if (!n || !row.candidate?.full_name) continue;
+    const arr = byDistrict.get(n) ?? [];
+    arr.push({
+      name: row.candidate.full_name,
+      party: row.candidate.party?.short_name || row.candidate.party?.name_en || "Independent",
+      votes: row.votes_first_count ?? null,
+    });
+    byDistrict.set(n, arr);
+  }
+
+  lines.push("");
+  lines.push("- Elected candidates for the 2026 General Election (live results, may be incomplete while counting continues — Partit Laburista has been declared the overall winner):");
+  if (byDistrict.size === 0) {
+    lines.push("  • No elected candidates have been recorded yet in the database. Counting is ongoing.");
+  } else {
+    const sortedDistricts = Array.from(byDistrict.keys()).sort((a, b) => a - b);
+    for (const n of sortedDistricts) {
+      const list = byDistrict.get(n)!.sort((a, b) => a.name.localeCompare(b.name));
+      const items = list
+        .map((c) => `${c.name} (${c.party})${c.votes != null ? ` — ${c.votes} first-count votes` : ""}`)
+        .join("; ");
+      lines.push(`  • District ${n}: ${items}.`);
+    }
+    lines.push(
+      "- If asked who was elected from a district, use ONLY this list. If a district is missing above, say results are not yet recorded for that district.",
+    );
+  }
+
   return lines.join("\n");
 }
 
@@ -119,7 +169,7 @@ async function buildIntentBoost(
     const { data: links } = await supabase
       .from("candidate_districts")
       .select(
-        "candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
+        "elected, votes_first_count, candidate:candidates(full_name, slug, electoral_confirmed, is_incumbent, status, party:parties(name_en, short_name))",
       )
       .eq("district_id", district.id)
       .eq("election_year", 2026);
@@ -129,9 +179,13 @@ async function buildIntentBoost(
       party: string;
       confirmed: boolean;
       incumbent: boolean;
+      elected: boolean;
+      votes: number | null;
       slug: string;
     }> = [];
     for (const row of (links ?? []) as Array<{
+      elected: boolean | null;
+      votes_first_count: number | null;
       candidate: {
         full_name: string;
         slug: string;
@@ -151,28 +205,43 @@ async function buildIntentBoost(
         party: c.party?.short_name || c.party?.name_en || "Independent",
         confirmed: !!c.electoral_confirmed,
         incumbent: !!c.is_incumbent,
+        elected: !!row.elected,
+        votes: row.votes_first_count ?? null,
         slug: c.slug,
       });
     }
     cands.sort((a, b) => {
+      if (a.elected !== b.elected) return a.elected ? -1 : 1;
       if (a.confirmed !== b.confirmed) return a.confirmed ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
 
     const lines: string[] = [];
+    const electedList = cands.filter((c) => c.elected);
     lines.push(
-      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026):`,
+      `District ${district.number} — ${district.name_en} (${cands.length} candidate(s) on record for 2026; ${electedList.length} elected so far):`,
     );
     if (district.localities_en) {
       lines.push(`Localities: ${district.localities_en}`);
+    }
+    if (electedList.length > 0) {
+      lines.push(
+        `Elected from District ${district.number}: ${electedList
+          .map((c) => `${c.name} (${c.party})${c.votes != null ? ` — ${c.votes} votes` : ""}`)
+          .join("; ")}.`,
+      );
+    } else {
+      lines.push(`No elected candidates recorded yet for District ${district.number} (counting may still be ongoing).`);
     }
     if (cands.length === 0) {
       lines.push("No candidates are currently linked to this district in the database.");
     } else {
       for (const c of cands) {
         const flags = [
+          c.elected ? "ELECTED" : null,
           c.confirmed ? "confirmed for 2026" : "not yet confirmed",
           c.incumbent ? "sitting MP" : null,
+          c.votes != null ? `${c.votes} first-count votes` : null,
         ]
           .filter(Boolean)
           .join(", ");
