@@ -687,6 +687,9 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
       "Siġġijiet addizzjonali mogħtija taħt il-mekkaniżmu korrettiv tas-sessi ta' Malta biex jindirizza l-iżbilanċ bejn is-sessi fil-Kamra tar-Rappreżentanti.",
     "elected.gcm.empty": "Għad m'hemm l-ebda siġġijiet MKS irreġistrati.",
     "elected.gcm.count": "{count} siġġu/siġġijiet MKS",
+    "elected.prop.badge": "Aġġustament tal-proporzjonalità",
+    "elected.prop.short": "PROP",
+    "elected.prop.tally": "{count} permezz tal-aġġustament tal-proporzjonalità",
     "home.elected.countSummaryWithGcm":
       "{total} eletti s'issa minn {districts} distrett(i) — inkluż {gcm} permezz tal-mekkaniżmu korrettiv tas-sessi",
     "home.elected.multiDistrict": "{count} eletti f'żewġ distretti",
