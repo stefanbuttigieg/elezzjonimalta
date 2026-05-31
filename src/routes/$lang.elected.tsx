@@ -91,11 +91,13 @@ async function loadElected(): Promise<LoaderData> {
   const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
   const groupMap = new Map<number, DistrictGroup>();
   const partyMap = new Map<string, PartyTally>();
-  let total = 0;
+  const candidateSeen = new Set<string>();
+  const candidateInfo = new Map<string, MultiDistrictWinner>();
+  let totalSeats = 0;
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
-    total += 1;
+    totalSeats += 1;
     const g = groupMap.get(r.district.number) ?? {
       number: r.district.number,
       name_en: r.district.name_en,
@@ -109,8 +111,27 @@ async function loadElected(): Promise<LoaderData> {
       votes: r.votes_first_count,
       elected_via_gcm: !!r.elected_via_gcm,
       party: r.candidate.party,
+      also_in: [],
     });
     groupMap.set(r.district.number, g);
+
+    const info = candidateInfo.get(r.candidate.slug) ?? {
+      slug: r.candidate.slug,
+      full_name: r.candidate.full_name,
+      photo_url: r.candidate.photo_url,
+      party: r.candidate.party,
+      districts: [],
+    };
+    info.districts.push({
+      number: r.district.number,
+      name_en: r.district.name_en,
+      name_mt: r.district.name_mt,
+      votes: r.votes_first_count,
+    });
+    candidateInfo.set(r.candidate.slug, info);
+
+    if (candidateSeen.has(r.candidate.slug)) continue;
+    candidateSeen.add(r.candidate.slug);
 
     const p = r.candidate.party;
     if (p) {
@@ -133,7 +154,15 @@ async function loadElected(): Promise<LoaderData> {
     }
   }
 
+  // Fill also_in (other districts) per card
   for (const g of groupMap.values()) {
+    for (const c of g.elected) {
+      const info = candidateInfo.get(c.slug);
+      if (!info || info.districts.length <= 1) continue;
+      c.also_in = info.districts
+        .filter((d) => d.number !== g.number)
+        .map((d) => ({ number: d.number, name_en: d.name_en, name_mt: d.name_mt }));
+    }
     g.elected.sort((a, b) => {
       if ((b.votes ?? -1) !== (a.votes ?? -1)) return (b.votes ?? -1) - (a.votes ?? -1);
       return a.full_name.localeCompare(b.full_name);
@@ -142,16 +171,28 @@ async function loadElected(): Promise<LoaderData> {
 
   const groups = Array.from(groupMap.values()).sort((a, b) => a.number - b.number);
   const byParty = Array.from(partyMap.values()).sort((a, b) => b.count - a.count);
+  const multiDistrictWinners = Array.from(candidateInfo.values())
+    .filter((w) => w.districts.length > 1)
+    .sort((a, b) => b.districts.length - a.districts.length || a.full_name.localeCompare(b.full_name));
 
   return {
     groups,
-    totalElected: total,
+    totalElected: candidateSeen.size,
+    totalSeats,
+    multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
   };
 }
 
-const EMPTY_DATA: LoaderData = { groups: [], totalElected: 0, byParty: [], allDistricts: [] };
+const EMPTY_DATA: LoaderData = {
+  groups: [],
+  totalElected: 0,
+  totalSeats: 0,
+  multiDistrictWinners: [],
+  byParty: [],
+  allDistricts: [],
+};
 
 export const Route = createFileRoute("/$lang/elected")({
   loader: async (): Promise<LoaderData> => {
