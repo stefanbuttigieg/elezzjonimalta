@@ -295,6 +295,53 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        {data.multiDistrictWinners.length > 0 ? (
+          <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 shadow-card ring-1 ring-amber-500/20">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-300">
+              <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("elected.multiDistrict.title")}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("elected.multiDistrict.subtitle")}
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.multiDistrictWinners.map((w) => (
+                <li key={w.slug}>
+                  <Link
+                    to="/$lang/candidates/$slug"
+                    params={{ lang: locale, slug: w.slug }}
+                    className="group flex items-center gap-3 rounded-xl border border-amber-500/40 bg-background p-3 transition-colors hover:border-amber-500/70"
+                  >
+                    <CandidateAvatar
+                      src={w.photo_url}
+                      name={w.full_name}
+                      className="h-12 w-12 rounded-full object-cover"
+                      fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground group-hover:text-primary">
+                        {w.full_name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {w.party
+                          ? (locale === "mt" ? w.party.name_mt : w.party.name_en) ?? w.party.name_en
+                          : locale === "mt"
+                            ? "Indipendenti"
+                            : "Independent"}
+                      </p>
+                      <p className="mt-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                        {w.districts
+                          .map((d) => `${d.number} — ${(locale === "mt" ? d.name_mt : d.name_en) ?? d.name_en}`)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {data.groups.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-dashed border-border bg-surface p-10 text-center">
             <Star className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
