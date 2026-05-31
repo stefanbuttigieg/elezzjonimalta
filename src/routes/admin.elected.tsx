@@ -70,7 +70,7 @@ function ElectedBulkEditor() {
         const { data, error } = await supabase
           .from("candidate_districts")
           .select(
-            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, votes_first_count, " +
+            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, votes_first_count, " +
               "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
