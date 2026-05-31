@@ -49,8 +49,9 @@ export function ElcomCandidateCountsPanel() {
   }, [year, districtNumber, countRange, fetchCounts]);
 
   const rowsByParty = useMemo(() => {
-    if (!data) return [] as Array<{ party: string; rows: typeof data.rows }>;
-    const map = new Map<string, typeof data.rows>();
+    type Row = ElcomCandidateCounts["rows"][number];
+    if (!data) return [] as Array<{ party: string; rows: Row[] }>;
+    const map = new Map<string, Row[]>();
     for (const r of data.rows) {
       const k = r.party || "—";
       if (!map.has(k)) map.set(k, []);
