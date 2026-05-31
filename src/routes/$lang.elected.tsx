@@ -270,6 +270,11 @@ function ElectedPage() {
                   {t("home.elected.multiDistrict", { count: data.multiDistrictWinners.length })}
                 </p>
               ) : null}
+              {data.proportionalitySeats > 0 ? (
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-3 py-1.5 text-sm font-semibold text-sky-800 dark:text-sky-300">
+                  {t("elected.prop.tally", { count: data.proportionalitySeats })}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </header>
