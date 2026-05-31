@@ -369,6 +369,7 @@ function ElectedBulkEditor() {
             <option value="all">All</option>
             <option value="elected">Elected only</option>
             <option value="not">Not elected</option>
+            <option value="gcm">GCM only</option>
           </select>
         </label>
 
