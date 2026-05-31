@@ -516,6 +516,7 @@ function ElectedPage() {
                   </span>
                 ) : null}
               </h2>
+              <PnLiveStatus generatedAt={pnLive.generatedAt} locale={locale} />
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3">
