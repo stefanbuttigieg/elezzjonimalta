@@ -743,3 +743,100 @@ function Principles({ t }: { t: (k: string, v?: Record<string, string | number>)
     </section>
   );
 }
+
+function ElectedHighlight({
+  lang,
+  t,
+  elected,
+}: {
+  lang: Locale;
+  t: (k: string, v?: Record<string, string | number>) => string;
+  elected: ElectedSummary;
+}) {
+  return (
+    <section className="border-b border-border bg-gradient-to-b from-emerald-500/5 via-background to-background">
+      <div className="container mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              {t("home.elected.eyebrow")}
+            </p>
+            <h2 className="mt-2 font-serif text-3xl font-bold text-foreground md:text-4xl">
+              {t("home.elected.title")}
+            </h2>
+            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+              {t("home.elected.subtitle")}
+            </p>
+            <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+              {t("home.elected.countSummary", {
+                total: elected.total,
+                districts: elected.districtsWithResults,
+              })}
+            </p>
+          </div>
+          <Link
+            to="/$lang/elected"
+            params={{ lang }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+          >
+            {t("home.elected.viewAll")}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {elected.byParty.length > 0 ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {elected.byParty.map((p) => (
+              <span
+                key={p.slug}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-sm font-medium text-foreground"
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ background: p.color ?? "hsl(var(--muted-foreground))" }}
+                  aria-hidden="true"
+                />
+                <span>
+                  {(lang === "mt" ? p.name_mt : p.name_en) ?? p.name_en}
+                  {p.short_name ? ` (${p.short_name})` : ""}
+                </span>
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                  {p.count}
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {elected.recent.map((c) => (
+            <li key={c.slug + c.district_number}>
+              <Link
+                to="/$lang/candidates/$slug"
+                params={{ lang, slug: c.slug }}
+                className="group flex h-full flex-col rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-3 ring-1 ring-emerald-500/20 transition-colors hover:border-emerald-500/60 hover:bg-emerald-500/10"
+              >
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("common.elected")}
+                </div>
+                <p className="mt-1 font-semibold text-foreground group-hover:text-primary">
+                  {c.full_name}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {c.party_short || c.party_name_en || (lang === "mt" ? "Indipendenti" : "Independent")}
+                  {" · "}
+                  {t("elected.districtHeading", {
+                    number: c.district_number,
+                    name: (lang === "mt" ? c.district_name_mt : c.district_name_en) ?? c.district_name_en,
+                  })}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
