@@ -681,6 +681,12 @@ function ElectedPage() {
                     </li>
                   ))}
                 </ul>
+                {pnByNumber.get(g.number) ? (
+                  <>
+                    <PnDistrictBand d={pnByNumber.get(g.number)!} locale={locale} />
+                    <PnAttribution locale={locale} updatedAt={pnLive?.updatedAt ?? null} />
+                  </>
+                ) : null}
               </article>
             ))}
           </div>
