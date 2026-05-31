@@ -119,6 +119,9 @@ async function loadLandingStats(): Promise<LandingStats> {
     ? updates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b))
     : null;
 
+  // Elected summary for the homepage feature.
+  const elected = await loadElectedSummary();
+
   return {
     candidates: candidates.count ?? 0,
     parties: parties.count ?? 0,
@@ -128,6 +131,81 @@ async function loadLandingStats(): Promise<LandingStats> {
     faqs: faqs.count ?? 0,
     districtCandidateCounts,
     lastUpdated,
+    elected,
+  };
+}
+
+async function loadElectedSummary(): Promise<ElectedSummary> {
+  const { data } = await supabase
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, updated_at, candidate:candidates(slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(number, name_en, name_mt)"
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+
+  type Row = {
+    votes_first_count: number | null;
+    updated_at: string | null;
+    candidate: {
+      slug: string;
+      full_name: string;
+      photo_url: string | null;
+      party: {
+        slug: string;
+        short_name: string | null;
+        name_en: string;
+        name_mt: string | null;
+        color: string | null;
+      } | null;
+    } | null;
+    district: { number: number; name_en: string; name_mt: string | null } | null;
+  };
+
+  const rows = (data ?? []) as unknown as Row[];
+  const districts = new Set<number>();
+  const partyMap = new Map<string, ElectedSummary["byParty"][number]>();
+  const items: Array<Row & { sortKey: number }> = [];
+
+  for (const r of rows) {
+    if (!r.candidate || !r.district) continue;
+    districts.add(r.district.number);
+    items.push({ ...r, sortKey: r.updated_at ? new Date(r.updated_at).getTime() : 0 });
+    const p = r.candidate.party;
+    const key = p?.slug ?? "__independent";
+    const existing =
+      partyMap.get(key) ??
+      ({
+        slug: key,
+        short_name: p?.short_name ?? null,
+        name_en: p?.name_en ?? "Independent",
+        name_mt: p?.name_mt ?? "Indipendenti",
+        color: p?.color ?? null,
+        count: 0,
+      } as ElectedSummary["byParty"][number]);
+    existing.count += 1;
+    partyMap.set(key, existing);
+  }
+
+  items.sort((a, b) => b.sortKey - a.sortKey);
+  const recent = items.slice(0, 8).map((r) => ({
+    slug: r.candidate!.slug,
+    full_name: r.candidate!.full_name,
+    photo_url: r.candidate!.photo_url,
+    district_number: r.district!.number,
+    district_name_en: r.district!.name_en,
+    district_name_mt: r.district!.name_mt,
+    party_short: r.candidate!.party?.short_name ?? null,
+    party_name_en: r.candidate!.party?.name_en ?? null,
+    party_name_mt: r.candidate!.party?.name_mt ?? null,
+    party_color: r.candidate!.party?.color ?? null,
+  }));
+
+  return {
+    total: items.length,
+    districtsWithResults: districts.size,
+    byParty: Array.from(partyMap.values()).sort((a, b) => b.count - a.count),
+    recent,
   };
 }
 
