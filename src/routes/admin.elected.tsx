@@ -402,6 +402,7 @@ function ElectedBulkEditor() {
             <option value="elected">Elected only</option>
             <option value="not">Not elected</option>
             <option value="gcm">GCM only</option>
+            <option value="prop">Proportionality only</option>
           </select>
         </label>
 
