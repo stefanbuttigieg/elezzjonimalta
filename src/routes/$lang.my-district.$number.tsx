@@ -119,6 +119,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
   }
 
   const candidates = Array.from(byId.values()).sort((a, b) => {
+    if (a.elected_here !== b.elected_here) return a.elected_here ? -1 : 1;
     if (a.electoral_confirmed !== b.electoral_confirmed) {
       return a.electoral_confirmed ? -1 : 1;
     }
