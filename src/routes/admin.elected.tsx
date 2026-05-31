@@ -193,7 +193,10 @@ function ElectedBulkEditor() {
     setSaving(true);
     try {
       const changed = rows.filter(
-        (r) => r.elected !== r.initial_elected || r.votes !== r.initial_votes,
+        (r) =>
+          r.elected !== r.initial_elected ||
+          r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
         toast.info("No changes to save");
@@ -209,6 +212,7 @@ function ElectedBulkEditor() {
               .from("candidate_districts")
               .update({
                 elected: r.elected,
+                elected_via_gcm: r.elected_via_gcm,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -219,7 +223,12 @@ function ElectedBulkEditor() {
       setRows((prev) =>
         prev.map((r) =>
           changed.find((c) => c.id === r.id)
-            ? { ...r, initial_elected: r.elected, initial_votes: r.votes }
+            ? {
+                ...r,
+                initial_elected: r.elected,
+                initial_elected_via_gcm: r.elected_via_gcm,
+                initial_votes: r.votes,
+              }
             : r,
         ),
       );
