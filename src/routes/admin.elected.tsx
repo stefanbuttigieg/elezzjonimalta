@@ -30,6 +30,8 @@ interface Row {
   initial_elected: boolean;
   elected_via_gcm: boolean;
   initial_elected_via_gcm: boolean;
+  elected_via_proportionality: boolean;
+  initial_elected_via_proportionality: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
 }
