@@ -62,7 +62,9 @@ type ElectedSummary = {
     party_name_en: string | null;
     party_name_mt: string | null;
     party_color: string | null;
+    district_count: number;
   }>;
+  multiDistrict: number;
 };
 
 type LandingStats = {
