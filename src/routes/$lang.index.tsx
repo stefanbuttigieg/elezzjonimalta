@@ -852,9 +852,16 @@ function ElectedHighlight({
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                   {t("common.elected")}
                 </div>
-                <p className="mt-1 font-semibold text-foreground group-hover:text-primary">
-                  {c.full_name}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <p className="font-semibold text-foreground group-hover:text-primary">
+                    {c.full_name}
+                  </p>
+                  {c.district_count > 1 ? (
+                    <span className="inline-flex items-center rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                      ×{c.district_count}
+                    </span>
+                  ) : null}
+                </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {c.party_short || c.party_name_en || (lang === "mt" ? "Indipendenti" : "Independent")}
                   {" · "}
