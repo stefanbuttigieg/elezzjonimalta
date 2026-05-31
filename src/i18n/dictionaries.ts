@@ -946,6 +946,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "myDistrict.candidates.leader": "Mexxej tal-partit",
     "myDistrict.candidates.deputyLeader": "Deputat mexxej",
     "myDistrict.candidates.ecConfirmed": "Ikkonfermat mill-Kummissjoni Elettorali",
+    "myDistrict.candidates.elected": "Elett/a",
+    "myDistrict.electedHeading": "Eletti minn dan id-distrett",
     "myDistrict.compareCta": "Qabbel il-kandidati",
     "myDistrict.proposals.title": "X'qed iwiegħdu l-partiti hawn",
     "myDistrict.proposals.empty":
