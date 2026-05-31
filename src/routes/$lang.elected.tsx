@@ -8,6 +8,7 @@ import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 import { setEdgeCacheHeader } from "@/lib/ssrCache";
 import { getPnLiveResults, type PnLiveResults, type PnDistrictResult } from "@/lib/pnLiveResults.functions";
 import { getElcomFirstCount, type ElcomFirstCount } from "@/lib/elcomFirstCount.functions";
+import { ElcomCandidateCountsPanel } from "@/components/site/ElcomCandidateCountsPanel";
 
 type PartyLite = {
   slug: string;
