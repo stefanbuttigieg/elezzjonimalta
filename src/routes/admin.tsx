@@ -33,6 +33,7 @@ import {
   BookUp,
   Search,
   Languages,
+  Star,
 } from "lucide-react";
 import {
   Sheet,
