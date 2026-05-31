@@ -363,7 +363,7 @@ function ElectedBulkEditor() {
           Status
           <select
             value={electedFilter}
-            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not")}
+            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm")}
             className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground"
           >
             <option value="all">All</option>
