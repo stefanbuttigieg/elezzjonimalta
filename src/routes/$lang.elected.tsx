@@ -97,10 +97,12 @@ async function loadElected(): Promise<LoaderData> {
   const candidateSeen = new Set<string>();
   const candidateInfo = new Map<string, MultiDistrictWinner>();
   let totalSeats = 0;
+  let proportionalitySeats = 0;
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
     totalSeats += 1;
+    if (r.elected_via_proportionality) proportionalitySeats += 1;
     const g = groupMap.get(r.district.number) ?? {
       number: r.district.number,
       name_en: r.district.name_en,
