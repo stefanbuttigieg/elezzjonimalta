@@ -529,7 +529,9 @@ maria-vella,9,false,`}
             <tbody>
               {filtered.map((r) => {
                 const dirty =
-                  r.elected !== r.initial_elected || r.votes !== r.initial_votes;
+                  r.elected !== r.initial_elected ||
+                  r.elected_via_gcm !== r.initial_elected_via_gcm ||
+                  r.votes !== r.initial_votes;
                 return (
                   <tr
                     key={r.id}
