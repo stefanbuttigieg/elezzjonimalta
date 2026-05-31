@@ -53,7 +53,7 @@ type DistrictGroup = {
   elected: ElectedCandidate[];
 };
 
-type PartyTally = PartyLite & { count: number };
+type PartyTally = PartyLite & { count: number; seats: number; propSeats: number };
 
 type DistrictLite = { number: number; name_en: string; name_mt: string | null };
 
