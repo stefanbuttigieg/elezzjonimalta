@@ -290,6 +290,9 @@ function HomePage() {
         </div>
       ) : null}
       <Hero lang={locale} t={t} />
+      {stats?.elected && stats.elected.total > 0 ? (
+        <ElectedHighlight lang={locale} t={t} elected={stats.elected} />
+      ) : null}
       <EligibilitySection t={t} />
       <StatsSection stats={stats} lang={locale} t={t} />
       <DistrictsMapSection lang={locale} t={t} candidateCounts={stats?.districtCandidateCounts} />
