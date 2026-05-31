@@ -243,6 +243,91 @@ export const Route = createFileRoute("/$lang/elected")({
   component: ElectedPage,
 });
 
+function PnAttribution({ locale, updatedAt }: { locale: Locale; updatedAt: string | null }) {
+  return (
+    <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+      {locale === "mt" ? "Sors: " : "Source: "}
+      <a
+        href="https://pn.org.mt/results/"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        className="inline-flex items-center gap-0.5 font-medium text-foreground/80 underline decoration-dotted hover:text-primary"
+      >
+        Partit Nazzjonalista — Riżultati Diretti <ExternalLink className="h-3 w-3" aria-hidden="true" />
+      </a>{" "}
+      {locale === "mt" ? "ipprovduti minn " : "data from "}
+      <a
+        href="https://electoral.gov.mt/"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        className="font-medium text-foreground/80 underline decoration-dotted hover:text-primary"
+      >
+        ELCOM
+      </a>
+      {updatedAt ? ` · ${locale === "mt" ? "aġġornat" : "updated"} ${updatedAt}` : ""}
+    </p>
+  );
+}
+
+function PnDistrictBand({ d, locale }: { d: PnDistrictResult; locale: Locale }) {
+  const leaderClasses =
+    d.leader === "PL"
+      ? "border-rose-500/40 bg-rose-500/5"
+      : d.leader === "PN"
+        ? "border-sky-500/40 bg-sky-500/5"
+        : "border-border bg-surface";
+  return (
+    <div className={`mt-4 rounded-xl border ${leaderClasses} p-3`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <Radio className="h-3 w-3" aria-hidden="true" />
+          {locale === "mt" ? "Riżultati diretti — l-ewwel għadd" : "Live first-count results"}
+          {d.percentCounted != null ? (
+            <span className="ml-1 rounded-full bg-background px-1.5 py-0.5 text-[10px] font-bold text-foreground">
+              {d.percentCounted}% {locale === "mt" ? "magħduda" : "counted"}
+            </span>
+          ) : null}
+        </p>
+        {d.leader ? (
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              d.leader === "PL" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300" : "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+            }`}
+          >
+            {d.leader} ▲ {locale === "mt" ? "fuq quddiem" : "leading"}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+        <div className="rounded-lg bg-background/60 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">PN</p>
+          <p className="font-bold tabular-nums text-foreground">{d.pnPercent != null ? `${d.pnPercent}%` : "—"}</p>
+          <p className="tabular-nums text-muted-foreground">{d.pnVotes?.toLocaleString() ?? "—"}</p>
+        </div>
+        <div className="rounded-lg bg-background/60 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-300">PL</p>
+          <p className="font-bold tabular-nums text-foreground">{d.plPercent != null ? `${d.plPercent}%` : "—"}</p>
+          <p className="tabular-nums text-muted-foreground">{d.plVotes?.toLocaleString() ?? "—"}</p>
+        </div>
+        <div className="rounded-lg bg-background/60 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-purple-700 dark:text-purple-300">ADPD</p>
+          <p className="font-bold tabular-nums text-foreground">{d.adpdVotes?.toLocaleString() ?? "—"}</p>
+        </div>
+        <div className="rounded-lg bg-background/60 p-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">Momentum</p>
+          <p className="font-bold tabular-nums text-foreground">{d.momentumVotes?.toLocaleString() ?? "—"}</p>
+        </div>
+      </div>
+      {d.totalVotes != null ? (
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          {locale === "mt" ? "Total voti: " : "Total votes: "}
+          <span className="font-semibold tabular-nums text-foreground">{d.totalVotes.toLocaleString()}</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ElectedPage() {
   const t = useT();
   const { lang } = Route.useParams();
@@ -251,6 +336,9 @@ function ElectedPage() {
 
   const districtsWithResults = new Set(data.groups.map((g) => g.number));
   const pending = data.allDistricts.filter((d) => !districtsWithResults.has(d.number));
+  const pnLive = data.pnLive && data.pnLive.ok ? data.pnLive : null;
+  const pnByNumber = new Map<number, PnDistrictResult>();
+  if (pnLive) for (const d of pnLive.districts) pnByNumber.set(d.number, d);
 
   return (
     <section className="border-b border-border bg-background">
