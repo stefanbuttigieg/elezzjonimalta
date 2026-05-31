@@ -228,7 +228,7 @@ function CandidatePage() {
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {electedDistricts.map((d) => (
+              {electedDistricts.map((d: { id: string; number: number }) => (
                 <span
                   key={d.id}
                   className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white shadow-sm"
