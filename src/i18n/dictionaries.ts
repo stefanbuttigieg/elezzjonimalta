@@ -147,6 +147,15 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.votes": "{count} first-count votes",
     "elected.districtHeading": "District {number} — {name}",
     "elected.byParty": "Elected by party",
+    "elected.gcm.badge": "Gender corrective mechanism",
+    "elected.gcm.short": "GCM",
+    "elected.gcm.sectionTitle": "Elected via the Gender Corrective Mechanism",
+    "elected.gcm.sectionSubtitle":
+      "Additional seats awarded under Malta's gender corrective mechanism to address gender imbalance in the House of Representatives.",
+    "elected.gcm.empty": "No GCM seats recorded yet.",
+    "elected.gcm.count": "{count} GCM seat(s)",
+    "home.elected.countSummaryWithGcm":
+      "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
 
     "candidates.meta.title": "Candidates — Elezzjoni",
     "candidates.meta.description":
@@ -662,6 +671,15 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.votes": "{count} voti ta' l-ewwel għadd",
     "elected.districtHeading": "Distrett {number} — {name}",
     "elected.byParty": "Eletti skont il-partit",
+    "elected.gcm.badge": "Mekkaniżmu korrettiv tas-sessi",
+    "elected.gcm.short": "MKS",
+    "elected.gcm.sectionTitle": "Eletti permezz tal-Mekkaniżmu Korrettiv tas-Sessi",
+    "elected.gcm.sectionSubtitle":
+      "Siġġijiet addizzjonali mogħtija taħt il-mekkaniżmu korrettiv tas-sessi ta' Malta biex jindirizza l-iżbilanċ bejn is-sessi fil-Kamra tar-Rappreżentanti.",
+    "elected.gcm.empty": "Għad m'hemm l-ebda siġġijiet MKS irreġistrati.",
+    "elected.gcm.count": "{count} siġġu/siġġijiet MKS",
+    "home.elected.countSummaryWithGcm":
+      "{total} eletti s'issa minn {districts} distrett(i) — inkluż {gcm} permezz tal-mekkaniżmu korrettiv tas-sessi",
 
     "candidates.meta.title": "Kandidati — Elezzjoni",
     "candidates.meta.description":

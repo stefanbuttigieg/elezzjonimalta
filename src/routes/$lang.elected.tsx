@@ -18,6 +18,7 @@ type ElectedRow = {
   candidate_id: string;
   district_id: string;
   votes_first_count: number | null;
+  elected_via_gcm: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -38,6 +39,7 @@ type ElectedCandidate = {
   full_name: string;
   photo_url: string | null;
   votes: number | null;
+  elected_via_gcm: boolean;
   party: PartyLite | null;
 };
 
@@ -64,7 +66,7 @@ async function loadElected(): Promise<LoaderData> {
     supabase
       .from("candidate_districts")
       .select(
-        "candidate_id, district_id, votes_first_count, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
+        "candidate_id, district_id, votes_first_count, elected_via_gcm, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
       )
       .eq("election_year", 2026)
       .eq("elected", true),
@@ -94,6 +96,7 @@ async function loadElected(): Promise<LoaderData> {
       full_name: r.candidate.full_name,
       photo_url: r.candidate.photo_url,
       votes: r.votes_first_count,
+      elected_via_gcm: !!r.elected_via_gcm,
       party: r.candidate.party,
     });
     groupMap.set(r.district.number, g);
@@ -290,6 +293,11 @@ function ElectedPage() {
                                 : "Independent"}
                             {c.party?.short_name ? ` · ${c.party.short_name}` : ""}
                           </p>
+                          {c.elected_via_gcm ? (
+                            <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-fuchsia-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-700 dark:text-fuchsia-300">
+                              {t("elected.gcm.short")}
+                            </p>
+                          ) : null}
                           {c.votes != null ? (
                             <p className="mt-0.5 text-xs font-medium tabular-nums text-emerald-700 dark:text-emerald-300">
                               {t("elected.votes", { count: c.votes.toLocaleString() })}

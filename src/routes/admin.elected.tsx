@@ -28,6 +28,8 @@ interface Row {
   election_year: number;
   elected: boolean;
   initial_elected: boolean;
+  elected_via_gcm: boolean;
+  initial_elected_via_gcm: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
 }
@@ -49,7 +51,7 @@ function ElectedBulkEditor() {
   const [districtFilter, setDistrictFilter] = useState<string>("all");
   const [partyFilter, setPartyFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not">("all");
+  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not" | "gcm">("all");
   const [modifiedOnly, setModifiedOnly] = useState(false);
 
   // selection for bulk
@@ -66,7 +68,7 @@ function ElectedBulkEditor() {
         const { data, error } = await supabase
           .from("candidate_districts")
           .select(
-            "id, candidate_id, district_id, election_year, elected, votes_first_count, " +
+            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, votes_first_count, " +
               "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
@@ -88,6 +90,8 @@ function ElectedBulkEditor() {
           election_year: r.election_year,
           elected: !!r.elected,
           initial_elected: !!r.elected,
+          elected_via_gcm: !!r.elected_via_gcm,
+          initial_elected_via_gcm: !!r.elected_via_gcm,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
@@ -127,7 +131,13 @@ function ElectedBulkEditor() {
       if (partyFilter !== "all" && r.party_id !== partyFilter) return false;
       if (electedFilter === "elected" && !r.elected) return false;
       if (electedFilter === "not" && r.elected) return false;
-      if (modifiedOnly && r.elected === r.initial_elected && r.votes === r.initial_votes)
+      if (electedFilter === "gcm" && !r.elected_via_gcm) return false;
+      if (
+        modifiedOnly &&
+        r.elected === r.initial_elected &&
+        r.elected_via_gcm === r.initial_elected_via_gcm &&
+        r.votes === r.initial_votes
+      )
         return false;
       if (q && !r.candidate_name.toLowerCase().includes(q) && !r.candidate_slug.includes(q))
         return false;
@@ -137,7 +147,12 @@ function ElectedBulkEditor() {
 
   const dirtyCount = useMemo(
     () =>
-      rows.filter((r) => r.elected !== r.initial_elected || r.votes !== r.initial_votes).length,
+      rows.filter(
+        (r) =>
+          r.elected !== r.initial_elected ||
+          r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.votes !== r.initial_votes,
+      ).length,
     [rows],
   );
 
@@ -178,7 +193,10 @@ function ElectedBulkEditor() {
     setSaving(true);
     try {
       const changed = rows.filter(
-        (r) => r.elected !== r.initial_elected || r.votes !== r.initial_votes,
+        (r) =>
+          r.elected !== r.initial_elected ||
+          r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
         toast.info("No changes to save");
@@ -194,6 +212,7 @@ function ElectedBulkEditor() {
               .from("candidate_districts")
               .update({
                 elected: r.elected,
+                elected_via_gcm: r.elected_via_gcm,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -204,7 +223,12 @@ function ElectedBulkEditor() {
       setRows((prev) =>
         prev.map((r) =>
           changed.find((c) => c.id === r.id)
-            ? { ...r, initial_elected: r.elected, initial_votes: r.votes }
+            ? {
+                ...r,
+                initial_elected: r.elected,
+                initial_elected_via_gcm: r.elected_via_gcm,
+                initial_votes: r.votes,
+              }
             : r,
         ),
       );
@@ -216,7 +240,8 @@ function ElectedBulkEditor() {
   };
 
   const exportCsv = () => {
-    const header = "candidate_slug,candidate_name,district_number,district_name,party,elected,votes_first_count";
+    const header =
+      "candidate_slug,candidate_name,district_number,district_name,party,elected,elected_via_gcm,votes_first_count";
     const lines = filtered.map((r) =>
       [
         r.candidate_slug,
@@ -225,6 +250,7 @@ function ElectedBulkEditor() {
         csvCell(r.district_name),
         csvCell(r.party_name ?? ""),
         r.elected ? "true" : "false",
+        r.elected_via_gcm ? "true" : "false",
         r.votes,
       ].join(","),
     );
@@ -267,6 +293,11 @@ function ElectedBulkEditor() {
             continue;
           }
           row.elected = /^(1|true|yes|y|t)$/i.test((p.elected ?? "").trim());
+          if ("elected_via_gcm" in p) {
+            row.elected_via_gcm = /^(1|true|yes|y|t)$/i.test(
+              (p.elected_via_gcm ?? "").trim(),
+            );
+          }
           if ("votes_first_count" in p) {
             const v = (p.votes_first_count ?? "").trim();
             row.votes = v;
@@ -348,12 +379,13 @@ function ElectedBulkEditor() {
           Status
           <select
             value={electedFilter}
-            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not")}
+            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm")}
             className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground"
           >
             <option value="all">All</option>
             <option value="elected">Elected only</option>
             <option value="not">Not elected</option>
+            <option value="gcm">GCM only</option>
           </select>
         </label>
 
@@ -490,13 +522,16 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2">Candidate</th>
                 <th className="px-2 py-2">Party</th>
                 <th className="px-2 py-2 text-center">Elected</th>
+                <th className="px-2 py-2 text-center">GCM</th>
                 <th className="px-2 py-2">Votes (1st)</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((r) => {
                 const dirty =
-                  r.elected !== r.initial_elected || r.votes !== r.initial_votes;
+                  r.elected !== r.initial_elected ||
+                  r.elected_via_gcm !== r.initial_elected_via_gcm ||
+                  r.votes !== r.initial_votes;
                 return (
                   <tr
                     key={r.id}
@@ -533,6 +568,22 @@ maria-vella,9,false,`}
                           checked={r.elected}
                           onChange={(e) => updateRow(r.id, { elected: e.target.checked })}
                           className="h-4 w-4 accent-emerald-600"
+                        />
+                      </label>
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label className="inline-flex cursor-pointer items-center" title="Elected via Gender Corrective Mechanism">
+                        <input
+                          type="checkbox"
+                          checked={r.elected_via_gcm}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              elected_via_gcm: e.target.checked,
+                              // If we mark GCM, also ensure elected=true (a GCM seat is still an elected seat).
+                              elected: e.target.checked ? true : r.elected,
+                            })
+                          }
+                          className="h-4 w-4 accent-fuchsia-600"
                         />
                       </label>
                     </td>
