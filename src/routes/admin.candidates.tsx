@@ -726,27 +726,35 @@ function CandidateEditor({
   const [autofillUrls, setAutofillUrls] = useState("");
   const [districtIds, setDistrictIds] = useState<string[]>([]);
   const [initialDistrictIds, setInitialDistrictIds] = useState<string[]>([]);
+  const [electedIds, setElectedIds] = useState<string[]>([]);
+  const [initialElectedIds, setInitialElectedIds] = useState<string[]>([]);
   const isNew = !v.id;
 
   useEffect(() => {
     if (!v.id) {
       setDistrictIds([]);
       setInitialDistrictIds([]);
+      setElectedIds([]);
+      setInitialElectedIds([]);
       return;
     }
     void (async () => {
       const { data, error } = await supabase
         .from("candidate_districts")
-        .select("district_id")
+        .select("district_id, elected")
         .eq("candidate_id", v.id)
         .eq("election_year", 2026);
       if (error) {
         toast.error(error.message);
         return;
       }
-      const ids = (data ?? []).map((r: { district_id: string }) => r.district_id);
+      const rows = (data ?? []) as { district_id: string; elected: boolean | null }[];
+      const ids = rows.map((r) => r.district_id);
+      const elected = rows.filter((r) => r.elected).map((r) => r.district_id);
       setDistrictIds(ids);
       setInitialDistrictIds(ids);
+      setElectedIds(elected);
+      setInitialElectedIds(elected);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.id]);
