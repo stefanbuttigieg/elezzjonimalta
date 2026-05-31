@@ -105,7 +105,7 @@ async function loadCandidate(slug: string) {
 
   const candidate = data as CandidateDetail;
 
-  const [proposalsRes, sourcesRes] = await Promise.all([
+  const [proposalsRes, sourcesRes, electedRes] = await Promise.all([
     supabase
       .from("proposals")
       .select("id, title_en, title_mt, description_en, description_mt, category, source_url, updated_at")
@@ -117,15 +117,29 @@ async function loadCandidate(slug: string) {
       .select("id, kind, label, url, publisher, note_en, note_mt, retrieved_at, updated_at")
       .eq("candidate_id", candidate.id)
       .order("retrieved_at", { ascending: false }),
+    supabase
+      .from("candidate_districts")
+      .select("election_year, elected, district:districts(id, number, name_en, name_mt)")
+      .eq("candidate_id", candidate.id)
+      .eq("elected", true),
   ]);
 
   if (proposalsRes.error) throw proposalsRes.error;
   if (sourcesRes.error) throw sourcesRes.error;
 
+  const electedDistricts = ((electedRes.data ?? []) as Array<{
+    election_year: number;
+    district: { id: string; number: number; name_en: string; name_mt: string | null } | null;
+  }>)
+    .filter((r) => r.district)
+    .map((r) => ({ election_year: r.election_year, ...r.district! }))
+    .sort((a, b) => b.election_year - a.election_year || a.number - b.number);
+
   return {
     candidate,
     proposals: (proposalsRes.data ?? []) as ProposalRow[],
     sources: (sourcesRes.data ?? []) as CandidateSource[],
+    electedDistricts,
   };
 }
 
