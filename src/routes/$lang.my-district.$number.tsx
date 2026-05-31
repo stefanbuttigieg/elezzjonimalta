@@ -413,7 +413,12 @@ function MyDistrictPage() {
                             <Link
                               to="/$lang/candidates/$slug"
                               params={{ lang: locale, slug: c.slug }}
-                              className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+                              className={
+                                "flex items-center gap-3 rounded-xl border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-elevated " +
+                                (c.elected_here
+                                  ? "border-emerald-500/60 ring-1 ring-emerald-500/40"
+                                  : "border-border")
+                              }
                             >
                               <CandidateAvatar
                                 src={c.photo_url}
@@ -432,8 +437,13 @@ function MyDistrictPage() {
                                     ? t("myDistrict.candidates.confirmed")
                                     : t("myDistrict.candidates.prospective")}
                                 </span>
-                                {(c.leadership_role || c.commission_confirmed) ? (
+                                {(c.elected_here || c.leadership_role || c.commission_confirmed) ? (
                                   <span className="mt-1 flex flex-wrap gap-1">
+                                    {c.elected_here ? (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+                                        ★ {t("myDistrict.candidates.elected")}
+                                      </span>
+                                    ) : null}
                                     {c.leadership_role === "leader" ? (
                                       <span className="inline-flex rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                                         {t("myDistrict.candidates.leader")}
