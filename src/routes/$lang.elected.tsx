@@ -8,6 +8,7 @@ import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 import { setEdgeCacheHeader } from "@/lib/ssrCache";
 import { getPnLiveResults, type PnLiveResults, type PnDistrictResult } from "@/lib/pnLiveResults.functions";
 import { getElcomFirstCount, type ElcomFirstCount } from "@/lib/elcomFirstCount.functions";
+import { ElcomCandidateCountsPanel } from "@/components/site/ElcomCandidateCountsPanel";
 
 type PartyLite = {
   slug: string;
@@ -589,6 +590,12 @@ function ElectedPage() {
             </p>
           </div>
         ) : null}
+
+        <div className="mt-6">
+          <ElcomCandidateCountsPanel />
+        </div>
+
+
 
         {pnLive ? (
           <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card">
