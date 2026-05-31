@@ -19,6 +19,7 @@ type ElectedRow = {
   district_id: string;
   votes_first_count: number | null;
   elected_via_gcm: boolean | null;
+  elected_via_proportionality: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -40,6 +41,7 @@ type ElectedCandidate = {
   photo_url: string | null;
   votes: number | null;
   elected_via_gcm: boolean;
+  elected_via_proportionality: boolean;
   party: PartyLite | null;
   also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
