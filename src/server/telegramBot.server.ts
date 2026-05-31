@@ -377,6 +377,96 @@ async function handleFaq(arg: string): Promise<string> {
   return blocks.join("\n\n");
 }
 
+async function handleElected(arg: string): Promise<string> {
+  const a = arg.trim();
+
+  // Optional district number filter
+  let districtFilter: { id: string; number: number; name_en: string } | null = null;
+  if (a) {
+    const n = Number(a);
+    if (Number.isInteger(n) && n >= 1 && n <= 13) {
+      const { data: d } = await supabaseAdmin
+        .from("districts")
+        .select("id, number, name_en")
+        .eq("number", n)
+        .eq("status", "published")
+        .maybeSingle();
+      if (!d) return `No published district found for number ${n}.`;
+      districtFilter = d;
+    } else {
+      return "Usage: <code>/elected</code> or <code>/elected &lt;district number 1-13&gt;</code>";
+    }
+  }
+
+  let query = supabaseAdmin
+    .from("candidate_districts")
+    .select(
+      "votes_first_count, district:districts(number, name_en), candidate:candidates(slug, full_name, party:parties(short_name, name_en))"
+    )
+    .eq("election_year", 2026)
+    .eq("elected", true);
+  if (districtFilter) query = query.eq("district_id", districtFilter.id);
+
+  const { data: rows } = await query;
+
+  type Row = {
+    votes_first_count: number | null;
+    district: { number?: number; name_en?: string } | null;
+    candidate: {
+      slug?: string;
+      full_name?: string;
+      party: { short_name?: string | null; name_en?: string | null } | null;
+    } | null;
+  };
+
+  const grouped = new Map<
+    number,
+    { name_en: string; items: Array<{ name: string; slug: string; party: string; votes: number | null }> }
+  >();
+  for (const r of (rows ?? []) as Row[]) {
+    const n = r.district?.number;
+    if (!n || !r.candidate?.full_name || !r.candidate.slug) continue;
+    const bucket = grouped.get(n) ?? { name_en: r.district?.name_en ?? "", items: [] };
+    bucket.items.push({
+      name: r.candidate.full_name,
+      slug: r.candidate.slug,
+      party: r.candidate.party?.short_name || r.candidate.party?.name_en || "Independent",
+      votes: r.votes_first_count ?? null,
+    });
+    grouped.set(n, bucket);
+  }
+
+  if (grouped.size === 0) {
+    if (districtFilter) {
+      return `⭐ No elected candidates recorded yet for District ${districtFilter.number} — ${escapeHtml(districtFilter.name_en)}. Counting may still be in progress.`;
+    }
+    return "⭐ No elected candidates have been recorded yet. Counting is ongoing — check back soon.";
+  }
+
+  const districts = Array.from(grouped.keys()).sort((a, b) => a - b);
+  const blocks: string[] = [];
+  let total = 0;
+  for (const n of districts) {
+    const g = grouped.get(n)!;
+    g.items.sort((a, b) => a.name.localeCompare(b.name));
+    total += g.items.length;
+    const lines = g.items.map((c) => {
+      const link = siteLink(`/en/candidates/${c.slug}`, c.name);
+      const votes = c.votes != null ? ` — <i>${c.votes} first-count votes</i>` : "";
+      return `  • ${link} — <i>${escapeHtml(c.party)}</i>${votes}`;
+    });
+    blocks.push(
+      `<b>District ${n} — ${escapeHtml(g.name_en)}</b>\n${lines.join("\n")}`
+    );
+  }
+
+  const header = districtFilter
+    ? `⭐ <b>Elected — District ${districtFilter.number}</b>`
+    : `⭐ <b>Elected candidates — 2026 General Election</b> (${total} so far across ${districts.size} district(s))\n<i>Live results, may be incomplete while counting continues.</i>`;
+
+  return `${header}\n\n${blocks.join("\n\n")}`;
+}
+
 async function handleAsk(arg: string): Promise<string> {
   const q = arg.trim();
   if (!q) return "Usage: <code>/ask &lt;your question&gt;</code>";
