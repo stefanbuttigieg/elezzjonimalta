@@ -157,6 +157,7 @@ function ElectedBulkEditor() {
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.votes !== r.initial_votes,
       ).length,
     [rows],
