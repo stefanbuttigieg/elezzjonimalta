@@ -1,5 +1,6 @@
-import { createFileRoute, ErrorComponent, Link } from "@tanstack/react-router";
-import { Star, MapPin, ArrowRight, Trophy, Radio, ExternalLink } from "lucide-react";
+import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Star, MapPin, ArrowRight, Trophy, Radio, ExternalLink, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isLocale, type Locale } from "@/i18n/types";
 import { translate, useT } from "@/i18n/useT";
