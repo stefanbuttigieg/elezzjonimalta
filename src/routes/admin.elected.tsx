@@ -203,6 +203,7 @@ function ElectedBulkEditor() {
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
+          r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
@@ -220,6 +221,7 @@ function ElectedBulkEditor() {
               .update({
                 elected: r.elected,
                 elected_via_gcm: r.elected_via_gcm,
+                elected_via_proportionality: r.elected_via_proportionality,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -234,6 +236,7 @@ function ElectedBulkEditor() {
                 ...r,
                 initial_elected: r.elected,
                 initial_elected_via_gcm: r.elected_via_gcm,
+                initial_elected_via_proportionality: r.elected_via_proportionality,
                 initial_votes: r.votes,
               }
             : r,
