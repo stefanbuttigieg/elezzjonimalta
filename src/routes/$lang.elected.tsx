@@ -7,6 +7,7 @@ import { translate, useT } from "@/i18n/useT";
 import { CandidateAvatar } from "@/components/site/CandidateAvatar";
 import { setEdgeCacheHeader } from "@/lib/ssrCache";
 import { getPnLiveResults, type PnLiveResults, type PnDistrictResult } from "@/lib/pnLiveResults.functions";
+import { getElcomFirstCount, type ElcomFirstCount } from "@/lib/elcomFirstCount.functions";
 
 type PartyLite = {
   slug: string;
