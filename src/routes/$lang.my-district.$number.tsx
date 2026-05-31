@@ -100,7 +100,7 @@ async function loadMyDistrict(rawNumber: string): Promise<{
   const linkedRes = await supabase
     .from("candidate_districts")
     .select(
-      "candidate_id, election_year, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, commission_confirmed, leadership_role, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
+      "candidate_id, election_year, elected, candidate:candidates(id, slug, full_name, photo_url, electoral_confirmed, is_incumbent, commission_confirmed, leadership_role, primary_district_id, status, party:parties(id, slug, name_en, name_mt, short_name, color))"
     )
     .eq("district_id", districtTyped.id)
     .eq("election_year", 2026);
@@ -109,15 +109,13 @@ async function loadMyDistrict(rawNumber: string): Promise<{
 
   const byId = new Map<string, CandidateRow>();
   for (const link of (linkedRes.data ?? []) as Array<{
-    candidate: (CandidateRow & { status: string }) | null;
+    elected: boolean | null;
+    candidate: (Omit<CandidateRow, "elected_here"> & { status: string }) | null;
   }>) {
     const c = link.candidate;
     if (!c || c.status !== "published") continue;
-    // Sitting MPs (incumbents) only appear on a district page once they've
-    // been confirmed as contesting the 2026 election. Non-incumbents always
-    // show, since they wouldn't be in candidate_districts otherwise.
     if (c.is_incumbent && !c.electoral_confirmed) continue;
-    if (!byId.has(c.id)) byId.set(c.id, c);
+    if (!byId.has(c.id)) byId.set(c.id, { ...c, elected_here: link.elected === true });
   }
 
   const candidates = Array.from(byId.values()).sort((a, b) => {
