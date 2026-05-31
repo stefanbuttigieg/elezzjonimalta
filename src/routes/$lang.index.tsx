@@ -4,7 +4,7 @@ import { setEdgeCacheHeader } from "@/lib/ssrCache";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  Map,
+  Map as MapIcon,
   Users,
   Landmark,
   GitCompareArrows,
