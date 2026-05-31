@@ -185,6 +185,7 @@ async function loadElected(): Promise<LoaderData> {
     groups,
     totalElected: candidateSeen.size,
     totalSeats,
+    proportionalitySeats,
     multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
