@@ -510,6 +510,86 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        {data.elcomFirstCount && data.elcomFirstCount.ok ? (
+          <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                <Trophy className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                {locale === "mt"
+                  ? "L-ewwel għadd — Kummissjoni Elettorali"
+                  : "First count votes — Electoral Commission"}
+              </h2>
+              {data.elcomFirstCount.publishedAt ? (
+                <span className="text-[11px] text-muted-foreground">{data.elcomFirstCount.publishedAt}</span>
+              ) : null}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-background/40 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {locale === "mt" ? "Voti mitfugħa" : "Votes cast"}
+                </p>
+                <p className="mt-1 font-serif text-xl font-bold tabular-nums text-foreground">
+                  {data.elcomFirstCount.votesCast?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-background/40 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {locale === "mt" ? "Voti validi" : "Valid votes"}
+                </p>
+                <p className="mt-1 font-serif text-xl font-bold tabular-nums text-foreground">
+                  {data.elcomFirstCount.validVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-background/40 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {locale === "mt" ? "Voti invalidi" : "Invalid votes"}
+                </p>
+                <p className="mt-1 font-serif text-xl font-bold tabular-nums text-foreground">
+                  {data.elcomFirstCount.invalidVotes?.toLocaleString() ?? "—"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 overflow-hidden rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-semibold">{locale === "mt" ? "Partit" : "Party"}</th>
+                    <th className="px-3 py-2 text-right font-semibold">{locale === "mt" ? "Voti" : "Votes"}</th>
+                    <th className="px-3 py-2 text-right font-semibold">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...data.elcomFirstCount.parties]
+                    .sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0))
+                    .map((p) => (
+                      <tr key={p.name} className="border-t border-border">
+                        <td className="px-3 py-2 font-medium text-foreground">{p.name}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-foreground">
+                          {p.votes?.toLocaleString() ?? "—"}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                          {p.percent != null ? `${p.percent.toFixed(2)}%` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              {locale === "mt" ? "Sors: " : "Source: "}
+              <a
+                href={data.elcomFirstCount.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
+                {locale === "mt" ? "Kummissjoni Elettorali ta' Malta" : "Electoral Commission of Malta"}
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
+            </p>
+          </div>
+        ) : null}
+
         {pnLive ? (
           <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
