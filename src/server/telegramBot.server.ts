@@ -117,6 +117,7 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 
 <b>Commands</b>
 /candidates [district|name] — list or search candidates
+/elected [district] — show elected candidates (live results)
 /party [name|short] — show party info and proposals
 /proposals [keyword|party] — search published proposals
 /faq [keyword] — search voting FAQs
@@ -126,6 +127,8 @@ Neutral, non-partisan helper for Malta's 30 May 2026 General Election.
 Examples:
 <code>/candidates 5</code>
 <code>/candidates abela</code>
+<code>/elected</code>
+<code>/elected 7</code>
 <code>/party PL</code>
 <code>/proposals housing</code>
 <code>/proposals PL</code>
