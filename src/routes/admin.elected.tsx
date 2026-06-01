@@ -558,6 +558,7 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2 text-center">Elected</th>
                 <th className="px-2 py-2 text-center">GCM</th>
                 <th className="px-2 py-2 text-center">Prop.</th>
+                <th className="px-2 py-2 text-center">Casual</th>
                 <th className="px-2 py-2">Votes (1st)</th>
               </tr>
             </thead>
