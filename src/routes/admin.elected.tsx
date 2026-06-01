@@ -640,6 +640,21 @@ maria-vella,9,false,`}
                         />
                       </label>
                     </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label className="inline-flex cursor-pointer items-center" title="Elected via a casual election (replacement seat after a winner relinquished one of two districts)">
+                        <input
+                          type="checkbox"
+                          checked={r.elected_via_casual}
+                          onChange={(e) =>
+                            updateRow(r.id, {
+                              elected_via_casual: e.target.checked,
+                              elected: e.target.checked ? true : r.elected,
+                            })
+                          }
+                          className="h-4 w-4 accent-amber-600"
+                        />
+                      </label>
+                    </td>
                     <td className="px-2 py-1.5">
                       <input
                         type="number"
