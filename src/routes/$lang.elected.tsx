@@ -76,6 +76,7 @@ type LoaderData = {
   totalElected: number;
   totalSeats: number;
   proportionalitySeats: number;
+  casualSeats: number;
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
