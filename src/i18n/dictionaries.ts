@@ -703,6 +703,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.prop.badge": "Aġġustament tal-proporzjonalità",
     "elected.prop.short": "PROP",
     "elected.prop.tally": "{count} permezz tal-aġġustament tal-proporzjonalità",
+    "elected.casual.badge": "Elezzjoni każwali — siġġu ta' sostituzzjoni",
+    "elected.casual.short": "KAŻWALI",
+    "elected.casual.tally": "{count} permezz ta' elezzjoni każwali",
+    "elected.casual.explainer":
+      "Meta kandidat jiġi elett f'żewġ distretti, irid jirrinunzja għal wieħed mis-siġġijiet. Permezz ta' elezzjoni każwali, il-vakanza timtela bil-kandidat li jmiss mill-istess distrett.",
     "home.elected.countSummaryWithGcm":
       "{total} eletti s'issa minn {districts} distrett(i) — inkluż {gcm} permezz tal-mekkaniżmu korrettiv tas-sessi",
     "home.elected.multiDistrict": "{count} eletti f'żewġ distretti",
