@@ -72,7 +72,7 @@ function ElectedBulkEditor() {
         const { data, error } = await supabase
           .from("candidate_districts")
           .select(
-            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, votes_first_count, " +
+            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, elected_via_casual, votes_first_count, " +
               "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
@@ -98,6 +98,8 @@ function ElectedBulkEditor() {
           initial_elected_via_gcm: !!r.elected_via_gcm,
           elected_via_proportionality: !!r.elected_via_proportionality,
           initial_elected_via_proportionality: !!r.elected_via_proportionality,
+          elected_via_casual: !!r.elected_via_casual,
+          initial_elected_via_casual: !!r.elected_via_casual,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
