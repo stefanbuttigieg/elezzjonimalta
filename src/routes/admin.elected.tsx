@@ -55,7 +55,7 @@ function ElectedBulkEditor() {
   const [districtFilter, setDistrictFilter] = useState<string>("all");
   const [partyFilter, setPartyFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not" | "gcm" | "prop">("all");
+  const [electedFilter, setElectedFilter] = useState<"all" | "elected" | "not" | "gcm" | "prop" | "casual">("all");
   const [modifiedOnly, setModifiedOnly] = useState(false);
 
   // selection for bulk
