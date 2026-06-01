@@ -465,6 +465,15 @@ function ElectedPage() {
                   {t("elected.prop.tally", { count: data.proportionalitySeats })}
                 </p>
               ) : null}
+              {data.casualSeats > 0 ? (
+                <p
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300"
+                  title={t("elected.casual.explainer")}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  {t("elected.casual.tally", { count: data.casualSeats })}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </header>
