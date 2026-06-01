@@ -568,6 +568,7 @@ maria-vella,9,false,`}
                   r.elected !== r.initial_elected ||
                   r.elected_via_gcm !== r.initial_elected_via_gcm ||
                   r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
+                  r.elected_via_casual !== r.initial_elected_via_casual ||
                   r.votes !== r.initial_votes;
                 return (
                   <tr
