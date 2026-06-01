@@ -325,6 +325,11 @@ function ElectedBulkEditor() {
               (p.elected_via_proportionality ?? "").trim(),
             );
           }
+          if ("elected_via_casual" in p) {
+            row.elected_via_casual = /^(1|true|yes|y|t)$/i.test(
+              (p.elected_via_casual ?? "").trim(),
+            );
+          }
           if ("votes_first_count" in p) {
             const v = (p.votes_first_count ?? "").trim();
             row.votes = v;
