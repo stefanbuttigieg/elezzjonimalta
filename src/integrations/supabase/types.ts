@@ -350,6 +350,7 @@ export type Database = {
           created_at: string
           district_id: string
           elected: boolean
+          elected_via_casual: boolean
           elected_via_gcm: boolean
           elected_via_proportionality: boolean
           election_year: number
@@ -362,6 +363,7 @@ export type Database = {
           created_at?: string
           district_id: string
           elected?: boolean
+          elected_via_casual?: boolean
           elected_via_gcm?: boolean
           elected_via_proportionality?: boolean
           election_year: number
@@ -374,6 +376,7 @@ export type Database = {
           created_at?: string
           district_id?: string
           elected?: boolean
+          elected_via_casual?: boolean
           elected_via_gcm?: boolean
           elected_via_proportionality?: boolean
           election_year?: number

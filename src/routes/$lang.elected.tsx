@@ -24,6 +24,7 @@ type ElectedRow = {
   votes_first_count: number | null;
   elected_via_gcm: boolean | null;
   elected_via_proportionality: boolean | null;
+  elected_via_casual: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -46,6 +47,7 @@ type ElectedCandidate = {
   votes: number | null;
   elected_via_gcm: boolean;
   elected_via_proportionality: boolean;
+  elected_via_casual: boolean;
   party: PartyLite | null;
   also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
@@ -74,6 +76,7 @@ type LoaderData = {
   totalElected: number;
   totalSeats: number;
   proportionalitySeats: number;
+  casualSeats: number;
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
@@ -87,7 +90,7 @@ async function loadElected(): Promise<LoaderData> {
     supabase
       .from("candidate_districts")
       .select(
-        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
+        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, elected_via_casual, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
       )
       .eq("election_year", 2026)
       .eq("elected", true),
@@ -105,11 +108,13 @@ async function loadElected(): Promise<LoaderData> {
   const candidateInfo = new Map<string, MultiDistrictWinner>();
   let totalSeats = 0;
   let proportionalitySeats = 0;
+  let casualSeats = 0;
 
   for (const r of rows) {
     if (!r.candidate || !r.district) continue;
     totalSeats += 1;
     if (r.elected_via_proportionality) proportionalitySeats += 1;
+    if (r.elected_via_casual) casualSeats += 1;
     const g = groupMap.get(r.district.number) ?? {
       number: r.district.number,
       name_en: r.district.name_en,
@@ -123,6 +128,7 @@ async function loadElected(): Promise<LoaderData> {
       votes: r.votes_first_count,
       elected_via_gcm: !!r.elected_via_gcm,
       elected_via_proportionality: !!r.elected_via_proportionality,
+      elected_via_casual: !!r.elected_via_casual,
       party: r.candidate.party,
       also_in: [],
     });
@@ -200,6 +206,7 @@ async function loadElected(): Promise<LoaderData> {
     totalElected: candidateSeen.size,
     totalSeats,
     proportionalitySeats,
+    casualSeats,
     multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
@@ -213,6 +220,7 @@ const EMPTY_DATA: LoaderData = {
   totalElected: 0,
   totalSeats: 0,
   proportionalitySeats: 0,
+  casualSeats: 0,
   multiDistrictWinners: [],
   byParty: [],
   allDistricts: [],
@@ -455,6 +463,15 @@ function ElectedPage() {
               {data.proportionalitySeats > 0 ? (
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-3 py-1.5 text-sm font-semibold text-sky-800 dark:text-sky-300">
                   {t("elected.prop.tally", { count: data.proportionalitySeats })}
+                </p>
+              ) : null}
+              {data.casualSeats > 0 ? (
+                <p
+                  className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1.5 text-sm font-semibold text-amber-800 dark:text-amber-300"
+                  title={t("elected.casual.explainer")}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  {t("elected.casual.tally", { count: data.casualSeats })}
                 </p>
               ) : null}
             </div>
@@ -835,6 +852,15 @@ function ElectedPage() {
                               title={t("elected.prop.badge")}
                             >
                               {t("elected.prop.short")}
+                            </p>
+                          ) : null}
+                          {c.elected_via_casual ? (
+                            <p
+                              className="mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-300"
+                              title={t("elected.casual.badge")}
+                            >
+                              <RefreshCw className="h-2.5 w-2.5" />
+                              {t("elected.casual.short")}
                             </p>
                           ) : null}
                           {c.votes != null ? (
