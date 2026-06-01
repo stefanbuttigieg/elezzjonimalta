@@ -161,6 +161,11 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "elected.prop.badge": "Proportionality adjustment",
     "elected.prop.short": "PROP",
     "elected.prop.tally": "{count} via proportionality adjustment",
+    "elected.casual.badge": "Casual election — replacement seat",
+    "elected.casual.short": "CASUAL",
+    "elected.casual.tally": "{count} via casual election",
+    "elected.casual.explainer":
+      "When a candidate is elected in two districts, they relinquish one seat. A casual election fills that vacancy with the next-best candidate from the same district.",
     "home.elected.countSummaryWithGcm":
       "{total} elected so far across {districts} district(s) — including {gcm} via gender corrective mechanism",
     "home.elected.multiDistrict": "{count} elected in 2 districts",
