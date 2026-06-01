@@ -411,7 +411,7 @@ function ElectedBulkEditor() {
           Status
           <select
             value={electedFilter}
-            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm" | "prop")}
+            onChange={(e) => setElectedFilter(e.target.value as "all" | "elected" | "not" | "gcm" | "prop" | "casual")}
             className="mt-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground"
           >
             <option value="all">All</option>
@@ -419,6 +419,7 @@ function ElectedBulkEditor() {
             <option value="not">Not elected</option>
             <option value="gcm">GCM only</option>
             <option value="prop">Proportionality only</option>
+            <option value="casual">Casual election only</option>
           </select>
         </label>
 
