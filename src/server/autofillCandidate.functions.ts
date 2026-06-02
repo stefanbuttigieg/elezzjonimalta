@@ -1,6 +1,20 @@
 // Auto-fill candidate fields from URLs, web search, and parliament.mt.
 // SAFE-MERGE: only updates fields that are currently empty.
 import { createServerFn } from "@tanstack/react-start";
+
+type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["(await getAdmin())"];
+let _admin: _SupabaseAdmin | null = null;
+async function getAdmin(): Promise<_SupabaseAdmin> {
+  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).(await getAdmin());
+  return _admin;
+}
+type _WriteAudit = typeof import("./auditLog.server")["writeAudit"];
+let _wa: _WriteAudit | null = null;
+async function getWriteAudit(): Promise<_WriteAudit> {
+  if (!_wa) _wa = (await import("./auditLog.server")).writeAudit;
+  return _wa;
+}
+
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -310,7 +324,7 @@ async function autofillOne(
   source_urls: string[];
   run_id: string;
 } | { ok: false; error: string }> {
-  const { data: run, error: runErr } = await supabaseAdmin
+  const { data: run, error: runErr } = await (await getAdmin())
     .from("candidate_discovery_runs")
     .insert({
       candidate_id: candidateId,
@@ -324,13 +338,13 @@ async function autofillOne(
   const runId = (run as { id: string }).id;
 
   const finishRun = async (patch: Record<string, unknown>) => {
-    await supabaseAdmin
+    await (await getAdmin())
       .from("candidate_discovery_runs")
       .update({ ...patch, finished_at: new Date().toISOString() } as never)
       .eq("id", runId);
   };
 
-  const { data: row, error } = await supabaseAdmin
+  const { data: row, error } = await (await getAdmin())
     .from("candidates")
     .select(
       "id, full_name, bio_en, bio_mt, profession, date_of_birth, birthplace, education, email, phone, website, facebook, twitter, instagram, tiktok, linkedin, youtube, parlament_mt_url, leadership_role, is_incumbent, source_url, party:parties(name_en)",
@@ -379,7 +393,7 @@ async function autofillOne(
 
   // Mark previous pending suggestions for same fields as superseded
   if (diffs.length > 0) {
-    await supabaseAdmin
+    await (await getAdmin())
       .from("candidate_field_suggestions")
       .update({ status: "superseded" } as never)
       .eq("candidate_id", candidateId)
@@ -399,7 +413,7 @@ async function autofillOne(
       status: "pending" as const,
       run_id: runId,
     }));
-    const { error: insErr } = await supabaseAdmin
+    const { error: insErr } = await (await getAdmin())
       .from("candidate_field_suggestions")
       .insert(rows as never);
     if (insErr) {
@@ -422,8 +436,6 @@ export const autofillCandidate = createServerFn({ method: "POST" })
   .inputValidator((input) => Input.parse(input))
   .handler(async ({ data, context }) => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -436,7 +448,7 @@ export const autofillCandidate = createServerFn({ method: "POST" })
         userId,
       );
 
-      await writeAudit(supabaseAdmin, {
+      await (await getWriteAudit())((await getAdmin()), {
         entityType: "candidates",
         entityId: data.candidate_id,
         action: "candidate_autofill",
@@ -465,8 +477,6 @@ export const bulkAutofillCandidates = createServerFn({ method: "POST" })
   .inputValidator((input) => BulkInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -487,7 +497,7 @@ export const bulkAutofillCandidates = createServerFn({ method: "POST" })
         }
       }
 
-      await writeAudit(supabaseAdmin, {
+      await (await getWriteAudit())((await getAdmin()), {
         entityType: "candidates",
         entityId: null,
         action: "candidate_autofill_bulk",
