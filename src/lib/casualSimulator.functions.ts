@@ -347,9 +347,32 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
+    // Resolve party name variants (en + mt) for matching against ELCOM strings
+    const tokens: string[] = [];
+    if (data.partyShort) tokens.push(data.partyShort);
+    const { data: party } = await supabaseAdmin
+      .from("parties")
+      .select("short_name, name_en, name_mt")
+      .eq("short_name", data.partyShort ?? "")
+      .maybeSingle();
+    if (party) {
+      const extractKeyword = (s: string | null) => {
+        if (!s) return null;
+        const words = s
+          .split(/[\s\-–—]+/)
+          .filter((w) => w.length >= 4 && !/^partit$/i.test(w) && !/^party$/i.test(w) && !/^the$/i.test(w));
+        return words[0] ?? s;
+      };
+      const kwMt = extractKeyword(party.name_mt);
+      const kwEn = extractKeyword(party.name_en);
+      if (kwMt) tokens.push(kwMt);
+      if (kwEn) tokens.push(kwEn);
+      if (party.name_mt) tokens.push(party.name_mt);
+    }
     const [counts, electedNames] = await Promise.all([
       fetchAllCounts(data.year, data.districtNumber),
       fetchElectedNamesForYear(data.year),
     ]);
-    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts, electedNames);
+    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedNames);
   });
+
