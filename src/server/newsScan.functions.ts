@@ -1,10 +1,10 @@
 // Authenticated server functions for the News monitor admin page.
 import { createServerFn } from "@tanstack/react-start";
 
-type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["(await getAdmin())"];
+type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
 let _admin: _SupabaseAdmin | null = null;
 async function getAdmin(): Promise<_SupabaseAdmin> {
-  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).(await getAdmin());
+  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   return _admin;
 }
 type _WriteAudit = typeof import("./auditLog.server")["writeAudit"];

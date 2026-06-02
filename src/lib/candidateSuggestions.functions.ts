@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
-type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["(await getAdmin())"];
+type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
 let _admin: _SupabaseAdmin | null = null;
 async function getAdmin(): Promise<_SupabaseAdmin> {
-  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).(await getAdmin());
+  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   return _admin;
 }
 type _WriteAudit = typeof import("./auditLog.server")["writeAudit"];
@@ -15,8 +15,6 @@ async function getWriteAudit(): Promise<_WriteAudit> {
 
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { writeAudit } from "@/server/auditLog.server";
-
 const APPLIABLE_FIELDS = new Set([
   "bio_en",
   "bio_mt",
