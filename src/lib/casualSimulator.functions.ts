@@ -425,7 +425,7 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
               election_year: data.year,
               full_name: data.fullName,
               district_number: data.districtNumber,
-              scenario: scenario as unknown as Record<string, unknown>,
+              scenario: JSON.parse(JSON.stringify(scenario)),
               computed_at: new Date().toISOString(),
             },
           ],
