@@ -150,6 +150,7 @@ function simulateOne(
   partyShort: string | null,
   districtNumber: number,
   data: Awaited<ReturnType<typeof fetchAllCounts>>,
+  electedNames: Set<string>,
 ): CasualScenario {
   const base: CasualScenario = {
     ok: false,
@@ -181,7 +182,6 @@ function simulateOne(
     }
   }
   if (electedIdx < 0) {
-    // Fallback: use the count with the highest value as the "elected" pivot.
     let maxIdx = 0;
     let maxV = -1;
     for (let i = 0; i < counts.length; i++) {
@@ -191,9 +191,6 @@ function simulateOne(
     electedIdx = maxIdx;
   }
 
-  // The transfer of the candidate's surplus typically appears at the *next*
-  // count: their cell becomes "..." (null) and other rows show positive diffs.
-  // If the next count isn't an obvious transfer, scan forward up to 3 counts.
   let transferIdx = -1;
   for (let i = electedIdx + 1; i < counts.length && i <= electedIdx + 3; i++) {
     const isElim = counts[i] == null;
@@ -201,7 +198,10 @@ function simulateOne(
   }
   if (transferIdx < 0) transferIdx = Math.min(electedIdx + 1, counts.length - 1);
 
-  // Compute diffs at transferIdx for every OTHER candidate row.
+  const partyKey = (partyShort ?? "").toUpperCase().trim();
+
+  // Only consider OTHER candidates from the SAME PARTY who have NOT already
+  // been elected (in any district this election).
   type ContenderTmp = {
     name: string; party: string; transferred: number; finalVotes: number | null;
   };
@@ -209,12 +209,15 @@ function simulateOne(
   let transferredTotal = 0;
   for (const [name, row] of data.rows.entries()) {
     if (name === key) continue;
+    const rowParty = (row.party ?? "").toUpperCase();
+    if (!partyKey || !rowParty.includes(partyKey)) continue;
+    if (electedNames.has(normalizeName(name))) continue;
+
     const prev = transferIdx > 0 ? row.counts[transferIdx - 1] : null;
     const now = row.counts[transferIdx];
     let diff = 0;
     if (prev != null && now != null) diff = Math.max(0, now - prev);
     transferredTotal += diff;
-    // final vote total = last non-null value in counts
     let finalVotes: number | null = null;
     for (let i = row.counts.length - 1; i >= 0; i--) {
       if (row.counts[i] != null) { finalVotes = row.counts[i]; break; }
@@ -222,27 +225,25 @@ function simulateOne(
     tmp.push({ name, party: row.party, transferred: diff, finalVotes });
   }
 
-  // Filter out candidates that themselves reached quota (already elected, not
-  // eligible for the casual seat).
-  const eligible = tmp.filter((c) => (c.finalVotes ?? 0) < quota);
-  if (eligible.length === 0) {
-    return { ...base, electedAtCount: electedIdx + 1, transferCount: transferIdx + 1, transferredTotal, error: "No eligible contenders" };
+  if (tmp.length === 0) {
+    return {
+      ...base,
+      electedAtCount: electedIdx + 1,
+      transferCount: transferIdx + 1,
+      transferredTotal,
+      error: "No eligible same-party, not-yet-elected contenders",
+    };
   }
 
-  // Scoring: heavy weight on transfer share, mild weight on proximity to
-  // quota, party-match multiplier.
+  // Scoring (party already filtered): 78% transfer share + 22% proximity to quota.
   const total = transferredTotal > 0 ? transferredTotal : 1;
-  const partyKey = (partyShort ?? "").toUpperCase();
-  const contenders: CasualContender[] = eligible.map((c) => {
+  const contenders: CasualContender[] = tmp.map((c) => {
     const transferShare = c.transferred / total;
     const shortOfQuota = c.finalVotes != null && Number.isFinite(quota) ? Math.max(0, quota - c.finalVotes) : null;
     const proximity = shortOfQuota != null && Number.isFinite(quota) && quota > 0
       ? Math.max(0, 1 - shortOfQuota / quota)
       : 0;
-    const sameParty = c.party.toUpperCase().includes(partyKey) && partyKey.length > 0;
-    // Composite: 70% transfers, 20% proximity, 10% party bias (added on top).
-    let score = transferShare * 0.7 + proximity * 0.2;
-    if (sameParty) score = score * 1.25 + 0.05;
+    const score = transferShare * 0.78 + proximity * 0.22;
     return {
       name: c.name,
       party: c.party,
@@ -251,16 +252,13 @@ function simulateOne(
       shortOfQuota,
       score,
       probability: 0,
-      sameParty,
+      sameParty: true,
     };
   });
 
-  // Normalise scores → probabilities via softmax-lite (clip then divide).
   const sum = contenders.reduce((s, c) => s + Math.max(c.score, 0.0001), 0);
   for (const c of contenders) c.probability = Math.max(c.score, 0.0001) / sum;
   contenders.sort((a, b) => b.score - a.score);
-
-  const predicted = contenders.find((c) => c.sameParty) ?? contenders[0] ?? null;
 
   return {
     ...base,
@@ -269,9 +267,26 @@ function simulateOne(
     transferCount: transferIdx + 1,
     transferredTotal,
     contenders: contenders.slice(0, 8),
-    predicted,
+    predicted: contenders[0] ?? null,
   };
 }
+
+async function fetchElectedNamesForYear(year: number): Promise<Set<string>> {
+  const { data, error } = await supabaseAdmin
+    .from("candidate_districts")
+    .select("candidate:candidates(full_name)")
+    .eq("election_year", year)
+    .eq("elected", true);
+  if (error) throw new Error(error.message);
+  const names = new Set<string>();
+  for (const r of data ?? []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fn = (r as any).candidate?.full_name as string | undefined;
+    if (fn) names.add(normalizeName(fn));
+  }
+  return names;
+}
+
 
 // ------- Server functions -------
 
@@ -327,6 +342,9 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
-    const counts = await fetchAllCounts(data.year, data.districtNumber);
-    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts);
+    const [counts, electedNames] = await Promise.all([
+      fetchAllCounts(data.year, data.districtNumber),
+      fetchElectedNamesForYear(data.year),
+    ]);
+    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts, electedNames);
   });
