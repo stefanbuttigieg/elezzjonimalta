@@ -432,6 +432,7 @@ function ScenarioCard({
                     isMt={isMt}
                     hasConflict={cConflicts.length > 0}
                     quota={scenario.quota}
+                    transferredTotal={scenario.transferredTotal}
                   />
                 );
               })}
@@ -458,12 +459,14 @@ function ContenderRow({
   isMt,
   hasConflict,
   quota,
+  transferredTotal,
 }: {
   contender: CasualContender;
   rank: number;
   isMt: boolean;
   hasConflict?: boolean;
   quota: number | null;
+  transferredTotal: number | null;
 }) {
   const proximity =
     contender.shortOfQuota != null && quota != null && quota > 0
@@ -471,6 +474,10 @@ function ContenderRow({
       : 0;
   const transferContribution = contender.transferShare * 0.78;
   const proximityContribution = proximity * 0.22;
+  // Reconstruct from share when not present (older cached scenarios).
+  const transferredVotes =
+    contender.transferredVotes ??
+    (transferredTotal != null ? Math.round(contender.transferShare * transferredTotal) : null);
   return (
     <li className="rounded-md border border-border bg-background px-3 py-2 text-sm">
       <div className="flex items-center gap-3">
@@ -509,7 +516,14 @@ function ContenderRow({
         </summary>
         <div className="mt-2 space-y-1.5 rounded-md bg-muted/40 p-2.5 font-mono text-[11px] text-muted-foreground">
           <div className="flex justify-between gap-3">
-            <span>{isMt ? "Sehem trasferit" : "Transfer share"}</span>
+            <span>
+              {isMt ? "Sehem trasferit" : "Transfer share"}
+              {transferredVotes != null && transferredTotal != null && transferredTotal > 0 ? (
+                <span className="ml-1 opacity-70">
+                  ({fmt(transferredVotes)}/{fmt(transferredTotal)})
+                </span>
+              ) : null}
+            </span>
             <span className="text-foreground">{pct(contender.transferShare)}</span>
           </div>
           <div className="flex justify-between gap-3">
