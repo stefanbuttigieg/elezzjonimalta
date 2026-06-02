@@ -150,7 +150,7 @@ function simulateOne(
   partyMatchTokens: string[],
   districtNumber: number,
   data: Awaited<ReturnType<typeof fetchAllCounts>>,
-  electedNames: Set<string>,
+  electedSets: Set<string>[],
 
 ): CasualScenario {
   const base: CasualScenario = {
