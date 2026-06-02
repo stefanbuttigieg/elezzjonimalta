@@ -315,6 +315,9 @@ function SimulatorPage() {
                     isMt={isMt}
                     conflictMap={conflictMap}
                     currentRelinquisher={selected?.fullName ?? ""}
+                    forbiddenNames={
+                      selected ? forbiddenByRelinquisher.get(selected.fullName) ?? new Set() : new Set()
+                    }
                   />
                 ))}
               </div>
