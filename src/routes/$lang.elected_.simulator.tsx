@@ -357,6 +357,7 @@ function ScenarioCard({
   isMt,
   conflictMap,
   currentRelinquisher,
+  forbiddenNames,
 }: {
   scenario: CasualScenario;
   relinquishedFrom: number;
@@ -364,6 +365,7 @@ function ScenarioCard({
   isMt: boolean;
   conflictMap: Map<string, Array<{ relinquisher: string; district: number }>>;
   currentRelinquisher: string;
+  forbiddenNames: Set<string>;
 }) {
   const top = scenario.predicted;
   const topConflicts = top
@@ -371,6 +373,11 @@ function ScenarioCard({
         (e) => e.relinquisher !== currentRelinquisher || e.district !== relinquishedFrom,
       )
     : [];
+  // Conflict-free pick: first contender whose name isn't claimed by another relinquisher's top pick.
+  const conflictFree =
+    topConflicts.length > 0
+      ? scenario.contenders.find((c) => !forbiddenNames.has(normalizeContenderName(c.name))) ?? null
+      : null;
   return (
     <article className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <header className="flex items-start justify-between gap-3">
