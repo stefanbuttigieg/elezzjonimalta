@@ -242,15 +242,15 @@ function SimulatorPage() {
                 <RefreshCw className="h-4 w-4 animate-spin" />
                 {isMt ? "Qed nikkalkula t-tbassir…" : "Crunching the numbers…"}
               </div>
-            ) : scenario ? (
+            ) : scenarios ? (
               <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                {scenario.perDistrict.map((s) => (
+                {scenarios.map((s) => (
                   <ScenarioCard
                     key={s.districtNumber}
                     scenario={s}
                     relinquishedFrom={s.districtNumber}
                     keptIn={
-                      scenario.perDistrict.find((o) => o.districtNumber !== s.districtNumber)?.districtNumber ??
+                      scenarios.find((o) => o.districtNumber !== s.districtNumber)?.districtNumber ??
                       s.districtNumber
                     }
                     isMt={isMt}
