@@ -1,10 +1,21 @@
 // Authenticated server functions for the News monitor admin page.
 import { createServerFn } from "@tanstack/react-start";
+
+type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
+let _admin: _SupabaseAdmin | null = null;
+async function getAdmin(): Promise<_SupabaseAdmin> {
+  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+  return _admin;
+}
+type _WriteAudit = typeof import("@/server/auditLog.server")["writeAudit"];
+let _wa: _WriteAudit | null = null;
+async function getWriteAudit(): Promise<_WriteAudit> {
+  if (!_wa) _wa = (await import("@/server/auditLog.server")).writeAudit;
+  return _wa;
+}
+
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runNewsScan, scanSingleUrl, scrapeArticle } from "./newsScan.server";
-import { writeAudit } from "./auditLog.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -27,6 +38,7 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan } = await import("@/server/newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -55,6 +67,7 @@ export const scanUrlNow = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { scanSingleUrl } = await import("@/server/newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -87,7 +100,7 @@ export const updateFindingStatus = createServerFn({ method: "POST" })
     await assertStaff(supabase as never);
     const email = (claims as { email?: string }).email ?? null;
 
-    const { data: before } = await supabaseAdmin
+    const { data: before } = await (await getAdmin())
       .from("news_findings")
       .select("status")
       .eq("id", data.findingId)
@@ -96,7 +109,7 @@ export const updateFindingStatus = createServerFn({ method: "POST" })
     const newStatus =
       data.action === "dismiss" ? "dismissed" : data.action === "mark_reviewed" ? "reviewed" : "pending";
 
-    const { error } = await supabaseAdmin
+    const { error } = await (await getAdmin())
       .from("news_findings")
       .update({
         status: newStatus,
@@ -106,7 +119,7 @@ export const updateFindingStatus = createServerFn({ method: "POST" })
       .eq("id", data.findingId);
     if (error) throw new Error(error.message);
 
-    await writeAudit(supabaseAdmin, {
+    await (await getWriteAudit())((await getAdmin()), {
       entityType: "news_finding",
       entityId: data.findingId,
       action: data.action,
@@ -128,7 +141,7 @@ export const ackFindingAlerts = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     await assertStaff(supabase as never);
     if (data.findingIds.length === 0) return { ok: true };
-    const { error } = await supabaseAdmin
+    const { error } = await (await getAdmin())
       .from("news_findings")
       .update({ alert_seen_at: new Date().toISOString() })
       .in("id", data.findingIds);
@@ -161,7 +174,7 @@ export const convertFinding = createServerFn({ method: "POST" })
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
 
-      const { data: finding, error: fErr } = await supabaseAdmin
+      const { data: finding, error: fErr } = await (await getAdmin())
         .from("news_findings")
         .select("id, article_id, articles:news_articles!inner(url)")
         .eq("id", data.findingId)
@@ -213,7 +226,7 @@ export const convertFinding = createServerFn({ method: "POST" })
           notes: r.notes || null,
         }));
 
-        const { data: inserted, error } = await supabaseAdmin
+        const { data: inserted, error } = await (await getAdmin())
           .from("candidates")
           .insert(rows)
           .select("id");
@@ -223,7 +236,7 @@ export const convertFinding = createServerFn({ method: "POST" })
         (createdEntity as { ids?: string[] }).ids = ids;
       } else if (data.target === "update_candidate") {
         if (!p.candidate_id) throw new Error("candidate_id required");
-        const { error } = await supabaseAdmin
+        const { error } = await (await getAdmin())
           .from("candidates")
           .update({
             bio_en: p.bio_en || undefined,
@@ -272,7 +285,7 @@ export const convertFinding = createServerFn({ method: "POST" })
         );
         const catNameById = new Map<string, string>();
         if (allCategoryIds.length > 0) {
-          const { data: cats } = await supabaseAdmin
+          const { data: cats } = await (await getAdmin())
             .from("proposal_categories")
             .select("id, name_en")
             .in("id", allCategoryIds);
@@ -301,7 +314,7 @@ export const convertFinding = createServerFn({ method: "POST" })
           };
         });
 
-        const { data: inserted, error } = await supabaseAdmin
+        const { data: inserted, error } = await (await getAdmin())
           .from("proposals")
           .insert(rows)
           .select("id");
@@ -331,7 +344,7 @@ export const convertFinding = createServerFn({ method: "POST" })
           });
         });
         if (assignments.length > 0) {
-          const { error: aErr } = await supabaseAdmin
+          const { error: aErr } = await (await getAdmin())
             .from("proposal_category_assignments")
             .insert(assignments);
           if (aErr) console.warn("proposal_category_assignments insert failed:", aErr.message);
@@ -346,7 +359,7 @@ export const convertFinding = createServerFn({ method: "POST" })
             note: "Imported from news monitor",
             added_by: userId,
           }));
-          const { error: sErr } = await supabaseAdmin
+          const { error: sErr } = await (await getAdmin())
             .from("proposal_sources")
             .insert(sourceRows as never);
           if (sErr) console.warn("proposal_sources insert failed:", sErr.message);
@@ -358,7 +371,7 @@ export const convertFinding = createServerFn({ method: "POST" })
       } else if (data.target === "new_party") {
         if (!p.name_en) throw new Error("name_en required");
         const slug = p.slug || slugify(p.name_en);
-        const { data: row, error } = await supabaseAdmin
+        const { data: row, error } = await (await getAdmin())
           .from("parties")
           .insert({
             name_en: p.name_en,
@@ -378,7 +391,7 @@ export const convertFinding = createServerFn({ method: "POST" })
       }
 
       // Mark finding reviewed and link if applicable
-      await supabaseAdmin
+      await (await getAdmin())
         .from("news_findings")
         .update({
           status: "reviewed",
@@ -389,7 +402,7 @@ export const convertFinding = createServerFn({ method: "POST" })
         })
         .eq("id", data.findingId);
 
-      await writeAudit(supabaseAdmin, {
+      await (await getWriteAudit())((await getAdmin()), {
         entityType: createdEntity?.type ?? "news_finding",
         entityId: createdEntity?.id ?? data.findingId,
         action: `convert_${data.target}`,
@@ -415,14 +428,14 @@ export const reprocessFinding = createServerFn({ method: "POST" })
     await assertStaff(supabase as never);
     const email = (claims as { email?: string }).email ?? null;
 
-    const { data: finding } = await supabaseAdmin
+    const { data: finding } = await (await getAdmin())
       .from("news_findings")
       .select("id, article_id, articles:news_articles!inner(url)")
       .eq("id", data.findingId)
       .single();
     if (!finding) throw new Error("finding not found");
 
-    await writeAudit(supabaseAdmin, {
+    await (await getWriteAudit())((await getAdmin()), {
       entityType: "news_finding",
       entityId: data.findingId,
       action: "reprocess_requested",
@@ -431,7 +444,7 @@ export const reprocessFinding = createServerFn({ method: "POST" })
     });
 
     // Reset status so the next scan picks it up; staff can also re-run manually.
-    await supabaseAdmin
+    await (await getAdmin())
       .from("news_findings")
       .update({ status: "pending", alert_seen_at: null })
       .eq("id", data.findingId);
@@ -499,6 +512,7 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
   .inputValidator((input) => AutofillInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { scrapeArticle } = await import("@/server/newsScan.server");
       const { supabase } = context;
       await assertStaff(supabase as never);
 
@@ -506,7 +520,7 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
       if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
       // Load the finding + its article URL + the earlier AI hints.
-      const { data: finding, error: fErr } = await supabaseAdmin
+      const { data: finding, error: fErr } = await (await getAdmin())
         .from("news_findings")
         .select(
           "id, kind, title, summary_en, summary_mt, extracted, articles:news_articles!inner(url, title)"
@@ -524,9 +538,9 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
 
       // Lookup tables — keep small. Names + UUIDs only.
       const [partiesRes, districtsRes, candidatesRes] = await Promise.all([
-        supabaseAdmin.from("parties").select("id, name_en, short_name").limit(50),
-        supabaseAdmin.from("districts").select("id, number, name_en").order("number").limit(20),
-        supabaseAdmin.from("candidates").select("id, full_name").order("full_name").limit(400),
+        (await getAdmin()).from("parties").select("id, name_en, short_name").limit(50),
+        (await getAdmin()).from("districts").select("id, number, name_en").order("number").limit(20),
+        (await getAdmin()).from("candidates").select("id, full_name").order("full_name").limit(400),
       ]);
 
       const lookups = {

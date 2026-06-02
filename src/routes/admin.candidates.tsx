@@ -20,11 +20,11 @@ import { CandidatePositionsSection } from "@/components/admin/CandidatePositions
 import {
   findMissingCandidatePhotos,
   findPhotoForCandidateById,
-} from "@/server/findCandidatePhoto.functions";
+} from "@/server-fns/findCandidatePhoto.functions";
 import {
   autofillCandidate,
   bulkAutofillCandidates,
-} from "@/server/autofillCandidate.functions";
+} from "@/server-fns/autofillCandidate.functions";
 import type { CustomFieldDef } from "@/lib/candidateCompletion";
 
 type CandidatesSearch = { edit?: string };

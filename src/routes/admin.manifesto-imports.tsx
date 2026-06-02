@@ -2,7 +2,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { cancelManifestoImport, listManifestoImports } from "@/server/manifestoImport.functions";
+import { cancelManifestoImport, listManifestoImports } from "@/server-fns/manifestoImport.functions";
 import { CheckCircle2, AlertTriangle, Loader2, FileText, ExternalLink, RefreshCw, X } from "lucide-react";
 
 export const Route = createFileRoute("/admin/manifesto-imports")({

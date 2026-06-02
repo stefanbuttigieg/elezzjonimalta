@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   getCommunityImportStatus,
   tickCommunityImport,
-} from "@/server/communityImport.functions";
+} from "@/server-fns/communityImport.functions";
 
 export interface CommunityImportRow {
   id: string;

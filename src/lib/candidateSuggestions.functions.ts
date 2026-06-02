@@ -1,9 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
+
+type _SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
+let _admin: _SupabaseAdmin | null = null;
+async function getAdmin(): Promise<_SupabaseAdmin> {
+  if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+  return _admin;
+}
+type _WriteAudit = typeof import("@/server/auditLog.server")["writeAudit"];
+let _wa: _WriteAudit | null = null;
+async function getWriteAudit(): Promise<_WriteAudit> {
+  if (!_wa) _wa = (await import("@/server/auditLog.server")).writeAudit;
+  return _wa;
+}
+
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { writeAudit } from "@/server/auditLog.server";
-
 const APPLIABLE_FIELDS = new Set([
   "bio_en",
   "bio_mt",
@@ -31,7 +42,7 @@ const ReviewInput = z.object({
 });
 
 async function assertStaff(userId: string) {
-  const { data } = await supabaseAdmin
+  const { data } = await (await getAdmin())
     .from("user_roles")
     .select("role")
     .eq("user_id", userId);
@@ -49,7 +60,7 @@ export const reviewCandidateSuggestion = createServerFn({ method: "POST" })
     await assertStaff(userId);
     const email = (claims as { email?: string }).email ?? null;
 
-    const { data: sugg, error: getErr } = await supabaseAdmin
+    const { data: sugg, error: getErr } = await (await getAdmin())
       .from("candidate_field_suggestions")
       .select("*")
       .eq("id", data.suggestion_id)
@@ -72,14 +83,14 @@ export const reviewCandidateSuggestion = createServerFn({ method: "POST" })
         return { ok: false as const, error: `Field ${s.field_key} cannot be auto-applied` };
       }
       const patch: Record<string, unknown> = { [s.field_key]: s.suggested_value };
-      const { error: upErr } = await supabaseAdmin
+      const { error: upErr } = await (await getAdmin())
         .from("candidates")
         .update(patch as never)
         .eq("id", s.candidate_id);
       if (upErr) return { ok: false as const, error: upErr.message };
     }
 
-    const { error: updErr } = await supabaseAdmin
+    const { error: updErr } = await (await getAdmin())
       .from("candidate_field_suggestions")
       .update({
         status: data.action === "approve" ? "approved" : "rejected",
@@ -90,7 +101,7 @@ export const reviewCandidateSuggestion = createServerFn({ method: "POST" })
       .eq("id", s.id);
     if (updErr) return { ok: false as const, error: updErr.message };
 
-    await writeAudit(supabaseAdmin, {
+    await (await getWriteAudit())((await getAdmin()), {
       entityType: "candidates",
       entityId: s.candidate_id,
       action: `suggestion_${data.action}`,
