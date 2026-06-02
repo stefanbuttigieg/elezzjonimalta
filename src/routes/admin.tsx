@@ -84,6 +84,7 @@ const items: NavItem[] = [
   { to: "/admin/resources", label: "Resources", icon: BookOpen },
   { to: "/admin/audit", label: "Audit log", icon: History },
   { to: "/admin/api-logs", label: "API logs", icon: Activity },
+  { to: "/admin/casual-predictions", label: "Casual predictions cache", icon: Sparkles },
   { to: "/admin/seo", label: "SEO", icon: Search },
   { to: "/admin/translations", label: "Translations", icon: Languages },
   { to: "/admin/roles", label: "User roles", icon: ShieldCheck, adminOnly: true },
