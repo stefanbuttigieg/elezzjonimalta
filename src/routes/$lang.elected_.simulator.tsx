@@ -6,9 +6,8 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 import {
   getDoublyElectedCandidates,
-  simulateCasualForCandidate,
+  simulateCasualForDistrict,
   type DoublyElectedCandidate,
-  type DoubleScenario,
   type CasualScenario,
   type CasualContender,
 } from "@/lib/casualSimulator.functions";
@@ -60,12 +59,12 @@ function SimulatorPage() {
   const isMt = lang === "mt";
 
   const fetchList = useServerFn(getDoublyElectedCandidates);
-  const fetchSim = useServerFn(simulateCasualForCandidate);
+  const fetchSimDistrict = useServerFn(simulateCasualForDistrict);
 
   const [candidates, setCandidates] = useState<DoublyElectedCandidate[] | null>(null);
   const [listErr, setListErr] = useState<string | null>(null);
   const [selected, setSelected] = useState<DoublyElectedCandidate | null>(null);
-  const [scenario, setScenario] = useState<DoubleScenario | null>(null);
+  const [scenarios, setScenarios] = useState<CasualScenario[] | null>(null);
   const [simLoading, setSimLoading] = useState(false);
   const [simErr, setSimErr] = useState<string | null>(null);
 
@@ -80,22 +79,35 @@ function SimulatorPage() {
 
   useEffect(() => {
     if (!selected) return;
+    let cancelled = false;
     setSimLoading(true);
     setSimErr(null);
-    setScenario(null);
-    fetchSim({
-      data: {
-        year: YEAR,
-        candidateId: selected.candidateId,
-        fullName: selected.fullName,
-        partyShort: selected.partyShort,
-        districts: [selected.districts[0], selected.districts[1]] as [number, number],
-      },
-    })
-      .then((res) => setScenario(res))
-      .catch((e: unknown) => setSimErr(e instanceof Error ? e.message : String(e)))
-      .finally(() => setSimLoading(false));
-  }, [selected, fetchSim]);
+    setScenarios(null);
+    Promise.all(
+      [selected.districts[0], selected.districts[1]].map((districtNumber) =>
+        fetchSimDistrict({
+          data: {
+            year: YEAR,
+            fullName: selected.fullName,
+            partyShort: selected.partyShort,
+            districtNumber,
+          },
+        }),
+      ),
+    )
+      .then((results) => {
+        if (!cancelled) setScenarios(results);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setSimErr(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        if (!cancelled) setSimLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected, fetchSimDistrict]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,15 +242,15 @@ function SimulatorPage() {
                 <RefreshCw className="h-4 w-4 animate-spin" />
                 {isMt ? "Qed nikkalkula t-tbassir…" : "Crunching the numbers…"}
               </div>
-            ) : scenario ? (
+            ) : scenarios ? (
               <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-2">
-                {scenario.perDistrict.map((s) => (
+                {scenarios.map((s) => (
                   <ScenarioCard
                     key={s.districtNumber}
                     scenario={s}
                     relinquishedFrom={s.districtNumber}
                     keptIn={
-                      scenario.perDistrict.find((o) => o.districtNumber !== s.districtNumber)?.districtNumber ??
+                      scenarios.find((o) => o.districtNumber !== s.districtNumber)?.districtNumber ??
                       s.districtNumber
                     }
                     isMt={isMt}
