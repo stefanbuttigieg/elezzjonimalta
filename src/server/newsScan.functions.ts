@@ -512,6 +512,7 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
   .inputValidator((input) => AutofillInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { scrapeArticle } = await import("./newsScan.server");
       const { supabase } = context;
       await assertStaff(supabase as never);
 
