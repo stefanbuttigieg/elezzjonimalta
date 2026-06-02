@@ -69,6 +69,8 @@ function SimulatorPage() {
   const [simErr, setSimErr] = useState<string | null>(null);
   /** Map from normalized predicted-winner name -> list of relinquishers (and the district they'd win). */
   const [conflictMap, setConflictMap] = useState<Map<string, Array<{ relinquisher: string; district: number }>>>(new Map());
+  /** For each relinquisher, the set of contender names already claimed by OTHER relinquishers' top picks. */
+  const [forbiddenByRelinquisher, setForbiddenByRelinquisher] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
     fetchList({ data: { year: YEAR } })
@@ -129,14 +131,31 @@ function SimulatorPage() {
     ).then((results) => {
       if (cancelled) return;
       const map = new Map<string, Array<{ relinquisher: string; district: number }>>();
+      // relinquisher -> set of normalized names this relinquisher's scenarios predict as winner
+      const predictedByRelinquisher = new Map<string, Set<string>>();
       for (const r of results) {
         if (!r || !r.scenario.ok || !r.scenario.predicted) continue;
         const key = normalizeContenderName(r.scenario.predicted.name);
         const arr = map.get(key) ?? [];
         arr.push({ relinquisher: r.relinquisher, district: r.scenario.districtNumber });
         map.set(key, arr);
+        const s = predictedByRelinquisher.get(r.relinquisher) ?? new Set<string>();
+        s.add(key);
+        predictedByRelinquisher.set(r.relinquisher, s);
+      }
+      // For each relinquisher, "forbidden" = union of OTHER relinquishers' predicted names.
+      const forbidden = new Map<string, Set<string>>();
+      const allRelinquishers = Array.from(predictedByRelinquisher.keys());
+      for (const r of allRelinquishers) {
+        const f = new Set<string>();
+        for (const other of allRelinquishers) {
+          if (other === r) continue;
+          for (const n of predictedByRelinquisher.get(other) ?? []) f.add(n);
+        }
+        forbidden.set(r, f);
       }
       setConflictMap(map);
+      setForbiddenByRelinquisher(forbidden);
     });
     return () => {
       cancelled = true;
@@ -296,6 +315,9 @@ function SimulatorPage() {
                     isMt={isMt}
                     conflictMap={conflictMap}
                     currentRelinquisher={selected?.fullName ?? ""}
+                    forbiddenNames={
+                      selected ? forbiddenByRelinquisher.get(selected.fullName) ?? new Set() : new Set()
+                    }
                   />
                 ))}
               </div>
@@ -335,6 +357,7 @@ function ScenarioCard({
   isMt,
   conflictMap,
   currentRelinquisher,
+  forbiddenNames,
 }: {
   scenario: CasualScenario;
   relinquishedFrom: number;
@@ -342,6 +365,7 @@ function ScenarioCard({
   isMt: boolean;
   conflictMap: Map<string, Array<{ relinquisher: string; district: number }>>;
   currentRelinquisher: string;
+  forbiddenNames: Set<string>;
 }) {
   const top = scenario.predicted;
   const topConflicts = top
@@ -349,6 +373,11 @@ function ScenarioCard({
         (e) => e.relinquisher !== currentRelinquisher || e.district !== relinquishedFrom,
       )
     : [];
+  // Conflict-free pick: first contender whose name isn't claimed by another relinquisher's top pick.
+  const conflictFree =
+    topConflicts.length > 0
+      ? scenario.contenders.find((c) => !forbiddenNames.has(normalizeContenderName(c.name))) ?? null
+      : null;
   return (
     <article className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <header className="flex items-start justify-between gap-3">
@@ -414,6 +443,31 @@ function ScenarioCard({
               ) : null}
             </div>
           ) : null}
+
+          {conflictFree && top && normalizeContenderName(conflictFree.name) !== normalizeContenderName(top.name) ? (
+            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                {isMt ? "Għażla mingħajr kunflitt" : "Conflict-free pick"}
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-3">
+                <p className="text-base font-bold text-foreground">{conflictFree.name}</p>
+                <p className="text-xl font-extrabold text-emerald-700 dark:text-emerald-300">{pct(conflictFree.probability)}</p>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {conflictFree.party} · {isMt ? "Sehem trasferit" : "Transfer share"} {pct(conflictFree.transferShare)}
+                {conflictFree.shortOfQuota != null ? (
+                  <> · {isMt ? "Bin-nuqqas ta'" : "Short of quota by"} {fmt(conflictFree.shortOfQuota)}</>
+                ) : null}
+              </p>
+              <p className="mt-2 text-[11px] italic text-muted-foreground">
+                {isMt
+                  ? "L-aqwa kandidat li mhux mbassar bħala rebbieħ ta' siġġu każwali ieħor."
+                  : "Highest-ranked contender not already claimed by another relinquisher's prediction."}
+              </p>
+            </div>
+          ) : null}
+
 
           <div className="mt-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
