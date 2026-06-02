@@ -388,6 +388,24 @@ function normalizeContenderName(s: string): string {
     .trim();
 }
 
+/** Collapse party label variants ("PL", "Partit Laburista", "Labour Party", …)
+ *  into a canonical short code so the same party never appears twice. */
+function canonicalParty(raw: string | null | undefined): string {
+  const s = (raw ?? "").trim();
+  if (!s) return "—";
+  const u = s.toUpperCase();
+  if (/\bPL\b/.test(u) || u.includes("LABURISTA") || u.includes("LABOUR")) return "PL";
+  if (/\bPN\b/.test(u) || u.includes("NAZZJONALISTA") || u.includes("NATIONALIST")) return "PN";
+  if (/\bAD\b/.test(u) || u.includes("ALTERNATTIVA") || u.includes("DEMOKRATIKA")) return "AD";
+  if (/\bML\b/.test(u) || u.includes("MOMENTUM")) return "ML";
+  if (/\bABBA\b/.test(u)) return "ABBA";
+  if (/\bIND\b/.test(u) || u.includes("INDIPENDENT") || u.includes("INDEPENDENT")) return "IND";
+  return s;
+}
+
+
+
+
 function ScenarioCard({
   scenario,
   relinquishedFrom,
@@ -716,7 +734,7 @@ function resolveComposition(
       fallback: chosen != null && rank > 1,
     });
     if (chosen) {
-      const party = chosen.party || "—";
+      const party = canonicalParty(chosen.party);
       tally.set(party, (tally.get(party) ?? 0) + 1);
     }
   }
@@ -893,26 +911,27 @@ function CompositionExplorer({
           const seenSingleKey = new Set<string>();
           for (const seat of allElected) {
             const nameKey = normalizeContenderName(seat.fullName);
+            const partyKey = canonicalParty(seat.partyShort);
             const doubly = doublyByName.get(nameKey);
             if (doubly) {
               if (seat.districtNumber !== doubly.keptDistrict) continue;
               const key = `${nameKey}::${seat.districtNumber}`;
               if (seenSingleKey.has(key)) continue;
               seenSingleKey.add(key);
-              push(seat.partyShort ?? "—", {
+              push(partyKey, {
                 kind: "kept",
                 name: seat.fullName,
-                party: seat.partyShort ?? "—",
+                party: partyKey,
                 district: seat.districtNumber,
               });
             } else {
               const key = `${nameKey}::${seat.districtNumber}`;
               if (seenSingleKey.has(key)) continue;
               seenSingleKey.add(key);
-              push(seat.partyShort ?? "—", {
+              push(partyKey, {
                 kind: "single",
                 name: seat.fullName,
-                party: seat.partyShort ?? "—",
+                party: partyKey,
                 district: seat.districtNumber,
               });
             }
@@ -921,10 +940,11 @@ function CompositionExplorer({
           // 2. Casual winners for relinquished districts.
           for (const s of resolved.seats) {
             if (!s.winner) continue;
-            push(s.winner.party || "—", {
+            const partyKey = canonicalParty(s.winner.party);
+            push(partyKey, {
               kind: "casual",
               name: s.winner.name,
-              party: s.winner.party || "—",
+              party: partyKey,
               district: s.relinquishedDistrict,
               fallback: s.fallback,
             });
