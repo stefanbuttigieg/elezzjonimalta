@@ -199,7 +199,9 @@ function simulateOne(
   }
   if (transferIdx < 0) transferIdx = Math.min(electedIdx + 1, counts.length - 1);
 
-  const partyKey = (partyShort ?? "").toUpperCase().trim();
+  const tokens = partyMatchTokens
+    .map((t) => t.toUpperCase().trim())
+    .filter((t) => t.length >= 2);
 
   // Only consider OTHER candidates from the SAME PARTY who have NOT already
   // been elected (in any district this election).
@@ -211,8 +213,10 @@ function simulateOne(
   for (const [name, row] of data.rows.entries()) {
     if (name === key) continue;
     const rowParty = (row.party ?? "").toUpperCase();
-    if (!partyKey || !rowParty.includes(partyKey)) continue;
+    const partyMatches = tokens.length > 0 && tokens.some((t) => rowParty.includes(t));
+    if (!partyMatches) continue;
     if (electedNames.has(normalizeName(name))) continue;
+
 
     const prev = transferIdx > 0 ? row.counts[transferIdx - 1] : null;
     const now = row.counts[transferIdx];
