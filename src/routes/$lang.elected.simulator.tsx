@@ -56,7 +56,7 @@ const YEAR = 2026;
 
 function SimulatorPage() {
   const { lang } = Route.useLoaderData();
-  const t = useT(lang);
+  const t = useT();
   const isMt = lang === "mt";
 
   const fetchList = useServerFn(getDoublyElectedCandidates);
