@@ -869,6 +869,7 @@ function CompositionExplorer({
         </p>
         {(() => {
           type Entry =
+            | { kind: "single"; name: string; party: string; district: number }
             | { kind: "kept"; name: string; party: string; district: number }
             | { kind: "casual"; name: string; party: string; district: number; fallback: boolean };
           const byParty = new Map<string, Entry[]>();
@@ -877,24 +878,58 @@ function CompositionExplorer({
             arr.push(e);
             byParty.set(p, arr);
           };
+
+          // Build per-doubly-elected lookup: which district is released.
+          const doublyByName = new Map<string, { keptDistrict: number; relinquishedDistrict: number }>();
           for (const s of resolved.seats) {
-            const keptParty = s.candidate.partyShort ?? "—";
-            push(keptParty, {
-              kind: "kept",
-              name: s.candidate.fullName,
-              party: keptParty,
-              district: s.keptDistrict,
+            doublyByName.set(normalizeContenderName(s.candidate.fullName), {
+              keptDistrict: s.keptDistrict,
+              relinquishedDistrict: s.relinquishedDistrict,
             });
-            if (s.winner) {
-              push(s.winner.party || "—", {
-                kind: "casual",
-                name: s.winner.name,
-                party: s.winner.party || "—",
-                district: s.relinquishedDistrict,
-                fallback: s.fallback,
+          }
+
+          // 1. Singly-elected MPs: include as-is. For doubly-elected, only keep
+          //    the row matching the kept district.
+          const seenSingleKey = new Set<string>();
+          for (const seat of allElected) {
+            const nameKey = normalizeContinderKey(seat.fullName);
+            const doubly = doublyByName.get(nameKey);
+            if (doubly) {
+              if (seat.districtNumber !== doubly.keptDistrict) continue;
+              const key = `${nameKey}::${seat.districtNumber}`;
+              if (seenSingleKey.has(key)) continue;
+              seenSingleKey.add(key);
+              push(seat.partyShort ?? "—", {
+                kind: "kept",
+                name: seat.fullName,
+                party: seat.partyShort ?? "—",
+                district: seat.districtNumber,
+              });
+            } else {
+              const key = `${nameKey}::${seat.districtNumber}`;
+              if (seenSingleKey.has(key)) continue;
+              seenSingleKey.add(key);
+              push(seat.partyShort ?? "—", {
+                kind: "single",
+                name: seat.fullName,
+                party: seat.partyShort ?? "—",
+                district: seat.districtNumber,
               });
             }
           }
+
+          // 2. Casual winners for relinquished districts.
+          for (const s of resolved.seats) {
+            if (!s.winner) continue;
+            push(s.winner.party || "—", {
+              kind: "casual",
+              name: s.winner.name,
+              party: s.winner.party || "—",
+              district: s.relinquishedDistrict,
+              fallback: s.fallback,
+            });
+          }
+
           const parties = [...byParty.entries()].sort((a, b) => b[1].length - a[1].length);
           if (parties.length === 0) {
             return (
@@ -930,6 +965,14 @@ function CompositionExplorer({
                             D{e.district}
                           </span>
                           <span className="flex-1 truncate text-foreground">{e.name}</span>
+                          {e.kind === "kept" ? (
+                            <span
+                              className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted-foreground"
+                              title={isMt ? "Doppjament elett — żamm dan id-distrett" : "Doubly elected — kept this district"}
+                            >
+                              {isMt ? "Żamm" : "Kept"}
+                            </span>
+                          ) : null}
                           {e.kind === "casual" ? (
                             <span
                               className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
@@ -962,10 +1005,11 @@ function CompositionExplorer({
         })()}
         <p className="mt-2 text-[11px] italic text-muted-foreground">
           {isMt
-            ? "Juri biss is-siġġijiet milquta mid-doppjament elett: id-distrett miżmum + ir-rebbieħ każwali tad-distrett rilaxxat."
-            : "Shows only seats affected by doubly-elected candidates: the kept district + the casual winner for the released district."}
+            ? "Lista sħiħa tal-elett: kandidati eletti darba, distretti miżmuma mid-doppjament elett, u r-rebbieħa każwali skont l-għażliet hawn fuq."
+            : "Full elected roster: singly-elected MPs, districts kept by doubly-elected candidates, and casual winners based on the choices above."}
         </p>
       </div>
+
 
 
       {allOutcomes ? (
