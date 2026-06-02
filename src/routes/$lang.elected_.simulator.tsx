@@ -151,15 +151,21 @@ function SimulatorPage() {
               </li>
               <li>
                 {isMt
-                  ? "Inkalkulaw is-sehem trasferit lil kull kandidat mhux elett, biż-żieda ta' multipliku għall-istess partit u prossimità għall-kwota."
-                  : "Compute each non-elected contender's share of that transfer, weighted 70%, plus 20% proximity to quota and a 25% boost (+5pts) for same-party candidates."}
+                  ? "Inqisu biss kandidati tal-istess partit fl-istess distrett, u neskludu lil min diġà ġie elett f'distrett ieħor (peress li ma jistax jokkupa żewġ siġġijiet)."
+                  : "Consider only same-party contenders in that district, and exclude anyone already elected in another district (since they cannot hold two seats)."}
               </li>
               <li>
                 {isMt
-                  ? "Il-kandidat tal-istess partit bl-ogħla punteġġ huwa l-aktar probabbli li jirbaħ is-siġġu rilinkwit."
-                  : "The same-party contender with the highest score is the most likely casual-election winner."}
+                  ? "Inkalkulaw is-sehem trasferit lil kull kandidat eliġibbli, ippeżat 70%, flimkien ma' 20% prossimità għall-kwota u 10% mill-voti tal-bidu."
+                  : "Compute each eligible contender's share of that transfer (weighted 70%), plus 20% proximity to quota and 10% from first-count strength."}
+              </li>
+              <li>
+                {isMt
+                  ? "Il-kandidat bl-ogħla punteġġ huwa l-aktar probabbli li jirbaħ is-siġġu rilinkwit."
+                  : "The eligible contender with the highest score is the most likely casual-election winner."}
               </li>
             </ol>
+
             <p className="mt-3 text-xs">
               {isMt
                 ? "⚠️ Dan hu mudell statistiku approssimat. L-elezzjoni każwali fil-fatt tuża l-voti kollha tal-kandidat (mhux is-surplus biss), iżda l-pattern tal-preferenzi ġenerali jibqa' simili."
