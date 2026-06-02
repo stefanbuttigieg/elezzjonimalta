@@ -91,6 +91,13 @@ function SimulatorPage() {
   }, [fetchList]);
 
   useEffect(() => {
+    fetchAllElected({ data: { year: YEAR } })
+      .then(setAllElected)
+      .catch(() => setAllElected([]));
+  }, [fetchAllElected]);
+
+
+  useEffect(() => {
     if (!selected) return;
     let cancelled = false;
     setSimLoading(true);
