@@ -1,7 +1,7 @@
 import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, ArrowRight, AlertTriangle, Users } from "lucide-react";
+import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, AlertTriangle, Users } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 import {
@@ -850,48 +850,108 @@ function CompositionExplorer({
 
       <div className="mt-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {isMt ? "Min jimla kull siġġu" : "Who fills each seat"}
+          {isMt ? "Listi finali tal-elett skont il-partit" : "Final elected lists by party"}
         </p>
-        <ul className="mt-2 space-y-1.5">
-          {resolved.seats.map((s) => (
-            <li
-              key={s.candidate.candidateId}
-              className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
-            >
-              <span className="font-semibold text-foreground">{s.candidate.fullName}</span>
-              <span className="text-xs text-muted-foreground">
-                {isMt ? "iżomm D" : "keeps D"}{s.keptDistrict} · {isMt ? "iħalli D" : "releases D"}{s.relinquishedDistrict}
-              </span>
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-              {s.winner ? (
-                <>
-                  <span className="font-semibold text-primary">{s.winner.name}</span>
-                  <span className="rounded-full bg-accent/40 px-1.5 py-0.5 text-[10px] font-bold uppercase">
-                    {s.winner.party}
-                  </span>
-                  {s.fallback ? (
-                    <span
-                      className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300"
-                      title={
-                        isMt
-                          ? "L-ewwel għażla diġà ttieħdet minn relinkwit ieħor"
-                          : "Top pick was claimed by another relinquisher; used next ranked"
-                      }
-                    >
-                      <AlertTriangle className="h-2.5 w-2.5" />
-                      {isMt ? "Fallback" : "Fallback"}
-                    </span>
-                  ) : null}
-                </>
-              ) : (
-                <span className="italic text-muted-foreground">
-                  {s.reason ?? (isMt ? "Mhux disponibbli" : "Unavailable")}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        {(() => {
+          type Entry =
+            | { kind: "kept"; name: string; party: string; district: number }
+            | { kind: "casual"; name: string; party: string; district: number; fallback: boolean };
+          const byParty = new Map<string, Entry[]>();
+          const push = (p: string, e: Entry) => {
+            const arr = byParty.get(p) ?? [];
+            arr.push(e);
+            byParty.set(p, arr);
+          };
+          for (const s of resolved.seats) {
+            const keptParty = s.candidate.partyShort ?? "—";
+            push(keptParty, {
+              kind: "kept",
+              name: s.candidate.fullName,
+              party: keptParty,
+              district: s.keptDistrict,
+            });
+            if (s.winner) {
+              push(s.winner.party || "—", {
+                kind: "casual",
+                name: s.winner.name,
+                party: s.winner.party || "—",
+                district: s.relinquishedDistrict,
+                fallback: s.fallback,
+              });
+            }
+          }
+          const parties = [...byParty.entries()].sort((a, b) => b[1].length - a[1].length);
+          if (parties.length === 0) {
+            return (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {isMt ? "M'hemmx tbassir disponibbli." : "No predictions available."}
+              </p>
+            );
+          }
+          return (
+            <div className="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {parties.map(([party, entries]) => {
+                const sorted = [...entries].sort(
+                  (a, b) => a.district - b.district || a.name.localeCompare(b.name),
+                );
+                return (
+                  <div
+                    key={party}
+                    className="rounded-lg border border-border bg-background p-3"
+                  >
+                    <div className="mb-2 flex items-baseline justify-between gap-2">
+                      <span className="text-sm font-bold text-foreground">{party}</span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {entries.length} {isMt ? "siġġijiet" : "seats"}
+                      </span>
+                    </div>
+                    <ul className="space-y-1">
+                      {sorted.map((e, i) => (
+                        <li
+                          key={`${e.kind}-${e.name}-${e.district}-${i}`}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <span className="w-9 shrink-0 rounded bg-muted px-1.5 py-0.5 text-center text-[10px] font-bold uppercase tabular-nums text-muted-foreground">
+                            D{e.district}
+                          </span>
+                          <span className="flex-1 truncate text-foreground">{e.name}</span>
+                          {e.kind === "casual" ? (
+                            <span
+                              className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
+                              title={isMt ? "Rebbieħ ta' elezzjoni każwali" : "Casual election winner"}
+                            >
+                              {isMt ? "Każwali" : "Casual"}
+                            </span>
+                          ) : null}
+                          {e.kind === "casual" && e.fallback ? (
+                            <span
+                              className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300"
+                              title={
+                                isMt
+                                  ? "L-ewwel għażla diġà ttieħdet minn relinkwit ieħor"
+                                  : "Top pick was claimed by another relinquisher; used next ranked"
+                              }
+                            >
+                              <AlertTriangle className="h-2.5 w-2.5" />
+                              {isMt ? "Fallback" : "Fallback"}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+        <p className="mt-2 text-[11px] italic text-muted-foreground">
+          {isMt
+            ? "Juri biss is-siġġijiet milquta mid-doppjament elett: id-distrett miżmum + ir-rebbieħ każwali tad-distrett rilaxxat."
+            : "Shows only seats affected by doubly-elected candidates: the kept district + the casual winner for the released district."}
+        </p>
       </div>
+
 
       {allOutcomes ? (
         <details className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
