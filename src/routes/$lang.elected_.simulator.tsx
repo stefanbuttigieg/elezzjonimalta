@@ -444,6 +444,31 @@ function ScenarioCard({
             </div>
           ) : null}
 
+          {conflictFree && top && normalizeContenderName(conflictFree.name) !== normalizeContenderName(top.name) ? (
+            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                {isMt ? "Għażla mingħajr kunflitt" : "Conflict-free pick"}
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-3">
+                <p className="text-base font-bold text-foreground">{conflictFree.name}</p>
+                <p className="text-xl font-extrabold text-emerald-700 dark:text-emerald-300">{pct(conflictFree.probability)}</p>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {conflictFree.party} · {isMt ? "Sehem trasferit" : "Transfer share"} {pct(conflictFree.transferShare)}
+                {conflictFree.shortOfQuota != null ? (
+                  <> · {isMt ? "Bin-nuqqas ta'" : "Short of quota by"} {fmt(conflictFree.shortOfQuota)}</>
+                ) : null}
+              </p>
+              <p className="mt-2 text-[11px] italic text-muted-foreground">
+                {isMt
+                  ? "L-aqwa kandidat li mhux mbassar bħala rebbieħ ta' siġġu każwali ieħor."
+                  : "Highest-ranked contender not already claimed by another relinquisher's prediction."}
+              </p>
+            </div>
+          ) : null}
+
+
           <div className="mt-4">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {isMt ? "Klassifika kompluta" : "Full ranking"}
