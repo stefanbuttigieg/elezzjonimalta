@@ -369,6 +369,18 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
+    // Read-through cache.
+    const { data: cached } = await supabaseAdmin
+      .from("casual_predictions")
+      .select("scenario")
+      .eq("election_year", data.year)
+      .eq("full_name", data.fullName)
+      .eq("district_number", data.districtNumber)
+      .maybeSingle();
+    if (cached?.scenario) {
+      return cached.scenario as unknown as CasualScenario;
+    }
+
     // Resolve party name variants (en + mt) for matching against ELCOM strings
     const tokens: string[] = [];
     if (data.partyShort) tokens.push(data.partyShort);
@@ -395,7 +407,32 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
       fetchAllCounts(data.year, data.districtNumber),
       fetchElectedTokenSetsForYear(data.year),
     ]);
-    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedSets);
+    const scenario = simulateOne(
+      data.year,
+      data.fullName,
+      tokens,
+      data.districtNumber,
+      counts,
+      electedSets,
+    );
 
+    // Write-through: persist successful results.
+    if (scenario.ok) {
+      try {
+        await supabaseAdmin.from("casual_predictions").upsert(
+          {
+            election_year: data.year,
+            full_name: data.fullName,
+            district_number: data.districtNumber,
+            scenario: scenario as unknown as Record<string, unknown>,
+            computed_at: new Date().toISOString(),
+          },
+          { onConflict: "election_year,full_name,district_number" },
+        );
+      } catch (err) {
+        console.error("[casualSimulator] cache write failed", err);
+      }
+    }
+    return scenario;
   });
 
