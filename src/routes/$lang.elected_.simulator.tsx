@@ -294,6 +294,8 @@ function SimulatorPage() {
                       s.districtNumber
                     }
                     isMt={isMt}
+                    conflictMap={conflictMap}
+                    currentRelinquisher={selected?.fullName ?? ""}
                   />
                 ))}
               </div>
