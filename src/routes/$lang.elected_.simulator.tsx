@@ -1078,5 +1078,3 @@ function CompositionExplorer({
     </section>
   );
 }
-
-
