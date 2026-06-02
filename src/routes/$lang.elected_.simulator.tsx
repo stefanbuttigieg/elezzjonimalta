@@ -388,6 +388,21 @@ function normalizeContenderName(s: string): string {
     .trim();
 }
 
+/** Collapse party label variants ("PL", "Partit Laburista", "Labour Party", …)
+ *  into a canonical short code so the same party never appears twice. */
+function canonicalParty(raw: string | null | undefined): string {
+  const s = (raw ?? "").trim();
+  if (!s) return "—";
+  const u = s.toUpperCase();
+  if (/\bPL\b/.test(u) || u.includes("LABURISTA") || u.includes("LABOUR")) return "PL";
+  if (/\bPN\b/.test(u) || u.includes("NAZZJONALISTA") || u.includes("NATIONALIST")) return "PN";
+  if (/\bAD\b/.test(u) || u.includes("ALTERNATTIVA") || u.includes("DEMOKRATIKA")) return "AD";
+  if (/\bML\b/.test(u) || u.includes("MOMENTUM")) return "ML";
+  if (/\bABBA\b/.test(u)) return "ABBA";
+  if (/\bIND\b/.test(u) || u.includes("INDIPENDENT") || u.includes("INDEPENDENT")) return "IND";
+  return s;
+
+
 function ScenarioCard({
   scenario,
   relinquishedFrom,
