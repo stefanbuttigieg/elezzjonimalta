@@ -1030,8 +1030,6 @@ function CompositionExplorer({
         </p>
       </div>
 
-
-
       {allOutcomes ? (
         <details className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
           <summary className="cursor-pointer text-sm font-semibold text-foreground">
