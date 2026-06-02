@@ -21,6 +21,9 @@ export const triggerFaqSync = createServerFn({ method: "POST" })
   .inputValidator((input) => SyncInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { syncAllFaqSources, syncFaqSource, FAQ_SOURCES } = await import("./votingFaqSync.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
