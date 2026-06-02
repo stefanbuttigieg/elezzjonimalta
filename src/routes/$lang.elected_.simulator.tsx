@@ -71,6 +71,10 @@ function SimulatorPage() {
   const [conflictMap, setConflictMap] = useState<Map<string, Array<{ relinquisher: string; district: number }>>>(new Map());
   /** For each relinquisher, the set of contender names already claimed by OTHER relinquishers' top picks. */
   const [forbiddenByRelinquisher, setForbiddenByRelinquisher] = useState<Map<string, Set<string>>>(new Map());
+  /** All scenarios keyed by `${candidateId}::${districtNumber}` for composition computation. */
+  const [allScenarios, setAllScenarios] = useState<Map<string, CasualScenario>>(new Map());
+  /** Which district each doubly-elected candidate relinquishes (candidateId -> districtNumber). */
+  const [relinquishChoices, setRelinquishChoices] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     fetchList({ data: { year: YEAR } })
