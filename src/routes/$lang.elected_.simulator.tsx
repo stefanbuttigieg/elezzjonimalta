@@ -131,14 +131,31 @@ function SimulatorPage() {
     ).then((results) => {
       if (cancelled) return;
       const map = new Map<string, Array<{ relinquisher: string; district: number }>>();
+      // relinquisher -> set of normalized names this relinquisher's scenarios predict as winner
+      const predictedByRelinquisher = new Map<string, Set<string>>();
       for (const r of results) {
         if (!r || !r.scenario.ok || !r.scenario.predicted) continue;
         const key = normalizeContenderName(r.scenario.predicted.name);
         const arr = map.get(key) ?? [];
         arr.push({ relinquisher: r.relinquisher, district: r.scenario.districtNumber });
         map.set(key, arr);
+        const s = predictedByRelinquisher.get(r.relinquisher) ?? new Set<string>();
+        s.add(key);
+        predictedByRelinquisher.set(r.relinquisher, s);
+      }
+      // For each relinquisher, "forbidden" = union of OTHER relinquishers' predicted names.
+      const forbidden = new Map<string, Set<string>>();
+      const allRelinquishers = Array.from(predictedByRelinquisher.keys());
+      for (const r of allRelinquishers) {
+        const f = new Set<string>();
+        for (const other of allRelinquishers) {
+          if (other === r) continue;
+          for (const n of predictedByRelinquisher.get(other) ?? []) f.add(n);
+        }
+        forbidden.set(r, f);
       }
       setConflictMap(map);
+      setForbiddenByRelinquisher(forbidden);
     });
     return () => {
       cancelled = true;
