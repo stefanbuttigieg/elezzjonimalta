@@ -431,6 +431,7 @@ function ScenarioCard({
                     rank={i + 1}
                     isMt={isMt}
                     hasConflict={cConflicts.length > 0}
+                    quota={scenario.quota}
                   />
                 );
               })}
@@ -456,42 +457,92 @@ function ContenderRow({
   rank,
   isMt,
   hasConflict,
+  quota,
 }: {
   contender: CasualContender;
   rank: number;
   isMt: boolean;
   hasConflict?: boolean;
+  quota: number | null;
 }) {
+  const proximity =
+    contender.shortOfQuota != null && quota != null && quota > 0
+      ? Math.max(0, 1 - contender.shortOfQuota / quota)
+      : 0;
+  const transferContribution = contender.transferShare * 0.78;
+  const proximityContribution = proximity * 0.22;
   return (
-    <li className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm">
-      <span className="w-5 text-right font-bold text-muted-foreground">{rank}</span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-foreground">
-          {contender.name}
-          {contender.sameParty ? (
-            <span className="ml-2 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
-              {isMt ? "Istess partit" : "Same party"}
-            </span>
-          ) : null}
-          {hasConflict ? (
-            <span
-              className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-700 dark:text-amber-300"
-              title={isMt ? "Mbassar ukoll f'distrett ieħor" : "Also predicted in another district"}
-            >
-              <AlertTriangle className="h-2.5 w-2.5" />
-              {isMt ? "Kunflitt" : "Conflict"}
-            </span>
-          ) : null}
-        </p>
-        <p className="truncate text-[11px] text-muted-foreground">
-          {contender.party} · {isMt ? "trasf." : "transfer"} {pct(contender.transferShare)}
-          {contender.finalVotes != null ? <> · {fmt(contender.finalVotes)} {isMt ? "voti" : "votes"}</> : null}
-        </p>
+    <li className="rounded-md border border-border bg-background px-3 py-2 text-sm">
+      <div className="flex items-center gap-3">
+        <span className="w-5 text-right font-bold text-muted-foreground">{rank}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-foreground">
+            {contender.name}
+            {contender.sameParty ? (
+              <span className="ml-2 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
+                {isMt ? "Istess partit" : "Same party"}
+              </span>
+            ) : null}
+            {hasConflict ? (
+              <span
+                className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-700 dark:text-amber-300"
+                title={isMt ? "Mbassar ukoll f'distrett ieħor" : "Also predicted in another district"}
+              >
+                <AlertTriangle className="h-2.5 w-2.5" />
+                {isMt ? "Kunflitt" : "Conflict"}
+              </span>
+            ) : null}
+          </p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {contender.party} · {isMt ? "trasf." : "transfer"} {pct(contender.transferShare)}
+            {contender.finalVotes != null ? <> · {fmt(contender.finalVotes)} {isMt ? "voti" : "votes"}</> : null}
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-base font-bold text-foreground tabular-nums">{pct(contender.probability)}</div>
+          <ProbBar value={contender.probability} />
+        </div>
       </div>
-      <div className="text-right">
-        <div className="text-base font-bold text-foreground tabular-nums">{pct(contender.probability)}</div>
-        <ProbBar value={contender.probability} />
-      </div>
+      <details className="mt-2 pl-8">
+        <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
+          {isMt ? "Uri l-kalkolu" : "Show calculation"}
+        </summary>
+        <div className="mt-2 space-y-1.5 rounded-md bg-muted/40 p-2.5 font-mono text-[11px] text-muted-foreground">
+          <div className="flex justify-between gap-3">
+            <span>{isMt ? "Sehem trasferit" : "Transfer share"}</span>
+            <span className="text-foreground">{pct(contender.transferShare)}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span>
+              {isMt ? "Prossimità għall-kwota" : "Proximity to quota"}
+              {contender.shortOfQuota != null && quota != null ? (
+                <span className="ml-1 opacity-70">
+                  (1 − {fmt(contender.shortOfQuota)}/{fmt(quota)})
+                </span>
+              ) : null}
+            </span>
+            <span className="text-foreground">{pct(proximity)}</span>
+          </div>
+          <div className="mt-1 border-t border-border/60 pt-1.5">
+            <div className="flex justify-between gap-3">
+              <span>{pct(contender.transferShare)} × 0.78</span>
+              <span className="text-foreground">{pct(transferContribution)}</span>
+            </div>
+            <div className="flex justify-between gap-3">
+              <span>+ {pct(proximity)} × 0.22</span>
+              <span className="text-foreground">{pct(proximityContribution)}</span>
+            </div>
+            <div className="mt-1 flex justify-between gap-3 border-t border-border/60 pt-1 font-bold text-foreground">
+              <span>= {isMt ? "punteġġ" : "score"}</span>
+              <span>{contender.score.toFixed(4)}</span>
+            </div>
+          </div>
+          <div className="flex justify-between gap-3 pt-1 text-[10px] italic opacity-80">
+            <span>{isMt ? "Probabbiltà = punteġġ ÷ somma tal-punteġġi" : "Probability = score ÷ sum of scores"}</span>
+            <span className="text-foreground not-italic">{pct(contender.probability)}</span>
+          </div>
+        </div>
+      </details>
     </li>
   );
 }
