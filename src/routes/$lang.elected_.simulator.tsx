@@ -13,7 +13,7 @@ import {
   type CasualContender,
 } from "@/lib/casualSimulator.functions";
 
-export const Route = createFileRoute("/$lang/elected/simulator")({
+export const Route = createFileRoute("/$lang/elected_/simulator")({
   head: ({ params }) => {
     const isMt = params.lang === "mt";
     const title = isMt

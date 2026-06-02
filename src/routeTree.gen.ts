@@ -70,7 +70,7 @@ import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidat
 import { Route as AdminCandidatesConfirmEcRouteImport } from './routes/admin.candidates_.confirm-ec'
 import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
 import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
-import { Route as LangElectedSimulatorRouteImport } from './routes/$lang.elected.simulator'
+import { Route as LangElectedSimulatorRouteImport } from './routes/$lang.elected_.simulator'
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
 import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
 import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
@@ -389,9 +389,9 @@ const LangMyDistrictNumberRoute = LangMyDistrictNumberRouteImport.update({
   getParentRoute: () => LangRoute,
 } as any)
 const LangElectedSimulatorRoute = LangElectedSimulatorRouteImport.update({
-  id: '/simulator',
-  path: '/simulator',
-  getParentRoute: () => LangElectedRoute,
+  id: '/elected_/simulator',
+  path: '/elected/simulator',
+  getParentRoute: () => LangRoute,
 } as any)
 const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
   id: '/candidates/$slug',
@@ -459,7 +459,7 @@ export interface FileRoutesByFullPath {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/elected': typeof LangElectedRouteWithChildren
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -530,7 +530,7 @@ export interface FileRoutesByTo {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/elected': typeof LangElectedRouteWithChildren
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -604,7 +604,7 @@ export interface FileRoutesById {
   '/$lang/data': typeof LangDataRoute
   '/$lang/developers': typeof LangDevelopersRoute
   '/$lang/districts': typeof LangDistrictsRoute
-  '/$lang/elected': typeof LangElectedRouteWithChildren
+  '/$lang/elected': typeof LangElectedRoute
   '/$lang/faq': typeof LangFaqRoute
   '/$lang/methodology': typeof LangMethodologyRoute
   '/$lang/parties-compare': typeof LangPartiesCompareRoute
@@ -646,7 +646,7 @@ export interface FileRoutesById {
   '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$lang/candidates/$slug': typeof LangCandidatesSlugRoute
-  '/$lang/elected/simulator': typeof LangElectedSimulatorRoute
+  '/$lang/elected_/simulator': typeof LangElectedSimulatorRoute
   '/$lang/my-district/$number': typeof LangMyDistrictNumberRoute
   '/$lang/parties/$slug': typeof LangPartiesSlugRoute
   '/admin/candidates_/confirm-ec': typeof AdminCandidatesConfirmEcRoute
@@ -865,7 +865,7 @@ export interface FileRouteTypes {
     | '/$lang/'
     | '/admin/'
     | '/$lang/candidates/$slug'
-    | '/$lang/elected/simulator'
+    | '/$lang/elected_/simulator'
     | '/$lang/my-district/$number'
     | '/$lang/parties/$slug'
     | '/admin/candidates_/confirm-ec'
@@ -1327,12 +1327,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangMyDistrictNumberRouteImport
       parentRoute: typeof LangRoute
     }
-    '/$lang/elected/simulator': {
-      id: '/$lang/elected/simulator'
-      path: '/simulator'
+    '/$lang/elected_/simulator': {
+      id: '/$lang/elected_/simulator'
+      path: '/elected/simulator'
       fullPath: '/$lang/elected/simulator'
       preLoaderRoute: typeof LangElectedSimulatorRouteImport
-      parentRoute: typeof LangElectedRoute
+      parentRoute: typeof LangRoute
     }
     '/$lang/candidates/$slug': {
       id: '/$lang/candidates/$slug'
@@ -1400,18 +1400,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface LangElectedRouteChildren {
-  LangElectedSimulatorRoute: typeof LangElectedSimulatorRoute
-}
-
-const LangElectedRouteChildren: LangElectedRouteChildren = {
-  LangElectedSimulatorRoute: LangElectedSimulatorRoute,
-}
-
-const LangElectedRouteWithChildren = LangElectedRoute._addFileChildren(
-  LangElectedRouteChildren,
-)
-
 interface LangRouteChildren {
   LangAboutRoute: typeof LangAboutRoute
   LangAccessibilityRoute: typeof LangAccessibilityRoute
@@ -1424,7 +1412,7 @@ interface LangRouteChildren {
   LangDataRoute: typeof LangDataRoute
   LangDevelopersRoute: typeof LangDevelopersRoute
   LangDistrictsRoute: typeof LangDistrictsRoute
-  LangElectedRoute: typeof LangElectedRouteWithChildren
+  LangElectedRoute: typeof LangElectedRoute
   LangFaqRoute: typeof LangFaqRoute
   LangMethodologyRoute: typeof LangMethodologyRoute
   LangPartiesCompareRoute: typeof LangPartiesCompareRoute
@@ -1439,6 +1427,7 @@ interface LangRouteChildren {
   LangThemesRoute: typeof LangThemesRoute
   LangIndexRoute: typeof LangIndexRoute
   LangCandidatesSlugRoute: typeof LangCandidatesSlugRoute
+  LangElectedSimulatorRoute: typeof LangElectedSimulatorRoute
   LangMyDistrictNumberRoute: typeof LangMyDistrictNumberRoute
   LangPartiesSlugRoute: typeof LangPartiesSlugRoute
   LangCandidatesIndexRoute: typeof LangCandidatesIndexRoute
@@ -1457,7 +1446,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangDataRoute: LangDataRoute,
   LangDevelopersRoute: LangDevelopersRoute,
   LangDistrictsRoute: LangDistrictsRoute,
-  LangElectedRoute: LangElectedRouteWithChildren,
+  LangElectedRoute: LangElectedRoute,
   LangFaqRoute: LangFaqRoute,
   LangMethodologyRoute: LangMethodologyRoute,
   LangPartiesCompareRoute: LangPartiesCompareRoute,
@@ -1472,6 +1461,7 @@ const LangRouteChildren: LangRouteChildren = {
   LangThemesRoute: LangThemesRoute,
   LangIndexRoute: LangIndexRoute,
   LangCandidatesSlugRoute: LangCandidatesSlugRoute,
+  LangElectedSimulatorRoute: LangElectedSimulatorRoute,
   LangMyDistrictNumberRoute: LangMyDistrictNumberRoute,
   LangPartiesSlugRoute: LangPartiesSlugRoute,
   LangCandidatesIndexRoute: LangCandidatesIndexRoute,
@@ -1559,3 +1549,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
