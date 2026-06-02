@@ -293,7 +293,105 @@ async function fetchElcom(year: number, districtNumber: number, countRange: numb
   }
 }
 
+async function readDbCache(
+  year: number,
+  districtNumber: number,
+  countRange: number,
+): Promise<{ data: ElcomCandidateCounts; fetchedAt: string } | null> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("elcom_results_cache")
+      .select("data, fetched_at")
+      .eq("year", year)
+      .eq("district_number", districtNumber)
+      .eq("count_range", countRange)
+      .maybeSingle();
+    if (error || !data) return null;
+    return { data: data.data as ElcomCandidateCounts, fetchedAt: data.fetched_at as string };
+  } catch {
+    return null;
+  }
+}
+
+async function writeDbCache(
+  year: number,
+  districtNumber: number,
+  countRange: number,
+  result: ElcomCandidateCounts,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("elcom_results_cache").upsert(
+      [
+        {
+          year,
+          district_number: districtNumber,
+          count_range: countRange,
+          data: JSON.parse(JSON.stringify(result)),
+          fetched_at: new Date().toISOString(),
+        },
+      ],
+      { onConflict: "year,district_number,count_range" },
+    );
+  } catch (err) {
+    console.error("[elcomCandidateCounts] cache write failed", err);
+  }
+}
+
+async function assertAdmin(): Promise<void> {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const req = getRequest();
+  const authHeader = req?.headers?.get("authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!token) throw new Response("Unauthorized", { status: 401 });
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: u } = await supabaseAdmin.auth.getUser(token);
+  const uid = u?.user?.id;
+  if (!uid) throw new Response("Unauthorized", { status: 401 });
+  const { data: role } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", uid)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (!role) throw new Response("Forbidden", { status: 403 });
+}
+
 export const getElcomCandidateCounts = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      year: z.number().int().min(2003).max(2026),
+      districtNumber: z.number().int().min(1).max(13),
+      countRange: z.number().int().min(0).max(4),
+      force: z.boolean().optional(),
+    }).parse
+  )
+  .handler(async ({ data }): Promise<ElcomCandidateCounts> => {
+    const cache = getCache();
+    const key = `${data.year}:${data.districtNumber}:${data.countRange}`;
+    const now = Date.now();
+
+    if (!data.force) {
+      const hit = cache.get(key);
+      if (hit && now - hit.at < CACHE_TTL_MS) return hit.data;
+
+      const db = await readDbCache(data.year, data.districtNumber, data.countRange);
+      if (db && db.data.ok) {
+        cache.set(key, { at: now, data: db.data });
+        return db.data;
+      }
+    }
+
+    const fresh = await fetchElcom(data.year, data.districtNumber, data.countRange);
+    cache.set(key, { at: fresh.ok ? now : now - (CACHE_TTL_MS - 60_000), data: fresh });
+    if (fresh.ok) {
+      await writeDbCache(data.year, data.districtNumber, data.countRange, fresh);
+    }
+    return fresh;
+  });
+
+export const refreshElcomCandidateCounts = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       year: z.number().int().min(2003).max(2026),
@@ -302,12 +400,53 @@ export const getElcomCandidateCounts = createServerFn({ method: "POST" })
     }).parse
   )
   .handler(async ({ data }): Promise<ElcomCandidateCounts> => {
-    const cache = getCache();
-    const key = `${data.year}:${data.districtNumber}:${data.countRange}`;
-    const now = Date.now();
-    const hit = cache.get(key);
-    if (hit && now - hit.at < CACHE_TTL_MS) return hit.data;
+    await assertAdmin();
     const fresh = await fetchElcom(data.year, data.districtNumber, data.countRange);
-    cache.set(key, { at: fresh.ok ? now : now - (CACHE_TTL_MS - 60_000), data: fresh });
+    if (fresh.ok) {
+      await writeDbCache(data.year, data.districtNumber, data.countRange, fresh);
+      const cache = getCache();
+      const key = `${data.year}:${data.districtNumber}:${data.countRange}`;
+      cache.set(key, { at: Date.now(), data: fresh });
+    }
     return fresh;
   });
+
+/**
+ * Refresh every (year, district, range) combo currently in the DB cache.
+ * Called by the daily cron hook. Sequential with a small delay to be polite to Firecrawl.
+ */
+export async function refreshAllCachedElcomEntries(): Promise<{
+  refreshed: number;
+  failed: number;
+  total: number;
+}> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: rows, error } = await supabaseAdmin
+    .from("elcom_results_cache")
+    .select("year, district_number, count_range");
+  if (error || !rows) return { refreshed: 0, failed: 0, total: 0 };
+
+  let refreshed = 0;
+  let failed = 0;
+  for (const r of rows) {
+    const fresh = await fetchElcom(
+      r.year as number,
+      r.district_number as number,
+      r.count_range as number,
+    );
+    if (fresh.ok) {
+      await writeDbCache(
+        r.year as number,
+        r.district_number as number,
+        r.count_range as number,
+        fresh,
+      );
+      refreshed++;
+    } else {
+      failed++;
+    }
+    await new Promise((res) => setTimeout(res, 750));
+  }
+  return { refreshed, failed, total: rows.length };
+}
+

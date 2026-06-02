@@ -81,6 +81,7 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
 import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
 import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
+import { Route as ApiPublicHooksElcomRefreshRouteImport } from './routes/api/public/hooks/elcom-refresh'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -448,6 +449,12 @@ const ApiPublicHooksManifestoTickRoute =
     path: '/api/public/hooks/manifesto-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksElcomRefreshRoute =
+  ApiPublicHooksElcomRefreshRouteImport.update({
+    id: '/api/public/hooks/elcom-refresh',
+    path: '/api/public/hooks/elcom-refresh',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -514,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/admin/candidates/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/elcom-refresh': typeof ApiPublicHooksElcomRefreshRoute
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
@@ -586,6 +594,7 @@ export interface FileRoutesByTo {
   '/admin/candidates/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates': typeof LangCandidatesIndexRoute
   '/$lang/parties': typeof LangPartiesIndexRoute
+  '/api/public/hooks/elcom-refresh': typeof ApiPublicHooksElcomRefreshRoute
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
@@ -661,6 +670,7 @@ export interface FileRoutesById {
   '/admin/candidates_/confirm-ec': typeof AdminCandidatesConfirmEcRoute
   '/$lang/candidates/': typeof LangCandidatesIndexRoute
   '/$lang/parties/': typeof LangPartiesIndexRoute
+  '/api/public/hooks/elcom-refresh': typeof ApiPublicHooksElcomRefreshRoute
   '/api/public/hooks/manifesto-tick': typeof ApiPublicHooksManifestoTickRoute
   '/api/public/hooks/scan-news': typeof ApiPublicHooksScanNewsRoute
   '/api/public/hooks/telegram-poll': typeof ApiPublicHooksTelegramPollRoute
@@ -737,6 +747,7 @@ export interface FileRouteTypes {
     | '/admin/candidates/confirm-ec'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/elcom-refresh'
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
@@ -809,6 +820,7 @@ export interface FileRouteTypes {
     | '/admin/candidates/confirm-ec'
     | '/$lang/candidates'
     | '/$lang/parties'
+    | '/api/public/hooks/elcom-refresh'
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
@@ -883,6 +895,7 @@ export interface FileRouteTypes {
     | '/admin/candidates_/confirm-ec'
     | '/$lang/candidates/'
     | '/$lang/parties/'
+    | '/api/public/hooks/elcom-refresh'
     | '/api/public/hooks/manifesto-tick'
     | '/api/public/hooks/scan-news'
     | '/api/public/hooks/telegram-poll'
@@ -900,6 +913,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthLoginRoute: typeof AuthLoginRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  ApiPublicHooksElcomRefreshRoute: typeof ApiPublicHooksElcomRefreshRoute
   ApiPublicHooksManifestoTickRoute: typeof ApiPublicHooksManifestoTickRoute
   ApiPublicHooksScanNewsRoute: typeof ApiPublicHooksScanNewsRoute
   ApiPublicHooksTelegramPollRoute: typeof ApiPublicHooksTelegramPollRoute
@@ -1416,6 +1430,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksManifestoTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/elcom-refresh': {
+      id: '/api/public/hooks/elcom-refresh'
+      path: '/api/public/hooks/elcom-refresh'
+      fullPath: '/api/public/hooks/elcom-refresh'
+      preLoaderRoute: typeof ApiPublicHooksElcomRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1558,6 +1579,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthLoginRoute: AuthLoginRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  ApiPublicHooksElcomRefreshRoute: ApiPublicHooksElcomRefreshRoute,
   ApiPublicHooksManifestoTickRoute: ApiPublicHooksManifestoTickRoute,
   ApiPublicHooksScanNewsRoute: ApiPublicHooksScanNewsRoute,
   ApiPublicHooksTelegramPollRoute: ApiPublicHooksTelegramPollRoute,
@@ -1570,12 +1592,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
