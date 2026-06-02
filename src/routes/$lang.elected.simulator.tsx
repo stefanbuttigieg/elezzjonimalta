@@ -1,0 +1,388 @@
+import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, ArrowRight } from "lucide-react";
+import { isLocale, type Locale } from "@/i18n/types";
+import { useT } from "@/i18n/useT";
+import {
+  getDoublyElectedCandidates,
+  simulateCasualForCandidate,
+  type DoublyElectedCandidate,
+  type DoubleScenario,
+  type CasualScenario,
+  type CasualContender,
+} from "@/lib/casualSimulator.functions";
+
+export const Route = createFileRoute("/$lang/elected/simulator")({
+  head: ({ params }) => {
+    const isMt = params.lang === "mt";
+    const title = isMt
+      ? "Simulatur ta' Elezzjonijiet Każwali — Eletti 2026"
+      : "Casual Election Simulator — Elected 2026";
+    const description = isMt
+      ? "Min jista' jiġi elett jekk kandidat li ġie elett f'żewġ distretti jirrelinkwixxi siġġu? Stima bbażata fuq it-trasferimenti tal-voti tal-Kummissjoni Elettorali."
+      : "Who is likely to take the seat if a doubly-elected candidate relinquishes one district? Estimate based on vote transfer patterns from the Electoral Commission counts.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
+  },
+  loader: async ({ params }) => {
+    const lang: Locale = isLocale(params.lang) ? params.lang : "mt";
+    return { lang };
+  },
+  component: SimulatorPage,
+  errorComponent: ({ error, reset }) => {
+    const router = useRouter();
+    return (
+      <div className="mx-auto max-w-3xl p-6">
+        <ErrorComponent error={error} />
+        <button
+          className="mt-4 rounded-md border border-border px-3 py-1.5 text-sm"
+          onClick={() => { router.invalidate(); reset(); }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  },
+});
+
+const YEAR = 2026;
+
+function SimulatorPage() {
+  const { lang } = Route.useLoaderData();
+  const t = useT(lang);
+  const isMt = lang === "mt";
+
+  const fetchList = useServerFn(getDoublyElectedCandidates);
+  const fetchSim = useServerFn(simulateCasualForCandidate);
+
+  const [candidates, setCandidates] = useState<DoublyElectedCandidate[] | null>(null);
+  const [listErr, setListErr] = useState<string | null>(null);
+  const [selected, setSelected] = useState<DoublyElectedCandidate | null>(null);
+  const [scenario, setScenario] = useState<DoubleScenario | null>(null);
+  const [simLoading, setSimLoading] = useState(false);
+  const [simErr, setSimErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchList({ data: { year: YEAR } })
+      .then((rows) => {
+        setCandidates(rows);
+        if (rows.length > 0) setSelected(rows[0]);
+      })
+      .catch((e: unknown) => setListErr(e instanceof Error ? e.message : String(e)));
+  }, [fetchList]);
+
+  useEffect(() => {
+    if (!selected) return;
+    setSimLoading(true);
+    setSimErr(null);
+    setScenario(null);
+    fetchSim({
+      data: {
+        year: YEAR,
+        candidateId: selected.candidateId,
+        fullName: selected.fullName,
+        partyShort: selected.partyShort,
+        districts: [selected.districts[0], selected.districts[1]] as [number, number],
+      },
+    })
+      .then((res) => setScenario(res))
+      .catch((e: unknown) => setSimErr(e instanceof Error ? e.message : String(e)))
+      .finally(() => setSimLoading(false));
+  }, [selected, fetchSim]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <Link
+          to="/$lang/elected"
+          params={{ lang }}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {isMt ? "Lura għall-eletti" : "Back to elected"}
+        </Link>
+
+        <header className="mt-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+            <Sparkles className="h-3 w-3" />
+            {isMt ? "Sperimentali" : "Experimental"}
+          </div>
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            {isMt ? "Simulatur ta' Elezzjoni Każwali" : "Casual Election Simulator"}
+          </h1>
+          <p className="mt-3 max-w-3xl text-base text-muted-foreground">
+            {isMt
+              ? "Ħafna kandidati jiġu eletti f'żewġ distretti, imma jistgħu jżommu siġġu wieħed biss. Min hu probabbli li jiġi elett fl-elezzjoni każwali skont id-distrett li jiġi relinkwit? It-tbassir hu bbażat fuq kif kienu qed jitqassmu l-voti fl-għodd tal-Kummissjoni Elettorali."
+              : "Many candidates get elected in two districts but can only keep one seat. Who is likely to win the casual election depending on which district they relinquish? The prediction is based on how votes were transferring at the count where the candidate was elected, per the Electoral Commission data."}
+          </p>
+          <details className="mt-4 rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            <summary className="cursor-pointer font-semibold text-foreground">
+              {isMt ? "Kif jaħdem l-algoritmu?" : "How does the algorithm work?"}
+            </summary>
+            <ol className="mt-3 list-decimal space-y-1.5 pl-5">
+              <li>
+                {isMt
+                  ? "Ngħoddu l-għadd minn fejn il-kandidat irrelinkwit qabeż il-kwota."
+                  : "Identify the count at which the relinquishing candidate first met or exceeded the quota."}
+              </li>
+              <li>
+                {isMt
+                  ? "Inħarsu lejn it-trasferiment tas-surplus tagħhom fl-għodd ta' wara — fejn marru l-voti."
+                  : "Look at the surplus transfer in the next count — where their votes flowed."}
+              </li>
+              <li>
+                {isMt
+                  ? "Inkalkulaw is-sehem trasferit lil kull kandidat mhux elett, biż-żieda ta' multipliku għall-istess partit u prossimità għall-kwota."
+                  : "Compute each non-elected contender's share of that transfer, weighted 70%, plus 20% proximity to quota and a 25% boost (+5pts) for same-party candidates."}
+              </li>
+              <li>
+                {isMt
+                  ? "Il-kandidat tal-istess partit bl-ogħla punteġġ huwa l-aktar probabbli li jirbaħ is-siġġu rilinkwit."
+                  : "The same-party contender with the highest score is the most likely casual-election winner."}
+              </li>
+            </ol>
+            <p className="mt-3 text-xs">
+              {isMt
+                ? "⚠️ Dan hu mudell statistiku approssimat. L-elezzjoni każwali fil-fatt tuża l-voti kollha tal-kandidat (mhux is-surplus biss), iżda l-pattern tal-preferenzi ġenerali jibqa' simili."
+                : "⚠️ This is an approximation. The official casual election redistributes all the candidate's ballots (not just the surplus), but the underlying preference pattern is the same."}
+            </p>
+          </details>
+        </header>
+
+        {/* Candidate selector */}
+        <section className="mt-8 rounded-2xl border border-border bg-surface p-5 shadow-card sm:p-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {isMt ? "Kandidati eletti f'żewġ distretti — 2026" : "Doubly-elected candidates — 2026"}
+          </h2>
+          {listErr ? (
+            <p className="mt-3 text-sm text-destructive">{listErr}</p>
+          ) : !candidates ? (
+            <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <RefreshCw className="h-4 w-4 animate-spin" /> {isMt ? "Qed nieħu lista…" : "Loading list…"}
+            </div>
+          ) : candidates.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {isMt ? "Ebda kandidat doppjament elett għal-2026." : "No doubly-elected candidates for 2026 yet."}
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {candidates.map((c) => {
+                const active = selected?.candidateId === c.candidateId;
+                return (
+                  <button
+                    key={c.candidateId}
+                    onClick={() => setSelected(c)}
+                    className={
+                      "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition " +
+                      (active
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-border bg-background text-foreground hover:bg-muted")
+                    }
+                  >
+                    <span className="font-semibold">{c.fullName}</span>
+                    {c.partyShort ? (
+                      <span className="rounded-full bg-accent/40 px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                        {c.partyShort}
+                      </span>
+                    ) : null}
+                    <span className="text-xs opacity-80">{c.districts.join(" + ")}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Scenario */}
+        {selected ? (
+          <section className="mt-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="text-2xl font-bold text-foreground">
+                {isMt ? "Jekk " : "If "}
+                <span className="text-primary">{selected.fullName}</span>
+                {isMt ? " jirrelinkwixxi…" : " relinquishes…"}
+              </h2>
+              <a
+                href="https://electoral.gov.mt/ElectionResults/General"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                {isMt ? "Sors" : "Source"} electoral.gov.mt <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            {simErr ? (
+              <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+                {simErr}
+              </p>
+            ) : null}
+
+            {simLoading ? (
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface p-12 text-sm text-muted-foreground">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                {isMt ? "Qed nikkalkula t-tbassir…" : "Crunching the numbers…"}
+              </div>
+            ) : scenario ? (
+              <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {scenario.perDistrict.map((s) => (
+                  <ScenarioCard
+                    key={s.districtNumber}
+                    scenario={s}
+                    relinquishedFrom={s.districtNumber}
+                    keptIn={
+                      scenario.perDistrict.find((o) => o.districtNumber !== s.districtNumber)?.districtNumber ??
+                      s.districtNumber
+                    }
+                    isMt={isMt}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        <p className="mt-10 text-center text-xs text-muted-foreground">
+          {t("elected.casual.short")} · {isMt ? "Tbassir" : "Prediction"} · 2026
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function pct(n: number): string {
+  return `${(n * 100).toFixed(1)}%`;
+}
+function fmt(n: number | null | undefined): string {
+  if (n == null) return "—";
+  return n.toLocaleString("en-MT");
+}
+
+function ScenarioCard({
+  scenario,
+  relinquishedFrom,
+  keptIn,
+  isMt,
+}: {
+  scenario: CasualScenario;
+  relinquishedFrom: number;
+  keptIn: number;
+  isMt: boolean;
+}) {
+  const top = scenario.predicted;
+  return (
+    <article className="rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {isMt ? "Jirrelinkwixxi" : "Relinquishes"}
+          </p>
+          <h3 className="text-xl font-bold text-foreground">
+            {isMt ? "Distrett" : "District"} {relinquishedFrom}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {isMt ? "Iżomm" : "Keeps"} <span className="font-semibold text-foreground">{isMt ? "Distrett" : "District"} {keptIn}</span>
+          </p>
+        </div>
+        {scenario.quota != null ? (
+          <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
+            {isMt ? "Kwota" : "Quota"} {fmt(scenario.quota)}
+          </span>
+        ) : null}
+      </header>
+
+      {!scenario.ok ? (
+        <p className="mt-4 rounded-md border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+          {scenario.error || (isMt ? "M'hemmx biżżejjed data." : "Not enough data.")}
+        </p>
+      ) : (
+        <>
+          {top ? (
+            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                <Trophy className="h-3.5 w-3.5" />
+                {isMt ? "Tbassir: l-aktar probabbli" : "Predicted casual winner"}
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-3">
+                <p className="text-lg font-bold text-foreground">{top.name}</p>
+                <p className="text-2xl font-extrabold text-primary">{pct(top.probability)}</p>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {top.party} ·{" "}
+                {isMt ? "Sehem trasferit" : "Transfer share"} {pct(top.transferShare)}
+                {top.shortOfQuota != null ? (
+                  <> · {isMt ? "Bin-nuqqas ta'" : "Short of quota by"} {fmt(top.shortOfQuota)}</>
+                ) : null}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {isMt ? "Klassifika kompluta" : "Full ranking"}
+            </p>
+            <ol className="space-y-1.5">
+              {scenario.contenders.map((c, i) => (
+                <ContenderRow key={c.name} contender={c} rank={i + 1} isMt={isMt} />
+              ))}
+            </ol>
+          </div>
+
+          <footer className="mt-4 text-[11px] text-muted-foreground">
+            {isMt ? "Trasferiment osservat fl-għodd " : "Transfer observed at count "}
+            {scenario.transferCount} · {isMt ? "kandidat elett fl-għodd " : "candidate elected at count "}
+            {scenario.electedAtCount}
+            {scenario.transferredTotal ? (
+              <> · {fmt(scenario.transferredTotal)} {isMt ? "voti trasferiti" : "votes transferred"}</>
+            ) : null}
+          </footer>
+        </>
+      )}
+    </article>
+  );
+}
+
+function ContenderRow({ contender, rank, isMt }: { contender: CasualContender; rank: number; isMt: boolean }) {
+  return (
+    <li className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm">
+      <span className="w-5 text-right font-bold text-muted-foreground">{rank}</span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold text-foreground">
+          {contender.name}
+          {contender.sameParty ? (
+            <span className="ml-2 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
+              {isMt ? "Istess partit" : "Same party"}
+            </span>
+          ) : null}
+        </p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {contender.party} · {isMt ? "trasf." : "transfer"} {pct(contender.transferShare)}
+          {contender.finalVotes != null ? <> · {fmt(contender.finalVotes)} {isMt ? "voti" : "votes"}</> : null}
+        </p>
+      </div>
+      <div className="text-right">
+        <div className="text-base font-bold text-foreground tabular-nums">{pct(contender.probability)}</div>
+        <ProbBar value={contender.probability} />
+      </div>
+    </li>
+  );
+}
+
+function ProbBar({ value }: { value: number }) {
+  const width = Math.max(2, Math.round(value * 100));
+  return (
+    <div className="mt-0.5 h-1 w-20 overflow-hidden rounded-full bg-muted">
+      <div className="h-full rounded-full bg-primary" style={{ width: `${width}%` }} />
+    </div>
+  );
+}
+
+// Suppress unused import warning for ArrowRight (kept for future linking)
+void ArrowRight;
