@@ -6,9 +6,8 @@ import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 import {
   getDoublyElectedCandidates,
-  simulateCasualForCandidate,
+  simulateCasualForDistrict,
   type DoublyElectedCandidate,
-  type DoubleScenario,
   type CasualScenario,
   type CasualContender,
 } from "@/lib/casualSimulator.functions";
