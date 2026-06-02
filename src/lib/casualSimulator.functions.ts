@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 
 // Lazy admin client (server-only; loaded on demand)
-type SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["(await getAdmin())"];
+type SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["supabaseAdmin"];
 let _admin: SupabaseAdmin | null = null;
 async function getAdmin(): Promise<SupabaseAdmin> {
   if (!_admin) {
-    _admin = (await import("@/integrations/supabase/client.server")).(await getAdmin());
+    _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   }
   return _admin;
 }
