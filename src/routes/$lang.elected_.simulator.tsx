@@ -7,9 +7,11 @@ import { useT } from "@/i18n/useT";
 import {
   getDoublyElectedCandidates,
   simulateCasualForDistrict,
+  getAllElectedForYear,
   type DoublyElectedCandidate,
   type CasualScenario,
   type CasualContender,
+  type ElectedSeat,
 } from "@/lib/casualSimulator.functions";
 
 export const Route = createFileRoute("/$lang/elected_/simulator")({
