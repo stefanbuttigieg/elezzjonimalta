@@ -216,7 +216,7 @@ function simulateOne(
     const rowParty = (row.party ?? "").toUpperCase();
     const partyMatches = tokens.length > 0 && tokens.some((t) => rowParty.includes(t));
     if (!partyMatches) continue;
-    if (electedNames.has(normalizeName(name))) continue;
+    if (isAlreadyElected(name, electedSets)) continue;
 
 
     const prev = transferIdx > 0 ? row.counts[transferIdx - 1] : null;
