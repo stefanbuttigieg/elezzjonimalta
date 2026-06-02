@@ -734,7 +734,7 @@ function resolveComposition(
       fallback: chosen != null && rank > 1,
     });
     if (chosen) {
-      const party = chosen.party || "—";
+      const party = canonicalParty(chosen.party);
       tally.set(party, (tally.get(party) ?? 0) + 1);
     }
   }
