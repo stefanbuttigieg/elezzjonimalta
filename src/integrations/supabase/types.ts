@@ -1307,6 +1307,39 @@ export type Database = {
         }
         Relationships: []
       }
+      elcom_results_cache: {
+        Row: {
+          count_range: number
+          created_at: string
+          data: Json
+          district_number: number
+          fetched_at: string
+          id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          count_range: number
+          created_at?: string
+          data: Json
+          district_number: number
+          fetched_at?: string
+          id?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          count_range?: number
+          created_at?: string
+          data?: Json
+          district_number?: number
+          fetched_at?: string
+          id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       gcm_allocations: {
         Row: {
           created_at: string
