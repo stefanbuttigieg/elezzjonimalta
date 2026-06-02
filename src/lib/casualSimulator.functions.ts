@@ -199,9 +199,10 @@ function simulateOne(
   }
   if (transferIdx < 0) transferIdx = Math.min(electedIdx + 1, counts.length - 1);
 
-  const tokens = partyMatchTokens
-    .map((t) => t.toUpperCase().trim())
+  const tokens = (Array.isArray(partyMatchTokens) ? partyMatchTokens : [])
+    .map((t) => String(t ?? "").toUpperCase().trim())
     .filter((t) => t.length >= 2);
+
 
   // Only consider OTHER candidates from the SAME PARTY who have NOT already
   // been elected (in any district this election).
