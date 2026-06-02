@@ -817,32 +817,38 @@ function CompositionExplorer({
                   {c.partyShort ?? "—"} · {isMt ? "Eletti f'" : "Elected in"} {c.districts.join(" + ")}
                 </p>
               </div>
-              <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5 text-xs font-semibold">
-                {c.districts.map((d) => {
-                  const active = current === d;
-                  return (
-                    <button
-                      key={d}
-                      onClick={() =>
-                        setChoices((prev) => {
-                          const next = new Map(prev);
-                          next.set(c.candidateId, d);
-                          return next;
-                        })
-                      }
-                      className={
-                        "rounded-full px-2.5 py-1 transition " +
-                        (active
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground")
-                      }
-                      title={isMt ? `Jirrelinkwixxi D${d}` : `Relinquish D${d}`}
-                    >
-                      D{d}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {isMt ? "Jirrelinkwixxi" : "Gives up"}
+                </span>
+                <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5 text-xs font-semibold">
+                  {c.districts.map((d) => {
+                    const active = current === d;
+                    return (
+                      <button
+                        key={d}
+                        onClick={() =>
+                          setChoices((prev) => {
+                            const next = new Map(prev);
+                            next.set(c.candidateId, d);
+                            return next;
+                          })
+                        }
+                        className={
+                          "rounded-full px-2.5 py-1 transition " +
+                          (active
+                            ? "bg-destructive text-destructive-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground")
+                        }
+                        title={isMt ? `Jirrelinkwixxi (jagħti) D${d} u jżomm id-distrett l-ieħor` : `Relinquish (give up) seat in D${d} and keep the other district`}
+                      >
+                        D{d}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
             </div>
           );
         })}
