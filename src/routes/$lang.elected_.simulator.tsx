@@ -356,6 +356,7 @@ function SimulatorPage() {
             allScenarios={allScenarios}
             choices={relinquishChoices}
             setChoices={setRelinquishChoices}
+            allElected={allElected ?? []}
             isMt={isMt}
           />
         ) : null}
