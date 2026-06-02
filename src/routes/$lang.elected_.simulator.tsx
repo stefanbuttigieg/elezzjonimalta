@@ -338,6 +338,18 @@ function SimulatorPage() {
           </section>
         ) : null}
 
+        {candidates && candidates.length > 0 && allScenarios.size > 0 ? (
+          <CompositionExplorer
+            candidates={candidates}
+            allScenarios={allScenarios}
+            choices={relinquishChoices}
+            setChoices={setRelinquishChoices}
+            isMt={isMt}
+          />
+        ) : null}
+
+
+
         <p className="mt-10 text-center text-xs text-muted-foreground">
           {t("elected.casual.short")} · {isMt ? "Tbassir" : "Prediction"} · 2026
         </p>
