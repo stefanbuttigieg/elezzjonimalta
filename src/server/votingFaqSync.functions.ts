@@ -2,14 +2,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  syncAllFaqSources,
-  syncFaqSource,
-  translateFaqRowToEnglish,
-  FAQ_SOURCES,
-} from "./votingFaqSync.server";
-import { writeAudit } from "./auditLog.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertStaff(supabase: { rpc: (fn: string) => Promise<{ data: unknown; error: unknown }> }) {
   const { data, error } = await supabase.rpc("get_my_roles");
@@ -29,6 +21,9 @@ export const triggerFaqSync = createServerFn({ method: "POST" })
   .inputValidator((input) => SyncInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { syncAllFaqSources, syncFaqSource, FAQ_SOURCES } = await import("./votingFaqSync.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -61,6 +56,9 @@ export const translateFaqToEnglish = createServerFn({ method: "POST" })
   .inputValidator((input) => TranslateInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { translateFaqRowToEnglish } = await import("./votingFaqSync.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const result = await translateFaqRowToEnglish(data.faqId);
