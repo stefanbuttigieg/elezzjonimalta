@@ -1,7 +1,7 @@
 import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, ArrowRight, AlertTriangle, Users } from "lucide-react";
+import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, AlertTriangle, Users } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 import {
