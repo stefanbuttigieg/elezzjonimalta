@@ -128,26 +128,27 @@ function SimulatorPage() {
           fetchSimDistrict({
             data: { year: YEAR, fullName: c.fullName, partyShort: c.partyShort, districtNumber },
           })
-            .then((s) => ({ relinquisher: c.fullName, scenario: s }))
+            .then((s) => ({ candidate: c, scenario: s }))
             .catch(() => null),
         ),
       ),
     ).then((results) => {
       if (cancelled) return;
       const map = new Map<string, Array<{ relinquisher: string; district: number }>>();
-      // relinquisher -> set of normalized names this relinquisher's scenarios predict as winner
       const predictedByRelinquisher = new Map<string, Set<string>>();
+      const all = new Map<string, CasualScenario>();
       for (const r of results) {
-        if (!r || !r.scenario.ok || !r.scenario.predicted) continue;
+        if (!r) continue;
+        all.set(`${r.candidate.candidateId}::${r.scenario.districtNumber}`, r.scenario);
+        if (!r.scenario.ok || !r.scenario.predicted) continue;
         const key = normalizeContenderName(r.scenario.predicted.name);
         const arr = map.get(key) ?? [];
-        arr.push({ relinquisher: r.relinquisher, district: r.scenario.districtNumber });
+        arr.push({ relinquisher: r.candidate.fullName, district: r.scenario.districtNumber });
         map.set(key, arr);
-        const s = predictedByRelinquisher.get(r.relinquisher) ?? new Set<string>();
+        const s = predictedByRelinquisher.get(r.candidate.fullName) ?? new Set<string>();
         s.add(key);
-        predictedByRelinquisher.set(r.relinquisher, s);
+        predictedByRelinquisher.set(r.candidate.fullName, s);
       }
-      // For each relinquisher, "forbidden" = union of OTHER relinquishers' predicted names.
       const forbidden = new Map<string, Set<string>>();
       const allRelinquishers = Array.from(predictedByRelinquisher.keys());
       for (const r of allRelinquishers) {
@@ -160,6 +161,14 @@ function SimulatorPage() {
       }
       setConflictMap(map);
       setForbiddenByRelinquisher(forbidden);
+      setAllScenarios(all);
+      // Default: each candidate relinquishes their first (lower-numbered) district.
+      setRelinquishChoices((prev) => {
+        if (prev.size > 0) return prev;
+        const next = new Map<string, number>();
+        for (const c of candidates) next.set(c.candidateId, c.districts[0]);
+        return next;
+      });
     });
     return () => {
       cancelled = true;
