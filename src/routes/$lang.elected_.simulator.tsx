@@ -111,6 +111,38 @@ function SimulatorPage() {
     };
   }, [selected, fetchSimDistrict]);
 
+  // Precompute cross-candidate conflicts: a person predicted to win the casual
+  // seat for more than one doubly-elected candidate can only fill one of them.
+  useEffect(() => {
+    if (!candidates || candidates.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      candidates.flatMap((c) =>
+        c.districts.slice(0, 2).map((districtNumber) =>
+          fetchSimDistrict({
+            data: { year: YEAR, fullName: c.fullName, partyShort: c.partyShort, districtNumber },
+          })
+            .then((s) => ({ relinquisher: c.fullName, scenario: s }))
+            .catch(() => null),
+        ),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map = new Map<string, Array<{ relinquisher: string; district: number }>>();
+      for (const r of results) {
+        if (!r || !r.scenario.ok || !r.scenario.predicted) continue;
+        const key = normalizeContenderName(r.scenario.predicted.name);
+        const arr = map.get(key) ?? [];
+        arr.push({ relinquisher: r.relinquisher, district: r.scenario.districtNumber });
+        map.set(key, arr);
+      }
+      setConflictMap(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [candidates, fetchSimDistrict]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
