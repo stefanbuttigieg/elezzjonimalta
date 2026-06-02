@@ -150,7 +150,7 @@ function simulateOne(
   partyMatchTokens: string[],
   districtNumber: number,
   data: Awaited<ReturnType<typeof fetchAllCounts>>,
-  electedNames: Set<string>,
+  electedSets: Set<string>[],
 
 ): CasualScenario {
   const base: CasualScenario = {
@@ -216,7 +216,7 @@ function simulateOne(
     const rowParty = (row.party ?? "").toUpperCase();
     const partyMatches = tokens.length > 0 && tokens.some((t) => rowParty.includes(t));
     if (!partyMatches) continue;
-    if (electedNames.has(normalizeName(name))) continue;
+    if (isAlreadyElected(name, electedSets)) continue;
 
 
     const prev = transferIdx > 0 ? row.counts[transferIdx - 1] : null;
@@ -277,21 +277,42 @@ function simulateOne(
   };
 }
 
-async function fetchElectedNamesForYear(year: number): Promise<Set<string>> {
+async function fetchElectedTokenSetsForYear(year: number): Promise<Set<string>[]> {
   const { data, error } = await supabaseAdmin
     .from("candidate_districts")
     .select("candidate:candidates(full_name)")
     .eq("election_year", year)
     .eq("elected", true);
   if (error) throw new Error(error.message);
-  const names = new Set<string>();
+  const sets: Set<string>[] = [];
+  const seen = new Set<string>();
   for (const r of data ?? []) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fn = (r as any).candidate?.full_name as string | undefined;
-    if (fn) names.add(normalizeName(fn));
+    if (!fn) continue;
+    const norm = normalizeName(fn);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    const toks = new Set(norm.split(" ").filter((t) => t.length >= 3));
+    if (toks.size > 0) sets.push(toks);
   }
-  return names;
+  return sets;
 }
+
+/** Returns true if `name` shares ≥2 long tokens with any elected candidate
+ *  (handles ELCOM name ordering differences, titles, hyphenation, etc.). */
+function isAlreadyElected(name: string, electedSets: Set<string>[]): boolean {
+  const tokens = normalizeName(name).split(" ").filter((t) => t.length >= 3);
+  if (tokens.length === 0) return false;
+  for (const set of electedSets) {
+    let overlap = 0;
+    for (const t of tokens) if (set.has(t)) overlap++;
+    // 2+ shared meaningful tokens = same person (also catches 2-token names)
+    if (overlap >= 2 || (overlap >= 1 && tokens.length === 1 && set.size === 1)) return true;
+  }
+  return false;
+}
+
 
 
 // ------- Server functions -------
@@ -370,10 +391,11 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
       if (kwEn) tokens.push(kwEn);
       if (party.name_mt) tokens.push(party.name_mt);
     }
-    const [counts, electedNames] = await Promise.all([
+    const [counts, electedSets] = await Promise.all([
       fetchAllCounts(data.year, data.districtNumber),
-      fetchElectedNamesForYear(data.year),
+      fetchElectedTokenSetsForYear(data.year),
     ]);
-    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedNames);
+    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedSets);
+
   });
 
