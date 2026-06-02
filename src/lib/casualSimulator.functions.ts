@@ -420,13 +420,15 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     if (scenario.ok) {
       try {
         await supabaseAdmin.from("casual_predictions").upsert(
-          {
-            election_year: data.year,
-            full_name: data.fullName,
-            district_number: data.districtNumber,
-            scenario: scenario as unknown as Record<string, unknown>,
-            computed_at: new Date().toISOString(),
-          },
+          [
+            {
+              election_year: data.year,
+              full_name: data.fullName,
+              district_number: data.districtNumber,
+              scenario: scenario as unknown as Record<string, unknown>,
+              computed_at: new Date().toISOString(),
+            },
+          ],
           { onConflict: "election_year,full_name,district_number" },
         );
       } catch (err) {
