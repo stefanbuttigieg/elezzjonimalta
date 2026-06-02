@@ -1,7 +1,7 @@
 import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, ArrowRight } from "lucide-react";
+import { ArrowLeft, RefreshCw, ExternalLink, Trophy, Sparkles, ArrowRight, AlertTriangle } from "lucide-react";
 import { isLocale, type Locale } from "@/i18n/types";
 import { useT } from "@/i18n/useT";
 import {
@@ -67,6 +67,8 @@ function SimulatorPage() {
   const [scenarios, setScenarios] = useState<CasualScenario[] | null>(null);
   const [simLoading, setSimLoading] = useState(false);
   const [simErr, setSimErr] = useState<string | null>(null);
+  /** Map from normalized predicted-winner name -> list of relinquishers (and the district they'd win). */
+  const [conflictMap, setConflictMap] = useState<Map<string, Array<{ relinquisher: string; district: number }>>>(new Map());
 
   useEffect(() => {
     fetchList({ data: { year: YEAR } })
@@ -108,6 +110,38 @@ function SimulatorPage() {
       cancelled = true;
     };
   }, [selected, fetchSimDistrict]);
+
+  // Precompute cross-candidate conflicts: a person predicted to win the casual
+  // seat for more than one doubly-elected candidate can only fill one of them.
+  useEffect(() => {
+    if (!candidates || candidates.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      candidates.flatMap((c) =>
+        c.districts.slice(0, 2).map((districtNumber) =>
+          fetchSimDistrict({
+            data: { year: YEAR, fullName: c.fullName, partyShort: c.partyShort, districtNumber },
+          })
+            .then((s) => ({ relinquisher: c.fullName, scenario: s }))
+            .catch(() => null),
+        ),
+      ),
+    ).then((results) => {
+      if (cancelled) return;
+      const map = new Map<string, Array<{ relinquisher: string; district: number }>>();
+      for (const r of results) {
+        if (!r || !r.scenario.ok || !r.scenario.predicted) continue;
+        const key = normalizeContenderName(r.scenario.predicted.name);
+        const arr = map.get(key) ?? [];
+        arr.push({ relinquisher: r.relinquisher, district: r.scenario.districtNumber });
+        map.set(key, arr);
+      }
+      setConflictMap(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [candidates, fetchSimDistrict]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -260,6 +294,8 @@ function SimulatorPage() {
                       s.districtNumber
                     }
                     isMt={isMt}
+                    conflictMap={conflictMap}
+                    currentRelinquisher={selected?.fullName ?? ""}
                   />
                 ))}
               </div>
@@ -282,19 +318,37 @@ function fmt(n: number | null | undefined): string {
   if (n == null) return "—";
   return n.toLocaleString("en-MT");
 }
+function normalizeContenderName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function ScenarioCard({
   scenario,
   relinquishedFrom,
   keptIn,
   isMt,
+  conflictMap,
+  currentRelinquisher,
 }: {
   scenario: CasualScenario;
   relinquishedFrom: number;
   keptIn: number;
   isMt: boolean;
+  conflictMap: Map<string, Array<{ relinquisher: string; district: number }>>;
+  currentRelinquisher: string;
 }) {
   const top = scenario.predicted;
+  const topConflicts = top
+    ? (conflictMap.get(normalizeContenderName(top.name)) ?? []).filter(
+        (e) => e.relinquisher !== currentRelinquisher || e.district !== relinquishedFrom,
+      )
+    : [];
   return (
     <article className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <header className="flex items-start justify-between gap-3">
@@ -339,6 +393,25 @@ function ScenarioCard({
                   <> · {isMt ? "Bin-nuqqas ta'" : "Short of quota by"} {fmt(top.shortOfQuota)}</>
                 ) : null}
               </p>
+              {topConflicts.length > 0 ? (
+                <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2.5 text-[11px] text-amber-900 dark:text-amber-200">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold uppercase tracking-wider">
+                      {isMt ? "Kunflitt ta' tbassir" : "Prediction conflict"}
+                    </p>
+                    <p className="mt-0.5 opacity-90">
+                      {isMt
+                        ? "Mbassar ukoll bħala rebbieħ każwali għal: "
+                        : "Also predicted as the casual winner for: "}
+                      {topConflicts
+                        .map((e) => `${e.relinquisher} (${isMt ? "D" : "D"}${e.district})`)
+                        .join(", ")}
+                      . {isMt ? "Jistgħu jokkupaw siġġu wieħed biss." : "They can only fill one seat."}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -347,9 +420,20 @@ function ScenarioCard({
               {isMt ? "Klassifika kompluta" : "Full ranking"}
             </p>
             <ol className="space-y-1.5">
-              {scenario.contenders.map((c, i) => (
-                <ContenderRow key={c.name} contender={c} rank={i + 1} isMt={isMt} />
-              ))}
+              {scenario.contenders.map((c, i) => {
+                const cConflicts = (conflictMap.get(normalizeContenderName(c.name)) ?? []).filter(
+                  (e) => e.relinquisher !== currentRelinquisher || e.district !== relinquishedFrom,
+                );
+                return (
+                  <ContenderRow
+                    key={c.name}
+                    contender={c}
+                    rank={i + 1}
+                    isMt={isMt}
+                    hasConflict={cConflicts.length > 0}
+                  />
+                );
+              })}
             </ol>
           </div>
 
@@ -367,7 +451,17 @@ function ScenarioCard({
   );
 }
 
-function ContenderRow({ contender, rank, isMt }: { contender: CasualContender; rank: number; isMt: boolean }) {
+function ContenderRow({
+  contender,
+  rank,
+  isMt,
+  hasConflict,
+}: {
+  contender: CasualContender;
+  rank: number;
+  isMt: boolean;
+  hasConflict?: boolean;
+}) {
   return (
     <li className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm">
       <span className="w-5 text-right font-bold text-muted-foreground">{rank}</span>
@@ -377,6 +471,15 @@ function ContenderRow({ contender, rank, isMt }: { contender: CasualContender; r
           {contender.sameParty ? (
             <span className="ml-2 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
               {isMt ? "Istess partit" : "Same party"}
+            </span>
+          ) : null}
+          {hasConflict ? (
+            <span
+              className="ml-2 inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-700 dark:text-amber-300"
+              title={isMt ? "Mbassar ukoll f'distrett ieħor" : "Also predicted in another district"}
+            >
+              <AlertTriangle className="h-2.5 w-2.5" />
+              {isMt ? "Kunflitt" : "Conflict"}
             </span>
           ) : null}
         </p>
