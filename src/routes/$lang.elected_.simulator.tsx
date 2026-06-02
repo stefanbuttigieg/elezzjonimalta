@@ -401,6 +401,9 @@ function canonicalParty(raw: string | null | undefined): string {
   if (/\bABBA\b/.test(u)) return "ABBA";
   if (/\bIND\b/.test(u) || u.includes("INDIPENDENT") || u.includes("INDEPENDENT")) return "IND";
   return s;
+}
+
+
 
 
 function ScenarioCard({
