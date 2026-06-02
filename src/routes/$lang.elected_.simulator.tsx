@@ -649,5 +649,297 @@ function ProbBar({ value }: { value: number }) {
   );
 }
 
+type ResolvedSeat = {
+  candidate: DoublyElectedCandidate;
+  relinquishedDistrict: number;
+  keptDistrict: number;
+  winner: CasualContender | null;
+  fallback: boolean;
+  reason?: string;
+};
+
+/** Greedy resolution: process relinquishers in alphabetical order, claim the
+ *  highest-ranked still-available contender for each. */
+function resolveComposition(
+  candidates: DoublyElectedCandidate[],
+  choices: Map<string, number>,
+  allScenarios: Map<string, CasualScenario>,
+): { seats: ResolvedSeat[]; tally: Map<string, number> } {
+  const claimed = new Set<string>();
+  const seats: ResolvedSeat[] = [];
+  const tally = new Map<string, number>();
+  const ordered = [...candidates].sort((a, b) => a.fullName.localeCompare(b.fullName));
+  for (const cand of ordered) {
+    const relinquished = choices.get(cand.candidateId) ?? cand.districts[0];
+    const kept = cand.districts.find((d) => d !== relinquished) ?? cand.districts[1];
+    const scn = allScenarios.get(`${cand.candidateId}::${relinquished}`);
+    if (!scn || !scn.ok || scn.contenders.length === 0) {
+      seats.push({
+        candidate: cand,
+        relinquishedDistrict: relinquished,
+        keptDistrict: kept,
+        winner: null,
+        fallback: false,
+        reason: scn?.error ?? "No data",
+      });
+      continue;
+    }
+    let chosen: CasualContender | null = null;
+    let rank = 0;
+    for (const c of scn.contenders) {
+      rank++;
+      const key = normalizeContenderName(c.name);
+      if (!claimed.has(key)) {
+        chosen = c;
+        claimed.add(key);
+        break;
+      }
+    }
+    seats.push({
+      candidate: cand,
+      relinquishedDistrict: relinquished,
+      keptDistrict: kept,
+      winner: chosen,
+      fallback: chosen != null && rank > 1,
+    });
+    if (chosen) {
+      const party = chosen.party || "—";
+      tally.set(party, (tally.get(party) ?? 0) + 1);
+    }
+  }
+  return { seats, tally };
+}
+
+function CompositionExplorer({
+  candidates,
+  allScenarios,
+  choices,
+  setChoices,
+  isMt,
+}: {
+  candidates: DoublyElectedCandidate[];
+  allScenarios: Map<string, CasualScenario>;
+  choices: Map<string, number>;
+  setChoices: React.Dispatch<React.SetStateAction<Map<string, number>>>;
+  isMt: boolean;
+}) {
+  const resolved = useMemo(
+    () => resolveComposition(candidates, choices, allScenarios),
+    [candidates, choices, allScenarios],
+  );
+
+  const allOutcomes = useMemo(() => {
+    const N = candidates.length;
+    if (N === 0 || N > 12) return null;
+    type Outcome = { tally: Map<string, number>; count: number; example: Map<string, number> };
+    const byKey = new Map<string, Outcome>();
+    const total = 1 << N;
+    for (let mask = 0; mask < total; mask++) {
+      const c = new Map<string, number>();
+      for (let i = 0; i < N; i++) {
+        const cand = candidates[i];
+        const bit = (mask >> i) & 1;
+        c.set(cand.candidateId, cand.districts[bit]);
+      }
+      const { tally } = resolveComposition(candidates, c, allScenarios);
+      const key = [...tally.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([p, n]) => `${p}:${n}`).join("|");
+      const existing = byKey.get(key);
+      if (existing) existing.count++;
+      else byKey.set(key, { tally, count: 1, example: c });
+    }
+    return { total, outcomes: [...byKey.values()].sort((a, b) => b.count - a.count) };
+  }, [candidates, allScenarios]);
+
+  const totalCasualSeats = resolved.seats.filter((s) => s.winner).length;
+
+  return (
+    <section className="mt-10 rounded-2xl border border-border bg-surface p-5 shadow-card sm:p-6">
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg bg-primary/10 p-2 text-primary">
+          <Users className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">
+            {isMt ? "Kompożizzjoni tal-Parlament" : "Parliament composition"}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isMt
+              ? "Għażel liema distrett kull kandidat doppjament elett jirrelinkwixxi, u ara min jimla s-siġġijiet każwali u kif jaqsmu skont il-partit."
+              : "Pick which district each doubly-elected candidate relinquishes. The casual winners and party split update accordingly (conflicts resolved by walking down the ranking)."}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {[...candidates].sort((a, b) => a.fullName.localeCompare(b.fullName)).map((c) => {
+          const current = choices.get(c.candidateId) ?? c.districts[0];
+          return (
+            <div
+              key={c.candidateId}
+              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">{c.fullName}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {c.partyShort ?? "—"} · {isMt ? "Eletti f'" : "Elected in"} {c.districts.join(" + ")}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5 text-xs font-semibold">
+                {c.districts.map((d) => {
+                  const active = current === d;
+                  return (
+                    <button
+                      key={d}
+                      onClick={() =>
+                        setChoices((prev) => {
+                          const next = new Map(prev);
+                          next.set(c.candidateId, d);
+                          return next;
+                        })
+                      }
+                      className={
+                        "rounded-full px-2.5 py-1 transition " +
+                        (active
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground")
+                      }
+                      title={isMt ? `Jirrelinkwixxi D${d}` : `Relinquish D${d}`}
+                    >
+                      D{d}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {isMt ? "Qsim tas-siġġijiet każwali" : "Casual-seat split by party"} · {totalCasualSeats}{" "}
+          {isMt ? "siġġijiet" : "seats"}
+        </p>
+        <div className="mt-2 space-y-1.5">
+          {[...resolved.tally.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .map(([party, n]) => {
+              const pctVal = totalCasualSeats > 0 ? n / totalCasualSeats : 0;
+              return (
+                <div key={party} className="flex items-center gap-3 text-sm">
+                  <span className="w-28 shrink-0 truncate font-semibold text-foreground">{party}</span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${Math.max(4, pctVal * 100)}%` }}
+                    />
+                  </div>
+                  <span className="w-20 text-right tabular-nums text-muted-foreground">
+                    {n} ({pct(pctVal)})
+                  </span>
+                </div>
+              );
+            })}
+          {resolved.tally.size === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {isMt ? "M'hemmx tbassir disponibbli." : "No predictions available."}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {isMt ? "Min jimla kull siġġu" : "Who fills each seat"}
+        </p>
+        <ul className="mt-2 space-y-1.5">
+          {resolved.seats.map((s) => (
+            <li
+              key={s.candidate.candidateId}
+              className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <span className="font-semibold text-foreground">{s.candidate.fullName}</span>
+              <span className="text-xs text-muted-foreground">
+                {isMt ? "iżomm D" : "keeps D"}{s.keptDistrict} · {isMt ? "iħalli D" : "releases D"}{s.relinquishedDistrict}
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+              {s.winner ? (
+                <>
+                  <span className="font-semibold text-primary">{s.winner.name}</span>
+                  <span className="rounded-full bg-accent/40 px-1.5 py-0.5 text-[10px] font-bold uppercase">
+                    {s.winner.party}
+                  </span>
+                  {s.fallback ? (
+                    <span
+                      className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300"
+                      title={
+                        isMt
+                          ? "L-ewwel għażla diġà ttieħdet minn relinkwit ieħor"
+                          : "Top pick was claimed by another relinquisher; used next ranked"
+                      }
+                    >
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      {isMt ? "Fallback" : "Fallback"}
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="italic text-muted-foreground">
+                  {s.reason ?? (isMt ? "Mhux disponibbli" : "Unavailable")}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {allOutcomes ? (
+        <details className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-foreground">
+            {isMt
+              ? `Kollox: ${allOutcomes.outcomes.length} riżultati uniċi minn ${allOutcomes.total} kombinazzjonijiet`
+              : `All scenarios: ${allOutcomes.outcomes.length} unique party splits across ${allOutcomes.total} combinations`}
+          </summary>
+          <ul className="mt-3 space-y-1.5">
+            {allOutcomes.outcomes.map((o, i) => {
+              const label = [...o.tally.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .map(([p, n]) => `${p} ${n}`)
+                .join(" · ");
+              const isCurrent = [...o.example.entries()].every(
+                ([k, v]) => (choices.get(k) ?? 0) === v,
+              );
+              return (
+                <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                  <button
+                    onClick={() => setChoices(new Map(o.example))}
+                    className={
+                      "flex-1 truncate text-left font-medium hover:underline " +
+                      (isCurrent ? "text-primary" : "text-foreground")
+                    }
+                    title={isMt ? "Applika din il-kombinazzjoni" : "Apply this combination"}
+                  >
+                    {label || (isMt ? "(vojt)" : "(empty)")}
+                    {isCurrent ? " ←" : ""}
+                  </button>
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                    {o.count}/{allOutcomes.total} {isMt ? "kombi" : "combos"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-3 text-[11px] italic text-muted-foreground">
+            {isMt
+              ? "Konflitti jissolvew billi jingħata l-aqwa kandidat disponibbli; ir-relinkwiti jiġu pproċessati f'ordni alfabetika, allura l-ordni jista' jaffettwa l-fallbacks."
+              : "Conflicts are resolved by walking the ranking; relinquishers are processed alphabetically, so order can affect fallbacks."}
+          </p>
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
+
 // Suppress unused import warning for ArrowRight (kept for future linking)
 void ArrowRight;
