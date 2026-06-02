@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   getManifestoImportStatus,
   tickManifestoImport,
-} from "@/server/manifestoImport.functions";
+} from "@/server-fns/manifestoImport.functions";
 
 export interface ManifestoImportRow {
   id: string;

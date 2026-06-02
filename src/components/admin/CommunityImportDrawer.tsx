@@ -14,7 +14,7 @@ import {
   createCommunityUploadUrl,
   retryCommunityImport,
   startCommunityImport,
-} from "@/server/communityImport.functions";
+} from "@/server-fns/communityImport.functions";
 import { useCommunityImport, type CommunityImportRow } from "@/hooks/useCommunityImport";
 
 interface AuthorOption { id: string; name: string }

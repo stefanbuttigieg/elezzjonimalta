@@ -16,7 +16,7 @@ import {
   getManifestoPdfUrl,
   retryManifestoImport,
   startManifestoImport,
-} from "@/server/manifestoImport.functions";
+} from "@/server-fns/manifestoImport.functions";
 import { useManifestoImport, type ManifestoImportRow } from "@/hooks/useManifestoImport";
 
 interface PartyOption {

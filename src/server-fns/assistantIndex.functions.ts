@@ -22,7 +22,7 @@ export const triggerReindex = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => reindexSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { runReindex } = await import("./assistantIndex.server");
+    const { runReindex } = await import("@/server/assistantIndex.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId } = context;
     // Verify staff

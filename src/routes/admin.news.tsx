@@ -10,8 +10,8 @@ import {
   convertFinding,
   scanUrlNow,
   autofillFindingForm,
-} from "@/server/newsScan.functions";
-import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
+} from "@/server-fns/newsScan.functions";
+import { suggestProposalCategories } from "@/server-fns/proposalCategorySuggest.functions";
 import { toast } from "sonner";
 import {
   Newspaper,

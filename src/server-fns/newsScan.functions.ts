@@ -7,10 +7,10 @@ async function getAdmin(): Promise<_SupabaseAdmin> {
   if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   return _admin;
 }
-type _WriteAudit = typeof import("./auditLog.server")["writeAudit"];
+type _WriteAudit = typeof import("@/server/auditLog.server")["writeAudit"];
 let _wa: _WriteAudit | null = null;
 async function getWriteAudit(): Promise<_WriteAudit> {
-  if (!_wa) _wa = (await import("./auditLog.server")).writeAudit;
+  if (!_wa) _wa = (await import("@/server/auditLog.server")).writeAudit;
   return _wa;
 }
 
@@ -38,7 +38,7 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
-      const { runNewsScan } = await import("./newsScan.server");
+      const { runNewsScan } = await import("@/server/newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -67,7 +67,7 @@ export const scanUrlNow = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
-      const { scanSingleUrl } = await import("./newsScan.server");
+      const { scanSingleUrl } = await import("@/server/newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -512,7 +512,7 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
   .inputValidator((input) => AutofillInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
-      const { scrapeArticle } = await import("./newsScan.server");
+      const { scrapeArticle } = await import("@/server/newsScan.server");
       const { supabase } = context;
       await assertStaff(supabase as never);
 

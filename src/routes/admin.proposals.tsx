@@ -23,15 +23,15 @@ import { mergeProposals } from "@/lib/proposal-merge";
 import {
   translateProposalDraft,
   translateMissingProposals,
-} from "@/server/translateProposal.functions";
-import { suggestProposalCategories } from "@/server/proposalCategorySuggest.functions";
-import { bulkCategoriseProposals } from "@/server/bulkCategoriseProposals.functions";
+} from "@/server-fns/translateProposal.functions";
+import { suggestProposalCategories } from "@/server-fns/proposalCategorySuggest.functions";
+import { bulkCategoriseProposals } from "@/server-fns/bulkCategoriseProposals.functions";
 import {
   bulkTagProposalsGeo,
   listLocalityRegistry,
   setProposalGeo,
   tagProposalGeo,
-} from "@/server/proposalGeoTag.functions";
+} from "@/server-fns/proposalGeoTag.functions";
 
 const proposalsSearchSchema = z.object({
   import: fallback(z.string().uuid().optional(), undefined),

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { triggerReindex } from "@/server/assistantIndex.functions";
+import { triggerReindex } from "@/server-fns/assistantIndex.functions";
 import { toast } from "sonner";
 import { Sparkles, RefreshCw, PlayCircle, Save } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerActions, Field, Input, Textarea } from "@/routes/admin.parties";
 import { Plus, Pencil, Trash2, Search, RefreshCw, ExternalLink, HelpCircle, Languages } from "lucide-react";
 import { toast } from "sonner";
-import { triggerFaqSync, translateFaqToEnglish } from "@/server/votingFaqSync.functions";
+import { triggerFaqSync, translateFaqToEnglish } from "@/server-fns/votingFaqSync.functions";
 
 export const Route = createFileRoute("/admin/voting-faqs")({
   component: VotingFaqsAdmin,
