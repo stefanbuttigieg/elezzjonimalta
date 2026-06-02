@@ -4,8 +4,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { writeAudit } from "./auditLog.server";
 
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
@@ -174,6 +172,8 @@ export const findPhotoForCandidateById = createServerFn({ method: "POST" })
   .inputValidator((input) => SingleInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -229,6 +229,8 @@ export const findMissingCandidatePhotos = createServerFn({ method: "POST" })
   .inputValidator((input) => BulkInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
