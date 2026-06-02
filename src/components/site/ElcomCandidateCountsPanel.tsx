@@ -100,14 +100,29 @@ export function ElcomCandidateCountsPanel() {
             Voti għal kull kandidat fil-għodd 1–25, miġbura mill-paġna uffiċjali tal-Kummissjoni Elettorali.
           </p>
         </div>
-        <a
-          href="https://electoral.gov.mt/ElectionResults/General"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-        >
-          electoral.gov.mt <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        <div className="flex items-center gap-3">
+          {isAdmin ? (
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
+              title="Iġġib data ġdida mill-Kummissjoni Elettorali"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Qed niġġedded…" : "Iġġedded"}
+            </button>
+          ) : null}
+          <a
+            href="https://electoral.gov.mt/ElectionResults/General"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+          >
+            electoral.gov.mt <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+
       </header>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
