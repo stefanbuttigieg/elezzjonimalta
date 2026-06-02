@@ -6,10 +6,10 @@ async function getAdmin(): Promise<_SupabaseAdmin> {
   if (!_admin) _admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
   return _admin;
 }
-type _WriteAudit = typeof import("./auditLog.server")["writeAudit"];
+type _WriteAudit = typeof import("@/server/auditLog.server")["writeAudit"];
 let _wa: _WriteAudit | null = null;
 async function getWriteAudit(): Promise<_WriteAudit> {
-  if (!_wa) _wa = (await import("./auditLog.server")).writeAudit;
+  if (!_wa) _wa = (await import("@/server/auditLog.server")).writeAudit;
   return _wa;
 }
 
