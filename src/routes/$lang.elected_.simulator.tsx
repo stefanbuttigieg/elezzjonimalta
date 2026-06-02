@@ -432,6 +432,7 @@ function ScenarioCard({
                     isMt={isMt}
                     hasConflict={cConflicts.length > 0}
                     quota={scenario.quota}
+                    transferredTotal={scenario.transferredTotal}
                   />
                 );
               })}
