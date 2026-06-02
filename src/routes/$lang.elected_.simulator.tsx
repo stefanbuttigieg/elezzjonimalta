@@ -67,6 +67,8 @@ function SimulatorPage() {
   const [scenarios, setScenarios] = useState<CasualScenario[] | null>(null);
   const [simLoading, setSimLoading] = useState(false);
   const [simErr, setSimErr] = useState<string | null>(null);
+  /** Map from normalized predicted-winner name -> list of relinquishers (and the district they'd win). */
+  const [conflictMap, setConflictMap] = useState<Map<string, Array<{ relinquisher: string; district: number }>>>(new Map());
 
   useEffect(() => {
     fetchList({ data: { year: YEAR } })
