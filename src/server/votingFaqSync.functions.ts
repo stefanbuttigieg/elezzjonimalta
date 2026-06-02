@@ -56,6 +56,9 @@ export const translateFaqToEnglish = createServerFn({ method: "POST" })
   .inputValidator((input) => TranslateInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { translateFaqRowToEnglish } = await import("./votingFaqSync.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const result = await translateFaqRowToEnglish(data.faqId);
