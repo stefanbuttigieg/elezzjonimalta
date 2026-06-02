@@ -38,6 +38,7 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan } = await import("./newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
