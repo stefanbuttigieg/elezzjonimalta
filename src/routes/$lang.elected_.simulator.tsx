@@ -516,7 +516,14 @@ function ContenderRow({
         </summary>
         <div className="mt-2 space-y-1.5 rounded-md bg-muted/40 p-2.5 font-mono text-[11px] text-muted-foreground">
           <div className="flex justify-between gap-3">
-            <span>{isMt ? "Sehem trasferit" : "Transfer share"}</span>
+            <span>
+              {isMt ? "Sehem trasferit" : "Transfer share"}
+              {transferredVotes != null && transferredTotal != null && transferredTotal > 0 ? (
+                <span className="ml-1 opacity-70">
+                  ({fmt(transferredVotes)}/{fmt(transferredTotal)})
+                </span>
+              ) : null}
+            </span>
             <span className="text-foreground">{pct(contender.transferShare)}</span>
           </div>
           <div className="flex justify-between gap-3">
