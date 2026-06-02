@@ -116,7 +116,7 @@ function VotingFaqsAdmin() {
         toast.error(`Sync failed: ${result.error}`);
       } else {
         const totals = (result.results as Array<{ found: number; added: number; updated: number; error?: string | null }>).reduce(
-          (acc, r) => ({
+          (acc: { found: number; added: number; updated: number; errors: number }, r) => ({
             found: acc.found + r.found,
             added: acc.added + r.added,
             updated: acc.updated + r.updated,
