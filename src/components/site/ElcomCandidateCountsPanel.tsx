@@ -3,10 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { RefreshCw, ExternalLink } from "lucide-react";
 import {
   getElcomCandidateCounts,
+  refreshElcomCandidateCounts,
   ELCOM_YEARS,
   ELCOM_COUNT_RANGES,
   type ElcomCandidateCounts,
 } from "@/lib/elcomCandidateCounts.functions";
+import { useAuth } from "@/lib/auth";
+
 
 const DISTRICT_NUMBERS = Array.from({ length: 13 }, (_, i) => i + 1);
 
