@@ -317,35 +317,16 @@ export const getDoublyElectedCandidates = createServerFn({ method: "POST" })
       .sort((a, b) => a.fullName.localeCompare(b.fullName));
   });
 
-export const simulateCasualForCandidate = createServerFn({ method: "POST" })
+export const simulateCasualForDistrict = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       year: z.number().int().min(2003).max(2100),
-      candidateId: z.string().uuid(),
       fullName: z.string().min(1),
       partyShort: z.string().nullable(),
-      districts: z.array(z.number().int().min(1).max(13)).min(2).max(2),
+      districtNumber: z.number().int().min(1).max(13),
     }).parse,
   )
-  .handler(async ({ data }): Promise<DoubleScenario> => {
-    const [d1, d2] = data.districts;
-    const [data1, data2] = await Promise.all([
-      fetchAllCounts(data.year, d1),
-      fetchAllCounts(data.year, d2),
-    ]);
-    const s1 = simulateOne(data.year, data.fullName, data.partyShort, d1, data1);
-    const s2 = simulateOne(data.year, data.fullName, data.partyShort, d2, data2);
-    return {
-      candidate: {
-        candidateId: data.candidateId,
-        slug: "",
-        fullName: data.fullName,
-        partyShort: data.partyShort,
-        partyName: null,
-        partyColor: null,
-        photoUrl: null,
-        districts: data.districts,
-      },
-      perDistrict: [s1, s2],
-    };
+  .handler(async ({ data }): Promise<CasualScenario> => {
+    const counts = await fetchAllCounts(data.year, data.districtNumber);
+    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts);
   });
