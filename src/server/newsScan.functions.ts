@@ -67,6 +67,7 @@ export const scanUrlNow = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { scanSingleUrl } = await import("./newsScan.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
