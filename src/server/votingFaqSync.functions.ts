@@ -2,14 +2,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  syncAllFaqSources,
-  syncFaqSource,
-  translateFaqRowToEnglish,
-  FAQ_SOURCES,
+import type {
+  syncAllFaqSources as SyncAllFaqSourcesT,
+  syncFaqSource as SyncFaqSourceT,
+  translateFaqRowToEnglish as TranslateFaqRowT,
+  FAQ_SOURCES as FAQ_SOURCES_T,
 } from "./votingFaqSync.server";
-import { writeAudit } from "./auditLog.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertStaff(supabase: { rpc: (fn: string) => Promise<{ data: unknown; error: unknown }> }) {
   const { data, error } = await supabase.rpc("get_my_roles");
