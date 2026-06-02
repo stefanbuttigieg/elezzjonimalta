@@ -147,10 +147,11 @@ function findRowKey(
 function simulateOne(
   year: number,
   fullName: string,
-  partyShort: string | null,
+  partyMatchTokens: string[],
   districtNumber: number,
   data: Awaited<ReturnType<typeof fetchAllCounts>>,
   electedNames: Set<string>,
+
 ): CasualScenario {
   const base: CasualScenario = {
     ok: false,
