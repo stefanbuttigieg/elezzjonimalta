@@ -459,6 +459,7 @@ function ContenderRow({
   isMt,
   hasConflict,
   quota,
+  transferredTotal,
 }: {
   contender: CasualContender;
   rank: number;
