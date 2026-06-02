@@ -256,6 +256,7 @@ function simulateOne(
       name: c.name,
       party: c.party,
       transferShare,
+      transferredVotes: c.transferred,
       finalVotes: c.finalVotes,
       shortOfQuota,
       score,
