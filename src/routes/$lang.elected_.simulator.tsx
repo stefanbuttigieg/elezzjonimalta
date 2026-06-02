@@ -892,7 +892,7 @@ function CompositionExplorer({
           //    the row matching the kept district.
           const seenSingleKey = new Set<string>();
           for (const seat of allElected) {
-            const nameKey = normalizeContinderKey(seat.fullName);
+            const nameKey = normalizeContenderName(seat.fullName);
             const doubly = doublyByName.get(nameKey);
             if (doubly) {
               if (seat.districtNumber !== doubly.keptDistrict) continue;
