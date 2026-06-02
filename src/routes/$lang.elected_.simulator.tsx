@@ -431,6 +431,7 @@ function ScenarioCard({
                     rank={i + 1}
                     isMt={isMt}
                     hasConflict={cConflicts.length > 0}
+                    quota={scenario.quota}
                   />
                 );
               })}
