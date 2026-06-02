@@ -2,6 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// Mirror of ALL_SOURCE_KEYS from ./assistantIndex.server (kept here to avoid
+// pulling a server-only module into the client bundle at module scope).
+const ALL_SOURCE_KEYS = [
+  "candidates",
+  "parties",
+  "proposals",
+  "voting_faqs",
+  "districts",
+  "news_findings",
+] as const;
+type SourceKey = (typeof ALL_SOURCE_KEYS)[number];
+
 const reindexSchema = z.object({
   sourceKeys: z.array(z.enum(ALL_SOURCE_KEYS)).optional(),
 });
@@ -10,8 +22,8 @@ export const triggerReindex = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => reindexSchema.parse(data))
   .handler(async ({ data, context }) => {
-      const { runReindex, ALL_SOURCE_KEYS, type SourceKey } = await import("./assistantIndex.server");
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { runReindex } = await import("./assistantIndex.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId } = context;
     // Verify staff
     const { data: roles } = await supabaseAdmin
