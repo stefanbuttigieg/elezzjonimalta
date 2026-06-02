@@ -8,13 +8,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  applyManifestoDecisions,
-  resetManifestoImport,
-  runManifestoImportStep,
-  type Decision,
-} from "./manifestoImport.server";
-
+import type { Decision } from "./manifestoImport.server";
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
 }) {
@@ -45,6 +39,7 @@ export const startManifestoImport = createServerFn({ method: "POST" })
   .inputValidator((input) => StartInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -111,6 +106,7 @@ export const tickManifestoImport = createServerFn({ method: "POST" })
   .inputValidator((input) => TickInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -134,6 +130,7 @@ export const getManifestoImportStatus = createServerFn({ method: "POST" })
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -155,6 +152,7 @@ export const retryManifestoImport = createServerFn({ method: "POST" })
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -220,6 +218,7 @@ export const applyManifestoImport = createServerFn({ method: "POST" })
   .inputValidator((input) => ApplyInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -291,6 +290,7 @@ export const getManifestoPdfUrl = createServerFn({ method: "POST" })
   .inputValidator((input) => PdfUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -322,6 +322,7 @@ export const createManifestoUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input) => UploadUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -349,6 +350,7 @@ export const cancelManifestoImport = createServerFn({ method: "POST" })
   .inputValidator((input) => CancelInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -405,6 +407,7 @@ export const listManifestoImports = createServerFn({ method: "POST" })
   .inputValidator((input) => ListInput.parse(input ?? {}))
   .handler(async ({ data, context }) => {
     try {
+      const { applyManifestoDecisions, resetManifestoImport, runManifestoImportStep } = await import("./manifestoImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);

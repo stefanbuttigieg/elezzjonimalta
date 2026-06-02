@@ -2,13 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  applyCommunityDecisions,
-  resetCommunityImport,
-  runCommunityImportStep,
-  type Decision,
-} from "./communityImport.server";
-
+import type { Decision } from "./communityImport.server";
 async function assertStaff(supabase: {
   rpc: (fn: string) => Promise<{ data: unknown; error: unknown }>;
 }) {
@@ -34,6 +28,7 @@ export const startCommunityImport = createServerFn({ method: "POST" })
   .inputValidator((input) => StartInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -101,6 +96,7 @@ export const getCommunityImportStatus = createServerFn({ method: "POST" })
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -121,6 +117,7 @@ export const tickCommunityImport = createServerFn({ method: "POST" })
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);
@@ -138,6 +135,7 @@ export const retryCommunityImport = createServerFn({ method: "POST" })
   .inputValidator((input) => StatusInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -206,6 +204,7 @@ export const applyCommunityImport = createServerFn({ method: "POST" })
   .inputValidator((input) => ApplyInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
@@ -266,6 +265,7 @@ export const createCommunityUploadUrl = createServerFn({ method: "POST" })
   .inputValidator((input) => UploadUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { applyCommunityDecisions, resetCommunityImport, runCommunityImportStep } = await import("./communityImport.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { writeAudit } = await import("./auditLog.server");
       await assertStaff(context.supabase as never);

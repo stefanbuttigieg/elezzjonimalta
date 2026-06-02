@@ -3,15 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  deriveDistrictIds,
-  getLocalityRegistry,
-  matchLocalities,
-} from "@/lib/localityRegistry.server";
-import {
-  tagOneProposalCore,
-  tagProposalsBatch,
-} from "@/server/proposalGeoTag.server";
+
 
 const Scope = z.enum(["national", "regional", "local"]);
 
@@ -33,6 +25,8 @@ export const tagProposalGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { tagOneProposalCore, tagProposalsBatch } = await import("@/server/proposalGeoTag.server");
+      const { deriveDistrictIds, getLocalityRegistry, matchLocalities } = await import("@/lib/localityRegistry.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
@@ -59,6 +53,8 @@ export const setProposalGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { tagOneProposalCore, tagProposalsBatch } = await import("@/server/proposalGeoTag.server");
+      const { deriveDistrictIds, getLocalityRegistry, matchLocalities } = await import("@/lib/localityRegistry.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const reg = await getLocalityRegistry();
@@ -93,6 +89,8 @@ export const bulkTagProposalsGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { tagOneProposalCore, tagProposalsBatch } = await import("@/server/proposalGeoTag.server");
+      const { deriveDistrictIds, getLocalityRegistry, matchLocalities } = await import("@/lib/localityRegistry.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
@@ -112,6 +110,8 @@ export const tagUntaggedProposalsGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { tagOneProposalCore, tagProposalsBatch } = await import("@/server/proposalGeoTag.server");
+      const { deriveDistrictIds, getLocalityRegistry, matchLocalities } = await import("@/lib/localityRegistry.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
@@ -135,6 +135,8 @@ export const tagUntaggedProposalsGeo = createServerFn({ method: "POST" })
 export const listLocalityRegistry = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+      const { tagOneProposalCore, tagProposalsBatch } = await import("@/server/proposalGeoTag.server");
+      const { deriveDistrictIds, getLocalityRegistry, matchLocalities } = await import("@/lib/localityRegistry.server");
     await assertStaff(context.supabase as never);
     const reg = await getLocalityRegistry();
     return reg.map((e) => ({
