@@ -176,6 +176,8 @@ export const translateMissingProposals = createServerFn({ method: "POST" })
   .inputValidator((input) => BulkInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
