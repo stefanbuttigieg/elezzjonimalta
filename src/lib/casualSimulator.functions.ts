@@ -342,6 +342,9 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
-    const counts = await fetchAllCounts(data.year, data.districtNumber);
-    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts);
+    const [counts, electedNames] = await Promise.all([
+      fetchAllCounts(data.year, data.districtNumber),
+      fetchElectedNamesForYear(data.year),
+    ]);
+    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts, electedNames);
   });
