@@ -978,6 +978,33 @@ export type Database = {
           },
         ]
       }
+      casual_predictions: {
+        Row: {
+          computed_at: string
+          district_number: number
+          election_year: number
+          full_name: string
+          id: string
+          scenario: Json
+        }
+        Insert: {
+          computed_at?: string
+          district_number: number
+          election_year: number
+          full_name: string
+          id?: string
+          scenario: Json
+        }
+        Update: {
+          computed_at?: string
+          district_number?: number
+          election_year?: number
+          full_name?: string
+          id?: string
+          scenario?: Json
+        }
+        Relationships: []
+      }
       community_authors: {
         Row: {
           bio_en: string | null
