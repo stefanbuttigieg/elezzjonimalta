@@ -391,10 +391,11 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
       if (kwEn) tokens.push(kwEn);
       if (party.name_mt) tokens.push(party.name_mt);
     }
-    const [counts, electedNames] = await Promise.all([
+    const [counts, electedSets] = await Promise.all([
       fetchAllCounts(data.year, data.districtNumber),
-      fetchElectedNamesForYear(data.year),
+      fetchElectedTokenSetsForYear(data.year),
     ]);
-    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedNames);
+    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedSets);
+
   });
 
