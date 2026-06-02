@@ -448,7 +448,7 @@ function ScenarioCard({
             <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                 <Sparkles className="h-3.5 w-3.5" />
-                {isMt ? "Għażla mingħajr kunflitt" : "Conflict-free pick"}
+                {isMt ? "Imiss fil-fila" : "Next in line"}
               </div>
               <div className="mt-2 flex items-baseline justify-between gap-3">
                 <p className="text-base font-bold text-foreground">{conflictFree.name}</p>
