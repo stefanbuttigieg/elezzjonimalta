@@ -147,10 +147,11 @@ function findRowKey(
 function simulateOne(
   year: number,
   fullName: string,
-  partyShort: string | null,
+  partyMatchTokens: string[],
   districtNumber: number,
   data: Awaited<ReturnType<typeof fetchAllCounts>>,
   electedNames: Set<string>,
+
 ): CasualScenario {
   const base: CasualScenario = {
     ok: false,
@@ -198,7 +199,9 @@ function simulateOne(
   }
   if (transferIdx < 0) transferIdx = Math.min(electedIdx + 1, counts.length - 1);
 
-  const partyKey = (partyShort ?? "").toUpperCase().trim();
+  const tokens = partyMatchTokens
+    .map((t) => t.toUpperCase().trim())
+    .filter((t) => t.length >= 2);
 
   // Only consider OTHER candidates from the SAME PARTY who have NOT already
   // been elected (in any district this election).
@@ -210,8 +213,10 @@ function simulateOne(
   for (const [name, row] of data.rows.entries()) {
     if (name === key) continue;
     const rowParty = (row.party ?? "").toUpperCase();
-    if (!partyKey || !rowParty.includes(partyKey)) continue;
+    const partyMatches = tokens.length > 0 && tokens.some((t) => rowParty.includes(t));
+    if (!partyMatches) continue;
     if (electedNames.has(normalizeName(name))) continue;
+
 
     const prev = transferIdx > 0 ? row.counts[transferIdx - 1] : null;
     const now = row.counts[transferIdx];
@@ -342,9 +347,32 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
+    // Resolve party name variants (en + mt) for matching against ELCOM strings
+    const tokens: string[] = [];
+    if (data.partyShort) tokens.push(data.partyShort);
+    const { data: party } = await supabaseAdmin
+      .from("parties")
+      .select("short_name, name_en, name_mt")
+      .eq("short_name", data.partyShort ?? "")
+      .maybeSingle();
+    if (party) {
+      const extractKeyword = (s: string | null) => {
+        if (!s) return null;
+        const words = s
+          .split(/[\s\-–—]+/)
+          .filter((w) => w.length >= 4 && !/^partit$/i.test(w) && !/^party$/i.test(w) && !/^the$/i.test(w));
+        return words[0] ?? s;
+      };
+      const kwMt = extractKeyword(party.name_mt);
+      const kwEn = extractKeyword(party.name_en);
+      if (kwMt) tokens.push(kwMt);
+      if (kwEn) tokens.push(kwEn);
+      if (party.name_mt) tokens.push(party.name_mt);
+    }
     const [counts, electedNames] = await Promise.all([
       fetchAllCounts(data.year, data.districtNumber),
       fetchElectedNamesForYear(data.year),
     ]);
-    return simulateOne(data.year, data.fullName, data.partyShort, data.districtNumber, counts, electedNames);
+    return simulateOne(data.year, data.fullName, tokens, data.districtNumber, counts, electedNames);
   });
+
