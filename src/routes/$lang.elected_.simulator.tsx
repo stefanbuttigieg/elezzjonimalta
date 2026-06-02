@@ -62,6 +62,9 @@ function SimulatorPage() {
 
   const fetchList = useServerFn(getDoublyElectedCandidates);
   const fetchSimDistrict = useServerFn(simulateCasualForDistrict);
+  const fetchAllElected = useServerFn(getAllElectedForYear);
+
+  const [allElected, setAllElected] = useState<ElectedSeat[] | null>(null);
 
   const [candidates, setCandidates] = useState<DoublyElectedCandidate[] | null>(null);
   const [listErr, setListErr] = useState<string | null>(null);
