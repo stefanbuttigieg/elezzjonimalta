@@ -612,6 +612,33 @@ function ElectedPage() {
           <ElcomCandidateCountsPanel />
         </div>
 
+        <div className="mt-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-primary/5 p-5 shadow-card sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                {locale === "mt" ? "Sperimentali" : "Experimental"}
+              </p>
+              <h3 className="mt-2 text-lg font-bold text-foreground sm:text-xl">
+                {locale === "mt" ? "Simulatur ta' Elezzjoni Każwali" : "Casual Election Simulator"}
+              </h3>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                {locale === "mt"
+                  ? "Ara min hu probabbli li jirbaħ siġġu jekk kandidat elett f'żewġ distretti jirrelinkwixxi wieħed minnhom — ibbażat fuq it-trasferimenti tal-voti."
+                  : "See who is likely to take the seat if a doubly-elected candidate relinquishes one district — based on vote transfer patterns."}
+              </p>
+            </div>
+            <Link
+              to="/$lang/elected/simulator"
+              params={{ lang }}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
+            >
+              {locale === "mt" ? "Iftaħ is-simulatur" : "Open simulator"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+
 
 
         {pnLive ? (
