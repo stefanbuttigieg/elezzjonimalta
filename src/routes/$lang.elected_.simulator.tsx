@@ -941,5 +941,3 @@ function CompositionExplorer({
 }
 
 
-// Suppress unused import warning for ArrowRight (kept for future linking)
-void ArrowRight;
