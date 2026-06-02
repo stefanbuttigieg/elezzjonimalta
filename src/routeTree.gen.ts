@@ -36,6 +36,7 @@ import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fie
 import { Route as AdminCommunityProposalsRouteImport } from './routes/admin.community-proposals'
 import { Route as AdminCommunityAuthorsRouteImport } from './routes/admin.community-authors'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminCasualPredictionsRouteImport } from './routes/admin.casual-predictions'
 import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
 import { Route as AdminCandidateSuggestionsRouteImport } from './routes/admin.candidate-suggestions'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
@@ -214,6 +215,11 @@ const AdminCommunityAuthorsRoute = AdminCommunityAuthorsRouteImport.update({
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCasualPredictionsRoute = AdminCasualPredictionsRouteImport.update({
+  id: '/casual-predictions',
+  path: '/casual-predictions',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
@@ -477,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/casual-predictions': typeof AdminCasualPredictionsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/community-proposals': typeof AdminCommunityProposalsRoute
@@ -548,6 +555,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/casual-predictions': typeof AdminCasualPredictionsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/community-proposals': typeof AdminCommunityProposalsRoute
@@ -622,6 +630,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/candidate-suggestions': typeof AdminCandidateSuggestionsRoute
   '/admin/candidates': typeof AdminCandidatesRoute
+  '/admin/casual-predictions': typeof AdminCasualPredictionsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/community-authors': typeof AdminCommunityAuthorsRoute
   '/admin/community-proposals': typeof AdminCommunityProposalsRoute
@@ -697,6 +706,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidate-suggestions'
     | '/admin/candidates'
+    | '/admin/casual-predictions'
     | '/admin/categories'
     | '/admin/community-authors'
     | '/admin/community-proposals'
@@ -768,6 +778,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidate-suggestions'
     | '/admin/candidates'
+    | '/admin/casual-predictions'
     | '/admin/categories'
     | '/admin/community-authors'
     | '/admin/community-proposals'
@@ -841,6 +852,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/candidate-suggestions'
     | '/admin/candidates'
+    | '/admin/casual-predictions'
     | '/admin/categories'
     | '/admin/community-authors'
     | '/admin/community-proposals'
@@ -1087,6 +1099,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/casual-predictions': {
+      id: '/admin/casual-predictions'
+      path: '/casual-predictions'
+      fullPath: '/admin/casual-predictions'
+      preLoaderRoute: typeof AdminCasualPredictionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/candidates': {
@@ -1476,6 +1495,7 @@ interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCandidateSuggestionsRoute: typeof AdminCandidateSuggestionsRoute
   AdminCandidatesRoute: typeof AdminCandidatesRoute
+  AdminCasualPredictionsRoute: typeof AdminCasualPredictionsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCommunityAuthorsRoute: typeof AdminCommunityAuthorsRoute
   AdminCommunityProposalsRoute: typeof AdminCommunityProposalsRoute
@@ -1505,6 +1525,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminCandidateSuggestionsRoute: AdminCandidateSuggestionsRoute,
   AdminCandidatesRoute: AdminCandidatesRoute,
+  AdminCasualPredictionsRoute: AdminCasualPredictionsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCommunityAuthorsRoute: AdminCommunityAuthorsRoute,
   AdminCommunityProposalsRoute: AdminCommunityProposalsRoute,
