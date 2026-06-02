@@ -69,6 +69,8 @@ function SimulatorPage() {
   const [simErr, setSimErr] = useState<string | null>(null);
   /** Map from normalized predicted-winner name -> list of relinquishers (and the district they'd win). */
   const [conflictMap, setConflictMap] = useState<Map<string, Array<{ relinquisher: string; district: number }>>>(new Map());
+  /** For each relinquisher, the set of contender names already claimed by OTHER relinquishers' top picks. */
+  const [forbiddenByRelinquisher, setForbiddenByRelinquisher] = useState<Map<string, Set<string>>>(new Map());
 
   useEffect(() => {
     fetchList({ data: { year: YEAR } })
