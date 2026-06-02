@@ -27,6 +27,8 @@ export type CasualContender = {
    *  flow to this contender, based on observed surplus transfer at the count
    *  the candidate was elected. */
   transferShare: number;
+  /** Raw transferred votes from the relinquishing candidate at the transfer count. */
+  transferredVotes: number;
   /** Their last known vote total (final count we have data for). */
   finalVotes: number | null;
   /** How many votes short of quota at the final count (null if already over). */
