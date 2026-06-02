@@ -1,4 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
+
+// Lazy admin client (server-only; loaded on demand)
+type SupabaseAdmin = typeof import("@/integrations/supabase/client.server")["(await getAdmin())"];
+let _admin: SupabaseAdmin | null = null;
+async function getAdmin(): Promise<SupabaseAdmin> {
+  if (!_admin) {
+    _admin = (await import("@/integrations/supabase/client.server")).(await getAdmin());
+  }
+  return _admin;
+}
+
 import { z } from "zod";
 import {
   getElcomCandidateCounts,
@@ -280,7 +291,7 @@ function simulateOne(
 }
 
 async function fetchElectedTokenSetsForYear(year: number): Promise<Set<string>[]> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (await getAdmin())
     .from("candidate_districts")
     .select("candidate:candidates(full_name)")
     .eq("election_year", year)
@@ -323,7 +334,7 @@ export const getDoublyElectedCandidates = createServerFn({ method: "POST" })
   .inputValidator(z.object({ year: z.number().int().min(2003).max(2100) }).parse)
   .handler(async ({ data }): Promise<DoublyElectedCandidate[]> => {
     // Pull all elected rows for the year with candidate + district + party
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await (await getAdmin())
       .from("candidate_districts")
       .select(
         "candidate_id, district:districts(number), candidate:candidates(id, slug, full_name, photo_url, party:parties(short_name, name_en, color))",
@@ -372,7 +383,7 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<CasualScenario> => {
     // Read-through cache.
-    const { data: cached } = await supabaseAdmin
+    const { data: cached } = await (await getAdmin())
       .from("casual_predictions")
       .select("scenario")
       .eq("election_year", data.year)
@@ -386,7 +397,7 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     // Resolve party name variants (en + mt) for matching against ELCOM strings
     const tokens: string[] = [];
     if (data.partyShort) tokens.push(data.partyShort);
-    const { data: party } = await supabaseAdmin
+    const { data: party } = await (await getAdmin())
       .from("parties")
       .select("short_name, name_en, name_mt")
       .eq("short_name", data.partyShort ?? "")
@@ -421,7 +432,7 @@ export const simulateCasualForDistrict = createServerFn({ method: "POST" })
     // Write-through: persist successful results.
     if (scenario.ok) {
       try {
-        await supabaseAdmin.from("casual_predictions").upsert(
+        await (await getAdmin()).from("casual_predictions").upsert(
           [
             {
               election_year: data.year,
@@ -450,7 +461,7 @@ export type ElectedSeat = {
 export const getAllElectedForYear = createServerFn({ method: "POST" })
   .inputValidator(z.object({ year: z.number().int().min(2003).max(2100) }).parse)
   .handler(async ({ data }): Promise<ElectedSeat[]> => {
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await (await getAdmin())
       .from("candidate_districts")
       .select(
         "candidate_id, district:districts(number), candidate:candidates(id, full_name, party:parties(short_name))",
