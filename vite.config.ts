@@ -5,11 +5,13 @@ export default defineConfig({
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
+          manualChunks: (id) => {
             // Bundle every lucide icon import into a single chunk so the
             // browser doesn't waterfall dozens of ~1 KB icon files (each was
             // taking 1.4–1.6 s on production due to request queuing).
-            "lucide-icons": ["lucide-react"],
+            if (id.includes("node_modules/lucide-react/")) {
+              return "lucide-icons";
+            }
           },
         },
       },
