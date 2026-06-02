@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "@/server/auditLog.server";
 
 const APPLIABLE_FIELDS = new Set([
@@ -45,6 +44,7 @@ export const reviewCandidateSuggestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => ReviewInput.parse(input))
   .handler(async ({ data, context }) => {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId, claims } = context;
     await assertStaff(userId);
     const email = (claims as { email?: string }).email ?? null;

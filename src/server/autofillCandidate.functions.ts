@@ -3,8 +3,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { writeAudit } from "./auditLog.server";
 
 const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
@@ -424,6 +422,8 @@ export const autofillCandidate = createServerFn({ method: "POST" })
   .inputValidator((input) => Input.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -465,6 +465,8 @@ export const bulkAutofillCandidates = createServerFn({ method: "POST" })
   .inputValidator((input) => BulkInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { writeAudit } = await import("./auditLog.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;

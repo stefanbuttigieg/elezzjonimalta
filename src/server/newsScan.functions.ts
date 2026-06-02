@@ -2,9 +2,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { runNewsScan, scanSingleUrl, scrapeArticle } from "./newsScan.server";
-import { writeAudit } from "./auditLog.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -27,6 +24,9 @@ export const triggerNewsScan = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan, scanSingleUrl, scrapeArticle } = await import("./newsScan.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -55,6 +55,9 @@ export const scanUrlNow = createServerFn({ method: "POST" })
   .inputValidator((input) => ScanUrlInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan, scanSingleUrl, scrapeArticle } = await import("./newsScan.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -157,6 +160,9 @@ export const convertFinding = createServerFn({ method: "POST" })
   .inputValidator((input) => ConvertInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan, scanSingleUrl, scrapeArticle } = await import("./newsScan.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase, userId, claims } = context;
       await assertStaff(supabase as never);
       const email = (claims as { email?: string }).email ?? null;
@@ -499,6 +505,9 @@ export const autofillFindingForm = createServerFn({ method: "POST" })
   .inputValidator((input) => AutofillInput.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const { runNewsScan, scanSingleUrl, scrapeArticle } = await import("./newsScan.server");
+      const { writeAudit } = await import("./auditLog.server");
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { supabase } = context;
       await assertStaff(supabase as never);
 

@@ -3,7 +3,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   deriveDistrictIds,
   getLocalityRegistry,
@@ -34,6 +33,7 @@ export const tagProposalGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
       if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
@@ -59,6 +59,7 @@ export const setProposalGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const reg = await getLocalityRegistry();
       const matches = matchLocalities(reg, data.localities);
@@ -92,6 +93,7 @@ export const bulkTagProposalsGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
       if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
@@ -110,6 +112,7 @@ export const tagUntaggedProposalsGeo = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await assertStaff(context.supabase as never);
       const apiKey = process.env.LOVABLE_API_KEY;
       if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
