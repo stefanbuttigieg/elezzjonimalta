@@ -728,12 +728,14 @@ function CompositionExplorer({
   allScenarios,
   choices,
   setChoices,
+  allElected,
   isMt,
 }: {
   candidates: DoublyElectedCandidate[];
   allScenarios: Map<string, CasualScenario>;
   choices: Map<string, number>;
   setChoices: React.Dispatch<React.SetStateAction<Map<string, number>>>;
+  allElected: ElectedSeat[];
   isMt: boolean;
 }) {
   const resolved = useMemo(
