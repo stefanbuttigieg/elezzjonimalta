@@ -328,7 +328,7 @@ async function writeDbCache(
           year,
           district_number: districtNumber,
           count_range: countRange,
-          data: result as unknown as Record<string, unknown>,
+          data: JSON.parse(JSON.stringify(result)),
           fetched_at: new Date().toISOString(),
         },
       ],
