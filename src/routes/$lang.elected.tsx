@@ -243,6 +243,7 @@ const EMPTY_DATA: LoaderData = {
   multiDistrictWinners: [],
   byParty: [],
   allDistricts: [],
+  casualNominees: [],
   pnLive: null,
   elcomFirstCount: null,
 };
