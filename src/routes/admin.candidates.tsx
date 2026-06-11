@@ -66,6 +66,12 @@ interface Candidate {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  casual_nomination_submitted: boolean;
+  casual_nomination_date: string | null;
+  casual_nomination_district_id: string | null;
+  casual_nomination_source_url: string | null;
+  casual_nomination_note_en: string | null;
+  casual_nomination_note_mt: string | null;
   custom_fields: Record<string, unknown>;
   profession: string | null;
   profession_code: string | null;
