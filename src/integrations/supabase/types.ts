@@ -813,6 +813,12 @@ export type Database = {
           bio_en: string | null
           bio_mt: string | null
           birthplace: string | null
+          casual_nomination_date: string | null
+          casual_nomination_district_id: string | null
+          casual_nomination_note_en: string | null
+          casual_nomination_note_mt: string | null
+          casual_nomination_source_url: string | null
+          casual_nomination_submitted: boolean
           commission_confirmed: boolean
           commission_confirmed_at: string | null
           created_at: string
@@ -859,6 +865,12 @@ export type Database = {
           bio_en?: string | null
           bio_mt?: string | null
           birthplace?: string | null
+          casual_nomination_date?: string | null
+          casual_nomination_district_id?: string | null
+          casual_nomination_note_en?: string | null
+          casual_nomination_note_mt?: string | null
+          casual_nomination_source_url?: string | null
+          casual_nomination_submitted?: boolean
           commission_confirmed?: boolean
           commission_confirmed_at?: string | null
           created_at?: string
@@ -905,6 +917,12 @@ export type Database = {
           bio_en?: string | null
           bio_mt?: string | null
           birthplace?: string | null
+          casual_nomination_date?: string | null
+          casual_nomination_district_id?: string | null
+          casual_nomination_note_en?: string | null
+          casual_nomination_note_mt?: string | null
+          casual_nomination_source_url?: string | null
+          casual_nomination_submitted?: boolean
           commission_confirmed?: boolean
           commission_confirmed_at?: string | null
           created_at?: string
@@ -948,6 +966,13 @@ export type Database = {
           youtube?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidates_casual_nomination_district_id_fkey"
+            columns: ["casual_nomination_district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "candidates_party_id_fkey"
             columns: ["party_id"]

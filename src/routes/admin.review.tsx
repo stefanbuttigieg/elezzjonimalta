@@ -30,7 +30,7 @@ function ReviewQueue() {
     const { data, error } = await supabase
       .from("candidates")
       .select(
-        "id, full_name, status, imported_from, source_url, bio_en, created_at, party:parties(name_en), district:districts(number, name_en)"
+        "id, full_name, status, imported_from, source_url, bio_en, created_at, party:parties(name_en), district:districts!candidates_primary_district_id_fkey(number, name_en)"
       )
       .eq("status", "pending_review")
       .order("created_at", { ascending: false });

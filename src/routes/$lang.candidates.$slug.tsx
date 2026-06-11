@@ -71,6 +71,12 @@ type CandidateDetail = {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  casual_nomination_submitted: boolean;
+  casual_nomination_date: string | null;
+  casual_nomination_district: DistrictRef | null;
+  casual_nomination_source_url: string | null;
+  casual_nomination_note_en: string | null;
+  casual_nomination_note_mt: string | null;
   updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
@@ -94,7 +100,7 @@ async function loadCandidate(slug: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt, casual_nomination_submitted, casual_nomination_date, casual_nomination_source_url, casual_nomination_note_en, casual_nomination_note_mt, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt), casual_nomination_district:districts!candidates_casual_nomination_district_id_fkey(id, number, name_en, name_mt)",
     )
     .eq("slug", slug)
     .eq("status", "published")
@@ -242,6 +248,14 @@ function CandidatePage() {
                   {t("sittingMps.notContesting")}
                 </span>
               ) : null}
+              {candidate.casual_nomination_submitted ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400">
+                  {locale === "mt" ? "Nomina għal elezzjoni każwali" : "Casual election nomination"}
+                  {candidate.casual_nomination_district
+                    ? ` · ${locale === "mt" ? "Distrett" : "District"} ${candidate.casual_nomination_district.number}`
+                    : ""}
+                </span>
+              ) : null}
               {candidate.electoral_confirmed && !candidate.not_contesting_2026 ? (
                 <Pill label={t("common.electoralConfirmed")} />
               ) : null}
@@ -278,6 +292,47 @@ function CandidatePage() {
                     className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                   >
                     {t("sittingMps.notContestingSource")}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+
+            {candidate.casual_nomination_submitted ? (
+              <div className="mt-4 rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                  {locale === "mt" ? "Issottometta nomina għal elezzjoni każwali" : "Submitted casual election nomination"}
+                </p>
+                {candidate.casual_nomination_district ? (
+                  <p className="mt-1 text-sm text-foreground/80">
+                    {locale === "mt" ? "Distrett" : "District"} {candidate.casual_nomination_district.number} ·{" "}
+                    {locale === "mt"
+                      ? candidate.casual_nomination_district.name_mt || candidate.casual_nomination_district.name_en
+                      : candidate.casual_nomination_district.name_en}
+                  </p>
+                ) : null}
+                {candidate.casual_nomination_date ? (
+                  <p className="mt-1 text-xs text-foreground/70">
+                    {locale === "mt" ? "Sottomessa fi" : "Submitted on"}:{" "}
+                    {new Date(candidate.casual_nomination_date).toLocaleDateString(locale === "mt" ? "mt-MT" : "en-GB")}
+                  </p>
+                ) : null}
+                {(() => {
+                  const note = locale === "mt"
+                    ? candidate.casual_nomination_note_mt || candidate.casual_nomination_note_en
+                    : candidate.casual_nomination_note_en || candidate.casual_nomination_note_mt;
+                  return note ? (
+                    <p className="mt-1 text-sm leading-relaxed text-foreground/80">{note}</p>
+                  ) : null;
+                })()}
+                {candidate.casual_nomination_source_url ? (
+                  <a
+                    href={candidate.casual_nomination_source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    {locale === "mt" ? "Sors" : "Source"}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 ) : null}

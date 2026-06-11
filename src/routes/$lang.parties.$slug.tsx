@@ -76,7 +76,7 @@ async function loadParty(slug: string) {
     supabase
       .from("candidates")
       .select(
-        "id, slug, full_name, photo_url, is_incumbent, district:districts(number, name_en, name_mt)",
+        "id, slug, full_name, photo_url, is_incumbent, district:districts!candidates_primary_district_id_fkey(number, name_en, name_mt)",
       )
       .eq("party_id", party.id)
       .eq("status", "published")

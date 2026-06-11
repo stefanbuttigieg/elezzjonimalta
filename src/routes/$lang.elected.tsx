@@ -71,6 +71,15 @@ type MultiDistrictWinner = {
   districts: Array<{ number: number; name_en: string; name_mt: string | null; votes: number | null }>;
 };
 
+type CasualNominee = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  party: PartyLite | null;
+  nomination_date: string | null;
+  district: { number: number; name_en: string; name_mt: string | null } | null;
+};
+
 type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
@@ -80,13 +89,14 @@ type LoaderData = {
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
+  casualNominees: CasualNominee[];
   pnLive: PnLiveResults | null;
   elcomFirstCount: ElcomFirstCount | null;
 };
 
 
 async function loadElected(): Promise<LoaderData> {
-  const [electedRes, districtsRes] = await Promise.all([
+  const [electedRes, districtsRes, casualRes] = await Promise.all([
     supabase
       .from("candidate_districts")
       .select(
@@ -99,6 +109,14 @@ async function loadElected(): Promise<LoaderData> {
       .select("number, name_en, name_mt")
       .eq("status", "published")
       .order("number"),
+    supabase
+      .from("candidates")
+      .select(
+        "slug, full_name, photo_url, casual_nomination_date, party:parties(slug, short_name, name_en, name_mt, color), district:districts!candidates_casual_nomination_district_id_fkey(number, name_en, name_mt)"
+      )
+      .eq("casual_nomination_submitted", true)
+      .eq("status", "published")
+      .order("full_name"),
   ]);
 
   const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
@@ -210,6 +228,7 @@ async function loadElected(): Promise<LoaderData> {
     multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
+    casualNominees: ((casualRes.data ?? []) as unknown as CasualNominee[]),
     pnLive: null,
     elcomFirstCount: null,
   };
@@ -224,6 +243,7 @@ const EMPTY_DATA: LoaderData = {
   multiDistrictWinners: [],
   byParty: [],
   allDistricts: [],
+  casualNominees: [],
   pnLive: null,
   elcomFirstCount: null,
 };
@@ -777,6 +797,56 @@ function ElectedPage() {
                           .map((d) => `${d.number} — ${(locale === "mt" ? d.name_mt : d.name_en) ?? d.name_en}`)
                           .join(" · ")}
                       </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {data.casualNominees.length > 0 ? (
+          <div className="mt-6 rounded-2xl border border-blue-500/40 bg-blue-500/5 p-5 shadow-card ring-1 ring-blue-500/20">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-800 dark:text-blue-300">
+              <Star className="h-3.5 w-3.5" aria-hidden="true" />
+              {locale === "mt" ? "Nomini għal elezzjoni każwali" : "Casual election nominations"}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {locale === "mt"
+                ? "Kandidati li ssottomettew in-nomina tagħhom għall-elezzjoni każwali li jmiss."
+                : "Candidates who have submitted their nominations for the upcoming casual election."}
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.casualNominees.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    to="/$lang/candidates/$slug"
+                    params={{ lang: locale, slug: c.slug }}
+                    className="group flex items-center gap-3 rounded-xl border border-blue-500/40 bg-background p-3 transition-colors hover:border-blue-500/70"
+                  >
+                    <CandidateAvatar
+                      src={c.photo_url}
+                      name={c.full_name}
+                      className="h-12 w-12 rounded-full object-cover"
+                      fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground group-hover:text-primary">
+                        {c.full_name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {c.party
+                          ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
+                          : locale === "mt"
+                            ? "Indipendenti"
+                            : "Independent"}
+                      </p>
+                      {c.district ? (
+                        <p className="mt-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+                          {locale === "mt" ? "Distrett" : "District"} {c.district.number} —{" "}
+                          {(locale === "mt" ? c.district.name_mt : c.district.name_en) ?? c.district.name_en}
+                        </p>
+                      ) : null}
                     </div>
                   </Link>
                 </li>

@@ -33,7 +33,7 @@ function SittingMpsAdmin() {
     const { data, error } = await supabase
       .from("candidates")
       .select(
-        "id, full_name, slug, status, electoral_confirmed, party:parties(name_en, short_name), district:districts(number, name_en)"
+        "id, full_name, slug, status, electoral_confirmed, party:parties(name_en, short_name), district:districts!candidates_primary_district_id_fkey(number, name_en)"
       )
       .eq("is_incumbent", true)
       .order("full_name");
