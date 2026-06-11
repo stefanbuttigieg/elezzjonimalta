@@ -298,6 +298,47 @@ function CandidatePage() {
               </div>
             ) : null}
 
+            {candidate.casual_nomination_submitted ? (
+              <div className="mt-4 rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                  {locale === "mt" ? "Issottometta nomina għal elezzjoni każwali" : "Submitted casual election nomination"}
+                </p>
+                {candidate.casual_nomination_district ? (
+                  <p className="mt-1 text-sm text-foreground/80">
+                    {locale === "mt" ? "Distrett" : "District"} {candidate.casual_nomination_district.number} ·{" "}
+                    {locale === "mt"
+                      ? candidate.casual_nomination_district.name_mt || candidate.casual_nomination_district.name_en
+                      : candidate.casual_nomination_district.name_en}
+                  </p>
+                ) : null}
+                {candidate.casual_nomination_date ? (
+                  <p className="mt-1 text-xs text-foreground/70">
+                    {locale === "mt" ? "Sottomessa fi" : "Submitted on"}:{" "}
+                    {new Date(candidate.casual_nomination_date).toLocaleDateString(locale === "mt" ? "mt-MT" : "en-GB")}
+                  </p>
+                ) : null}
+                {(() => {
+                  const note = locale === "mt"
+                    ? candidate.casual_nomination_note_mt || candidate.casual_nomination_note_en
+                    : candidate.casual_nomination_note_en || candidate.casual_nomination_note_mt;
+                  return note ? (
+                    <p className="mt-1 text-sm leading-relaxed text-foreground/80">{note}</p>
+                  ) : null;
+                })()}
+                {candidate.casual_nomination_source_url ? (
+                  <a
+                    href={candidate.casual_nomination_source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    {locale === "mt" ? "Sors" : "Source"}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Link
                 to="/$lang/ask"
