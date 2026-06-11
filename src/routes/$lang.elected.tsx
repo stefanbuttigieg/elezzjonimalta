@@ -71,6 +71,15 @@ type MultiDistrictWinner = {
   districts: Array<{ number: number; name_en: string; name_mt: string | null; votes: number | null }>;
 };
 
+type CasualNominee = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  party: PartyLite | null;
+  nomination_date: string | null;
+  district: { number: number; name_en: string; name_mt: string | null } | null;
+};
+
 type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
@@ -80,6 +89,7 @@ type LoaderData = {
   multiDistrictWinners: MultiDistrictWinner[];
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
+  casualNominees: CasualNominee[];
   pnLive: PnLiveResults | null;
   elcomFirstCount: ElcomFirstCount | null;
 };
