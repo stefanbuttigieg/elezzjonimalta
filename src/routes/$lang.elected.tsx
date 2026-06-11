@@ -805,6 +805,56 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        {data.casualNominees.length > 0 ? (
+          <div className="mt-6 rounded-2xl border border-blue-500/40 bg-blue-500/5 p-5 shadow-card ring-1 ring-blue-500/20">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-800 dark:text-blue-300">
+              <Star className="h-3.5 w-3.5" aria-hidden="true" />
+              {locale === "mt" ? "Nomini għal elezzjoni każwali" : "Casual election nominations"}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {locale === "mt"
+                ? "Kandidati li ssottomettew in-nomina tagħhom għall-elezzjoni każwali li jmiss."
+                : "Candidates who have submitted their nominations for the upcoming casual election."}
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.casualNominees.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    to="/$lang/candidates/$slug"
+                    params={{ lang: locale, slug: c.slug }}
+                    className="group flex items-center gap-3 rounded-xl border border-blue-500/40 bg-background p-3 transition-colors hover:border-blue-500/70"
+                  >
+                    <CandidateAvatar
+                      src={c.photo_url}
+                      name={c.full_name}
+                      className="h-12 w-12 rounded-full object-cover"
+                      fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-foreground group-hover:text-primary">
+                        {c.full_name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {c.party
+                          ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
+                          : locale === "mt"
+                            ? "Indipendenti"
+                            : "Independent"}
+                      </p>
+                      {c.district ? (
+                        <p className="mt-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+                          {locale === "mt" ? "Distrett" : "District"} {c.district.number} —{" "}
+                          {(locale === "mt" ? c.district.name_mt : c.district.name_en) ?? c.district.name_en}
+                        </p>
+                      ) : null}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {data.groups.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-dashed border-border bg-surface p-10 text-center">
             <Star className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
