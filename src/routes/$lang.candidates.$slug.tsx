@@ -71,6 +71,12 @@ type CandidateDetail = {
   not_contesting_source_url: string | null;
   not_contesting_note_en: string | null;
   not_contesting_note_mt: string | null;
+  casual_nomination_submitted: boolean;
+  casual_nomination_date: string | null;
+  casual_nomination_district: DistrictRef | null;
+  casual_nomination_source_url: string | null;
+  casual_nomination_note_en: string | null;
+  casual_nomination_note_mt: string | null;
   updated_at: string;
   party: PartyRef | null;
   district: DistrictRef | null;
