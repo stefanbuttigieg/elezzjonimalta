@@ -96,7 +96,7 @@ type LoaderData = {
 
 
 async function loadElected(): Promise<LoaderData> {
-  const [electedRes, districtsRes] = await Promise.all([
+  const [electedRes, districtsRes, casualRes] = await Promise.all([
     supabase
       .from("candidate_districts")
       .select(
@@ -109,6 +109,14 @@ async function loadElected(): Promise<LoaderData> {
       .select("number, name_en, name_mt")
       .eq("status", "published")
       .order("number"),
+    supabase
+      .from("candidates")
+      .select(
+        "slug, full_name, photo_url, casual_nomination_date, party:parties(slug, short_name, name_en, name_mt, color), district:districts!candidates_casual_nomination_district_id_fkey(number, name_en, name_mt)"
+      )
+      .eq("casual_nomination_submitted", true)
+      .eq("status", "published")
+      .order("full_name"),
   ]);
 
   const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
