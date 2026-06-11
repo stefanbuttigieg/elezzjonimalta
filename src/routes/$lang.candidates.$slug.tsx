@@ -100,7 +100,7 @@ async function loadCandidate(slug: string) {
   const { data, error } = await supabase
     .from("candidates")
     .select(
-      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt)",
+      "id, slug, full_name, bio_en, bio_mt, photo_url, website, facebook, twitter, parlament_mt_url, source_url, is_incumbent, electoral_confirmed, not_contesting_2026, not_contesting_source_url, not_contesting_note_en, not_contesting_note_mt, casual_nomination_submitted, casual_nomination_date, casual_nomination_source_url, casual_nomination_note_en, casual_nomination_note_mt, updated_at, party:parties(id, slug, name_en, name_mt, short_name, color), district:districts!candidates_primary_district_id_fkey(id, number, name_en, name_mt), casual_nomination_district:districts!candidates_casual_nomination_district_id_fkey(id, number, name_en, name_mt)",
     )
     .eq("slug", slug)
     .eq("status", "published")
