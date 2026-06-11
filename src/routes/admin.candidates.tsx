@@ -1241,6 +1241,60 @@ function CandidateEditor({
             </Field>
           </>
         ) : null}
+        <Field label="Casual election nomination" full>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={v.casual_nomination_submitted}
+              onChange={(e) => setV({ ...v, casual_nomination_submitted: e.target.checked })}
+            />
+            Submitted casual election nomination
+          </label>
+        </Field>
+        {v.casual_nomination_submitted ? (
+          <>
+            <Field label="Casual nomination — date">
+              <Input
+                type="date"
+                value={v.casual_nomination_date ?? ""}
+                onChange={(x) => setV({ ...v, casual_nomination_date: x || null })}
+              />
+            </Field>
+            <Field label="Casual nomination — district contested">
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={v.casual_nomination_district_id ?? ""}
+                onChange={(e) => setV({ ...v, casual_nomination_district_id: e.target.value || null })}
+              >
+                <option value="">— Select district —</option>
+                {districts.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.number}. {d.name_en}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Casual nomination — source URL" full>
+              <Input
+                value={v.casual_nomination_source_url ?? ""}
+                onChange={(x) => setV({ ...v, casual_nomination_source_url: x })}
+                placeholder="https://…"
+              />
+            </Field>
+            <Field label="Casual nomination — note (EN)" full>
+              <Textarea
+                value={v.casual_nomination_note_en ?? ""}
+                onChange={(x) => setV({ ...v, casual_nomination_note_en: x })}
+              />
+            </Field>
+            <Field label="Casual nomination — note (MT)" full>
+              <Textarea
+                value={v.casual_nomination_note_mt ?? ""}
+                onChange={(x) => setV({ ...v, casual_nomination_note_mt: x })}
+              />
+            </Field>
+          </>
+        ) : null}
       </div>
       <CustomFieldsSection
         entityType="candidate"
