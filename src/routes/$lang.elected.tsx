@@ -228,6 +228,7 @@ async function loadElected(): Promise<LoaderData> {
     multiDistrictWinners,
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
+    casualNominees: ((casualRes.data ?? []) as unknown as CasualNominee[]),
     pnLive: null,
     elcomFirstCount: null,
   };
