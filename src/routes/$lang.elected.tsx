@@ -149,6 +149,7 @@ async function loadElected(): Promise<LoaderData> {
       elected_via_gcm: !!r.elected_via_gcm,
       elected_via_proportionality: !!r.elected_via_proportionality,
       elected_via_casual: !!r.elected_via_casual,
+      relinquished: !!r.relinquished,
       party: r.candidate.party,
       also_in: [],
     });
