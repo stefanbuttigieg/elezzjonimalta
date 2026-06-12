@@ -152,6 +152,7 @@ function ElectedBulkEditor() {
         r.elected_via_gcm === r.initial_elected_via_gcm &&
         r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.elected_via_casual === r.initial_elected_via_casual &&
+        r.relinquished === r.initial_relinquished &&
         r.votes === r.initial_votes
       )
         return false;
@@ -169,6 +170,7 @@ function ElectedBulkEditor() {
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
+          r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       ).length,
     [rows],
