@@ -218,6 +218,7 @@ function ElectedBulkEditor() {
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
+          r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
@@ -237,6 +238,7 @@ function ElectedBulkEditor() {
                 elected_via_gcm: r.elected_via_gcm,
                 elected_via_proportionality: r.elected_via_proportionality,
                 elected_via_casual: r.elected_via_casual,
+                relinquished: r.relinquished,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -253,6 +255,7 @@ function ElectedBulkEditor() {
                 initial_elected_via_gcm: r.elected_via_gcm,
                 initial_elected_via_proportionality: r.elected_via_proportionality,
                 initial_elected_via_casual: r.elected_via_casual,
+                initial_relinquished: r.relinquished,
                 initial_votes: r.votes,
               }
             : r,
