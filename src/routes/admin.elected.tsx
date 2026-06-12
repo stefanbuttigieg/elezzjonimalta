@@ -102,6 +102,8 @@ function ElectedBulkEditor() {
           initial_elected_via_proportionality: !!r.elected_via_proportionality,
           elected_via_casual: !!r.elected_via_casual,
           initial_elected_via_casual: !!r.elected_via_casual,
+          relinquished: !!r.relinquished,
+          initial_relinquished: !!r.relinquished,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
