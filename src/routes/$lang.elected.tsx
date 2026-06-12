@@ -963,6 +963,18 @@ function ElectedPage() {
                               {t("elected.casual.short")}
                             </p>
                           ) : null}
+                          {c.relinquished ? (
+                            <p
+                              className="mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300"
+                              title={
+                                locale === "mt"
+                                  ? "Siġġu rrilaxxat — dan id-distrett ingħata biex tinżamm elezzjoni każwali"
+                                  : "Seat relinquished — this district was given up to trigger a casual election"
+                              }
+                            >
+                              {locale === "mt" ? "Rrilaxxat" : "Relinquished"}
+                            </p>
+                          ) : null}
                           {c.votes != null ? (
                             <p className="mt-0.5 text-xs font-medium tabular-nums text-emerald-700 dark:text-emerald-300">
                               {t("elected.votes", { count: c.votes.toLocaleString() })}
