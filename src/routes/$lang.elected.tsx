@@ -102,7 +102,7 @@ async function loadElected(): Promise<LoaderData> {
     supabase
       .from("candidate_districts")
       .select(
-        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, elected_via_casual, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
+        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, elected_via_casual, relinquished, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
       )
       .eq("election_year", 2026)
       .eq("elected", true),
