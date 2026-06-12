@@ -25,6 +25,7 @@ type ElectedRow = {
   elected_via_gcm: boolean | null;
   elected_via_proportionality: boolean | null;
   elected_via_casual: boolean | null;
+  relinquished: boolean | null;
   candidate: {
     id: string;
     slug: string;
@@ -48,6 +49,7 @@ type ElectedCandidate = {
   elected_via_gcm: boolean;
   elected_via_proportionality: boolean;
   elected_via_casual: boolean;
+  relinquished: boolean;
   party: PartyLite | null;
   also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
 };
@@ -100,7 +102,7 @@ async function loadElected(): Promise<LoaderData> {
     supabase
       .from("candidate_districts")
       .select(
-        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, elected_via_casual, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
+        "candidate_id, district_id, votes_first_count, elected_via_gcm, elected_via_proportionality, elected_via_casual, relinquished, candidate:candidates(id, slug, full_name, photo_url, party:parties(slug, short_name, name_en, name_mt, color)), district:districts(id, number, name_en, name_mt)"
       )
       .eq("election_year", 2026)
       .eq("elected", true),
@@ -147,6 +149,7 @@ async function loadElected(): Promise<LoaderData> {
       elected_via_gcm: !!r.elected_via_gcm,
       elected_via_proportionality: !!r.elected_via_proportionality,
       elected_via_casual: !!r.elected_via_casual,
+      relinquished: !!r.relinquished,
       party: r.candidate.party,
       also_in: [],
     });
@@ -958,6 +961,18 @@ function ElectedPage() {
                             >
                               <RefreshCw className="h-2.5 w-2.5" />
                               {t("elected.casual.short")}
+                            </p>
+                          ) : null}
+                          {c.relinquished ? (
+                            <p
+                              className="mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full border border-rose-500/50 bg-rose-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300"
+                              title={
+                                locale === "mt"
+                                  ? "Siġġu rrilaxxat — dan id-distrett ingħata biex tinżamm elezzjoni każwali"
+                                  : "Seat relinquished — this district was given up to trigger a casual election"
+                              }
+                            >
+                              {locale === "mt" ? "Rrilaxxat" : "Relinquished"}
                             </p>
                           ) : null}
                           {c.votes != null ? (

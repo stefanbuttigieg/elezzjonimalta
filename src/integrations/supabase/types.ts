@@ -355,6 +355,7 @@ export type Database = {
           elected_via_proportionality: boolean
           election_year: number
           id: string
+          relinquished: boolean
           updated_at: string
           votes_first_count: number | null
         }
@@ -368,6 +369,7 @@ export type Database = {
           elected_via_proportionality?: boolean
           election_year: number
           id?: string
+          relinquished?: boolean
           updated_at?: string
           votes_first_count?: number | null
         }
@@ -381,6 +383,7 @@ export type Database = {
           elected_via_proportionality?: boolean
           election_year?: number
           id?: string
+          relinquished?: boolean
           updated_at?: string
           votes_first_count?: number | null
         }

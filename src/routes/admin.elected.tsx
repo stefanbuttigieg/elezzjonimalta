@@ -34,6 +34,8 @@ interface Row {
   initial_elected_via_proportionality: boolean;
   elected_via_casual: boolean;
   initial_elected_via_casual: boolean;
+  relinquished: boolean;
+  initial_relinquished: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
 }
@@ -72,7 +74,7 @@ function ElectedBulkEditor() {
         const { data, error } = await supabase
           .from("candidate_districts")
           .select(
-            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, elected_via_casual, votes_first_count, " +
+            "id, candidate_id, district_id, election_year, elected, elected_via_gcm, elected_via_proportionality, elected_via_casual, relinquished, votes_first_count, " +
               "candidates!inner(full_name, slug, party_id, parties(name_en)), " +
               "districts!inner(number, name_en)"
           )
@@ -100,6 +102,8 @@ function ElectedBulkEditor() {
           initial_elected_via_proportionality: !!r.elected_via_proportionality,
           elected_via_casual: !!r.elected_via_casual,
           initial_elected_via_casual: !!r.elected_via_casual,
+          relinquished: !!r.relinquished,
+          initial_relinquished: !!r.relinquished,
           votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
           initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
         }));
@@ -148,6 +152,7 @@ function ElectedBulkEditor() {
         r.elected_via_gcm === r.initial_elected_via_gcm &&
         r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.elected_via_casual === r.initial_elected_via_casual &&
+        r.relinquished === r.initial_relinquished &&
         r.votes === r.initial_votes
       )
         return false;
@@ -165,6 +170,7 @@ function ElectedBulkEditor() {
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
+          r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       ).length,
     [rows],
@@ -212,6 +218,7 @@ function ElectedBulkEditor() {
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
+          r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       );
       if (changed.length === 0) {
@@ -231,6 +238,7 @@ function ElectedBulkEditor() {
                 elected_via_gcm: r.elected_via_gcm,
                 elected_via_proportionality: r.elected_via_proportionality,
                 elected_via_casual: r.elected_via_casual,
+                relinquished: r.relinquished,
                 votes_first_count: r.votes === "" ? null : Number(r.votes),
               })
               .eq("id", r.id),
@@ -247,6 +255,7 @@ function ElectedBulkEditor() {
                 initial_elected_via_gcm: r.elected_via_gcm,
                 initial_elected_via_proportionality: r.elected_via_proportionality,
                 initial_elected_via_casual: r.elected_via_casual,
+                initial_relinquished: r.relinquished,
                 initial_votes: r.votes,
               }
             : r,
@@ -559,6 +568,7 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2 text-center">GCM</th>
                 <th className="px-2 py-2 text-center">Prop.</th>
                 <th className="px-2 py-2 text-center">Casual</th>
+                <th className="px-2 py-2 text-center" title="Relinquished — district given up to enable a casual election">Relinq.</th>
                 <th className="px-2 py-2">Votes (1st)</th>
               </tr>
             </thead>
@@ -569,6 +579,7 @@ maria-vella,9,false,`}
                   r.elected_via_gcm !== r.initial_elected_via_gcm ||
                   r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
                   r.elected_via_casual !== r.initial_elected_via_casual ||
+                  r.relinquished !== r.initial_relinquished ||
                   r.votes !== r.initial_votes;
                 return (
                   <tr
@@ -652,6 +663,19 @@ maria-vella,9,false,`}
                             })
                           }
                           className="h-4 w-4 accent-amber-600"
+                        />
+                      </label>
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label
+                        className="inline-flex cursor-pointer items-center"
+                        title="Relinquished — district this doubly-elected candidate gave up to trigger the casual election"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={r.relinquished}
+                          onChange={(e) => updateRow(r.id, { relinquished: e.target.checked })}
+                          className="h-4 w-4 accent-rose-600"
                         />
                       </label>
                     </td>
