@@ -666,6 +666,19 @@ maria-vella,9,false,`}
                         />
                       </label>
                     </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <label
+                        className="inline-flex cursor-pointer items-center"
+                        title="Relinquished — district this doubly-elected candidate gave up to trigger the casual election"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={r.relinquished}
+                          onChange={(e) => updateRow(r.id, { relinquished: e.target.checked })}
+                          className="h-4 w-4 accent-rose-600"
+                        />
+                      </label>
+                    </td>
                     <td className="px-2 py-1.5">
                       <input
                         type="number"
