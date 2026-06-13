@@ -102,6 +102,14 @@ function SimulatorPage() {
       .catch(() => setAllElected([]));
   }, [fetchAllElected]);
 
+  useEffect(() => {
+    fetchActualWinners({ data: { year: YEAR } })
+      .then(setActualWinners)
+      .catch(() => setActualWinners([]));
+  }, [fetchActualWinners]);
+
+
+
 
   useEffect(() => {
     if (!selected) return;
