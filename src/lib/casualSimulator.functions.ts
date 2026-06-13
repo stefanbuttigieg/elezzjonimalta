@@ -488,3 +488,41 @@ export const getAllElectedForYear = createServerFn({ method: "POST" })
     );
   });
 
+export type ActualCasualWinner = {
+  candidateId: string;
+  fullName: string;
+  partyShort: string | null;
+  districtNumber: number;
+};
+
+/** Candidates marked as elected via a casual election in candidate_districts. */
+export const getActualCasualWinners = createServerFn({ method: "POST" })
+  .inputValidator(z.object({ year: z.number().int().min(2003).max(2100) }).parse)
+  .handler(async ({ data }): Promise<ActualCasualWinner[]> => {
+    const { data: rows, error } = await (await getAdmin())
+      .from("candidate_districts")
+      .select(
+        "candidate_id, district:districts(number), candidate:candidates(id, full_name, party:parties(short_name))",
+      )
+      .eq("election_year", data.year)
+      .eq("elected", true)
+      .eq("elected_via_casual", true);
+    if (error) throw new Error(error.message);
+    const out: ActualCasualWinner[] = [];
+    for (const r of rows ?? []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cand = (r as any).candidate;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dist = (r as any).district;
+      if (!cand || !dist) continue;
+      out.push({
+        candidateId: cand.id,
+        fullName: cand.full_name,
+        partyShort: cand.party?.short_name ?? null,
+        districtNumber: dist.number,
+      });
+    }
+    return out;
+  });
+
+

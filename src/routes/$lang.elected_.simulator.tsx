@@ -8,11 +8,14 @@ import {
   getDoublyElectedCandidates,
   simulateCasualForDistrict,
   getAllElectedForYear,
+  getActualCasualWinners,
   type DoublyElectedCandidate,
   type CasualScenario,
   type CasualContender,
   type ElectedSeat,
+  type ActualCasualWinner,
 } from "@/lib/casualSimulator.functions";
+
 
 export const Route = createFileRoute("/$lang/elected_/simulator")({
   head: ({ params }) => {
@@ -63,8 +66,11 @@ function SimulatorPage() {
   const fetchList = useServerFn(getDoublyElectedCandidates);
   const fetchSimDistrict = useServerFn(simulateCasualForDistrict);
   const fetchAllElected = useServerFn(getAllElectedForYear);
+  const fetchActualWinners = useServerFn(getActualCasualWinners);
 
   const [allElected, setAllElected] = useState<ElectedSeat[] | null>(null);
+  const [actualWinners, setActualWinners] = useState<ActualCasualWinner[]>([]);
+
 
   const [candidates, setCandidates] = useState<DoublyElectedCandidate[] | null>(null);
   const [listErr, setListErr] = useState<string | null>(null);
@@ -95,6 +101,14 @@ function SimulatorPage() {
       .then(setAllElected)
       .catch(() => setAllElected([]));
   }, [fetchAllElected]);
+
+  useEffect(() => {
+    fetchActualWinners({ data: { year: YEAR } })
+      .then(setActualWinners)
+      .catch(() => setActualWinners([]));
+  }, [fetchActualWinners]);
+
+
 
 
   useEffect(() => {
@@ -343,10 +357,14 @@ function SimulatorPage() {
                     forbiddenNames={
                       selected ? forbiddenByRelinquisher.get(selected.fullName) ?? new Set() : new Set()
                     }
+                    actualWinner={
+                      actualWinners.find((w) => w.districtNumber === s.districtNumber) ?? null
+                    }
                   />
                 ))}
               </div>
             ) : null}
+
           </section>
         ) : null}
 
@@ -414,6 +432,7 @@ function ScenarioCard({
   conflictMap,
   currentRelinquisher,
   forbiddenNames,
+  actualWinner,
 }: {
   scenario: CasualScenario;
   relinquishedFrom: number;
@@ -422,7 +441,9 @@ function ScenarioCard({
   conflictMap: Map<string, Array<{ relinquisher: string; district: number }>>;
   currentRelinquisher: string;
   forbiddenNames: Set<string>;
+  actualWinner: ActualCasualWinner | null;
 }) {
+
   const top = scenario.predicted;
   const topConflicts = top
     ? (conflictMap.get(normalizeContenderName(top.name)) ?? []).filter(
@@ -499,6 +520,64 @@ function ScenarioCard({
               ) : null}
             </div>
           ) : null}
+
+          {actualWinner ? (() => {
+            const actualNorm = normalizeContenderName(actualWinner.fullName);
+            const rankIdx = scenario.contenders.findIndex(
+              (c) => normalizeContenderName(c.name) === actualNorm,
+            );
+            const matched = rankIdx >= 0 ? scenario.contenders[rankIdx] : null;
+            const predictedNorm = top ? normalizeContenderName(top.name) : "";
+            const correct = predictedNorm === actualNorm;
+            return (
+              <div
+                className={
+                  "mt-3 rounded-xl border p-4 " +
+                  (correct
+                    ? "border-emerald-500/40 bg-emerald-500/10"
+                    : "border-rose-500/40 bg-rose-500/10")
+                }
+              >
+                <div
+                  className={
+                    "flex items-center gap-2 text-xs font-bold uppercase tracking-wider " +
+                    (correct
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : "text-rose-700 dark:text-rose-300")
+                  }
+                >
+                  <Trophy className="h-3.5 w-3.5" />
+                  {correct
+                    ? isMt
+                      ? "Tbassir korrett"
+                      : "Prediction correct"
+                    : isMt
+                      ? "Tbassir żbaljat"
+                      : "Prediction missed"}
+                </div>
+                <div className="mt-2 flex items-baseline justify-between gap-3">
+                  <p className="text-base font-bold text-foreground">
+                    {isMt ? "Rebbieħ attwali: " : "Actual winner: "}
+                    <span className="font-extrabold">{actualWinner.fullName}</span>
+                  </p>
+                  {matched ? (
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      #{rankIdx + 1} · {pct(matched.probability)}
+                    </p>
+                  ) : (
+                    <p className="text-xs italic text-muted-foreground">
+                      {isMt ? "barra l-klassifika" : "outside ranking"}
+                    </p>
+                  )}
+                </div>
+                {actualWinner.partyShort ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{actualWinner.partyShort}</p>
+                ) : null}
+              </div>
+            );
+          })() : null}
+
+
 
           {conflictFree && top && normalizeContenderName(conflictFree.name) !== normalizeContenderName(top.name) ? (
             <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
