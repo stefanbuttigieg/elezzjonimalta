@@ -566,6 +566,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "nav.themes": "Temi",
     "nav.resources": "Riżorsi",
     "nav.faq": "FAQs",
+    "nav.elected": "Eletti",
+    "nav.simulator": "Simulatur Każwali",
     "faq.meta.title": "FAQs dwar il-Vot — Elezzjoni Ġenerali ta' Malta",
     "faq.meta.description": "Mistoqsijiet komuni dwar il-vot fl-Elezzjoni Ġenerali ta' Malta, miġbura minn sorsi uffiċjali u indipendenti.",
     "faq.title": "FAQs dwar il-Vot",
