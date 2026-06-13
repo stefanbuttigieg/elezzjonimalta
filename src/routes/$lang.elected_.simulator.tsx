@@ -521,6 +521,64 @@ function ScenarioCard({
             </div>
           ) : null}
 
+          {actualWinner ? (() => {
+            const actualNorm = normalizeContenderName(actualWinner.fullName);
+            const rankIdx = scenario.contenders.findIndex(
+              (c) => normalizeContenderName(c.name) === actualNorm,
+            );
+            const matched = rankIdx >= 0 ? scenario.contenders[rankIdx] : null;
+            const predictedNorm = top ? normalizeContenderName(top.name) : "";
+            const correct = predictedNorm === actualNorm;
+            return (
+              <div
+                className={
+                  "mt-3 rounded-xl border p-4 " +
+                  (correct
+                    ? "border-emerald-500/40 bg-emerald-500/10"
+                    : "border-rose-500/40 bg-rose-500/10")
+                }
+              >
+                <div
+                  className={
+                    "flex items-center gap-2 text-xs font-bold uppercase tracking-wider " +
+                    (correct
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : "text-rose-700 dark:text-rose-300")
+                  }
+                >
+                  <Trophy className="h-3.5 w-3.5" />
+                  {correct
+                    ? isMt
+                      ? "Tbassir korrett"
+                      : "Prediction correct"
+                    : isMt
+                      ? "Tbassir żbaljat"
+                      : "Prediction missed"}
+                </div>
+                <div className="mt-2 flex items-baseline justify-between gap-3">
+                  <p className="text-base font-bold text-foreground">
+                    {isMt ? "Rebbieħ attwali: " : "Actual winner: "}
+                    <span className="font-extrabold">{actualWinner.fullName}</span>
+                  </p>
+                  {matched ? (
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      #{rankIdx + 1} · {pct(matched.probability)}
+                    </p>
+                  ) : (
+                    <p className="text-xs italic text-muted-foreground">
+                      {isMt ? "barra l-klassifika" : "outside ranking"}
+                    </p>
+                  )}
+                </div>
+                {actualWinner.partyShort ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{actualWinner.partyShort}</p>
+                ) : null}
+              </div>
+            );
+          })() : null}
+
+
+
           {conflictFree && top && normalizeContenderName(conflictFree.name) !== normalizeContenderName(top.name) ? (
             <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
