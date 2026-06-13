@@ -529,13 +529,13 @@ function ScenarioCard({
           ) : null}
 
           {actualWinner ? (() => {
-            const actualNorm = normalizeContenderName(actualWinner.fullName);
-            const rankIdx = scenario.contenders.findIndex(
-              (c) => normalizeContenderName(c.name) === actualNorm,
+            const actualTokens = nameTokenSet(actualWinner.fullName);
+            const rankIdx = scenario.contenders.findIndex((c) =>
+              tokensMatch(nameTokenSet(c.name), actualTokens),
             );
             const matched = rankIdx >= 0 ? scenario.contenders[rankIdx] : null;
-            const predictedNorm = top ? normalizeContenderName(top.name) : "";
-            const correct = predictedNorm === actualNorm;
+            const correct = top ? tokensMatch(nameTokenSet(top.name), actualTokens) : false;
+
             return (
               <div
                 className={
