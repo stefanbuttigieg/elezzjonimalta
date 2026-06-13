@@ -357,10 +357,14 @@ function SimulatorPage() {
                     forbiddenNames={
                       selected ? forbiddenByRelinquisher.get(selected.fullName) ?? new Set() : new Set()
                     }
+                    actualWinner={
+                      actualWinners.find((w) => w.districtNumber === s.districtNumber) ?? null
+                    }
                   />
                 ))}
               </div>
             ) : null}
+
           </section>
         ) : null}
 
