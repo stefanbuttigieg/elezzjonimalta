@@ -16,6 +16,8 @@ import {
   HelpCircle,
   MessagesSquare,
   Network,
+  Award,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { getPreferredDistrict, type PreferredDistrict } from "@/lib/preferredDistrict";
