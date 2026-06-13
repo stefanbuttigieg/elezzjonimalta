@@ -22,6 +22,8 @@ export const dictionaries: Record<Locale, Record<string, string>> = {
     "nav.themes": "Themes",
     "nav.resources": "Resources",
     "nav.faq": "FAQs",
+    "nav.elected": "Elected",
+    "nav.simulator": "Casual Simulator",
     "faq.meta.title": "Voting FAQs — Malta General Election",
     "faq.meta.description": "Frequently asked questions about voting in Malta's General Election, sourced from official and independent organisations.",
     "faq.title": "Voting FAQs",
