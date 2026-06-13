@@ -8,11 +8,14 @@ import {
   getDoublyElectedCandidates,
   simulateCasualForDistrict,
   getAllElectedForYear,
+  getActualCasualWinners,
   type DoublyElectedCandidate,
   type CasualScenario,
   type CasualContender,
   type ElectedSeat,
+  type ActualCasualWinner,
 } from "@/lib/casualSimulator.functions";
+
 
 export const Route = createFileRoute("/$lang/elected_/simulator")({
   head: ({ params }) => {
