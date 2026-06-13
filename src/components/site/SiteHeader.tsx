@@ -16,6 +16,8 @@ import {
   HelpCircle,
   MessagesSquare,
   Network,
+  Award,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { getPreferredDistrict, type PreferredDistrict } from "@/lib/preferredDistrict";
@@ -48,6 +50,8 @@ export function SiteHeader() {
     { to: `/${lang}/proposals`, label: t("nav.proposals"), icon: FileText },
     { to: `/${lang}/themes`, label: t("nav.themes"), icon: Network },
     { to: `/${lang}/sitting-mps`, label: t("nav.sittingMps"), icon: Landmark },
+    { to: `/${lang}/elected`, label: t("nav.elected"), icon: Award },
+    { to: `/${lang}/elected/simulator`, label: t("nav.simulator"), icon: Sparkles },
     { to: `/${lang}/compare`, label: t("nav.compare"), icon: Scale },
     { to: `/${lang}/resources`, label: t("nav.resources"), icon: BookOpen },
     { to: `/${lang}/faq`, label: t("nav.faq"), icon: HelpCircle },
