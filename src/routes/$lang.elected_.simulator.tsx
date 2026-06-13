@@ -358,8 +358,15 @@ function SimulatorPage() {
                       selected ? forbiddenByRelinquisher.get(selected.fullName) ?? new Set() : new Set()
                     }
                     actualWinner={
-                      actualWinners.find((w) => w.districtNumber === s.districtNumber) ?? null
+                      actualWinners.find(
+                        (w) =>
+                          w.districtNumber === s.districtNumber &&
+                          (!selected?.partyShort ||
+                            !w.partyShort ||
+                            w.partyShort === selected.partyShort),
+                      ) ?? null
                     }
+
                   />
                 ))}
               </div>
@@ -405,6 +412,27 @@ function normalizeContenderName(s: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+/** Tokens of length ≥3 from a name — order-independent (handles "Surname, Name"
+ *  vs "Name Surname" and ELCOM vs DB ordering). */
+function nameTokenSet(s: string): Set<string> {
+  return new Set(
+    normalizeContenderName(s)
+      .split(" ")
+      .filter((t) => t.length >= 3),
+  );
+}
+
+/** Same person if ≥2 meaningful tokens overlap (or a single-token name matches). */
+function tokensMatch(a: Set<string>, b: Set<string>): boolean {
+  if (a.size === 0 || b.size === 0) return false;
+  let overlap = 0;
+  for (const t of a) if (b.has(t)) overlap++;
+  if (overlap >= 2) return true;
+  if (overlap >= 1 && (a.size === 1 || b.size === 1)) return true;
+  return false;
+}
+
 
 /** Collapse party label variants ("PL", "Partit Laburista", "Labour Party", …)
  *  into a canonical short code so the same party never appears twice. */
@@ -522,13 +550,13 @@ function ScenarioCard({
           ) : null}
 
           {actualWinner ? (() => {
-            const actualNorm = normalizeContenderName(actualWinner.fullName);
-            const rankIdx = scenario.contenders.findIndex(
-              (c) => normalizeContenderName(c.name) === actualNorm,
+            const actualTokens = nameTokenSet(actualWinner.fullName);
+            const rankIdx = scenario.contenders.findIndex((c) =>
+              tokensMatch(nameTokenSet(c.name), actualTokens),
             );
             const matched = rankIdx >= 0 ? scenario.contenders[rankIdx] : null;
-            const predictedNorm = top ? normalizeContenderName(top.name) : "";
-            const correct = predictedNorm === actualNorm;
+            const correct = top ? tokensMatch(nameTokenSet(top.name), actualTokens) : false;
+
             return (
               <div
                 className={
