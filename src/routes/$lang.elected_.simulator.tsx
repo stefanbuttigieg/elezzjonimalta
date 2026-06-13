@@ -432,6 +432,7 @@ function ScenarioCard({
   conflictMap,
   currentRelinquisher,
   forbiddenNames,
+  actualWinner,
 }: {
   scenario: CasualScenario;
   relinquishedFrom: number;
@@ -440,7 +441,9 @@ function ScenarioCard({
   conflictMap: Map<string, Array<{ relinquisher: string; district: number }>>;
   currentRelinquisher: string;
   forbiddenNames: Set<string>;
+  actualWinner: ActualCasualWinner | null;
 }) {
+
   const top = scenario.predicted;
   const topConflicts = top
     ? (conflictMap.get(normalizeContenderName(top.name)) ?? []).filter(
