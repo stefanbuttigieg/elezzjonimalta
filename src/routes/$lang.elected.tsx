@@ -41,6 +41,12 @@ type ElectedRow = {
   } | null;
 };
 
+type CandidateRole = {
+  kind: string;
+  portfolio: string | null;
+  title: string;
+};
+
 type ElectedCandidate = {
   slug: string;
   full_name: string;
@@ -52,6 +58,7 @@ type ElectedCandidate = {
   relinquished: boolean;
   party: PartyLite | null;
   also_in: Array<{ number: number; name_en: string; name_mt: string | null }>;
+  role: CandidateRole | null;
 };
 
 type DistrictGroup = {
