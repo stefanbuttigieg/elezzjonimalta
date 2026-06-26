@@ -108,30 +108,58 @@ function ElectedBulkEditor() {
         if (error) throw error;
         if (cancelled) return;
 
-        const mapped: Row[] = (data ?? []).map((r: any) => ({
-          id: r.id,
-          candidate_id: r.candidate_id,
-          candidate_name: r.candidates?.full_name ?? "—",
-          candidate_slug: r.candidates?.slug ?? "",
-          party_name: r.candidates?.parties?.name_en ?? null,
-          party_id: r.candidates?.party_id ?? null,
-          district_id: r.district_id,
-          district_number: r.districts?.number ?? 0,
-          district_name: r.districts?.name_en ?? "",
-          election_year: r.election_year,
-          elected: !!r.elected,
-          initial_elected: !!r.elected,
-          elected_via_gcm: !!r.elected_via_gcm,
-          initial_elected_via_gcm: !!r.elected_via_gcm,
-          elected_via_proportionality: !!r.elected_via_proportionality,
-          initial_elected_via_proportionality: !!r.elected_via_proportionality,
-          elected_via_casual: !!r.elected_via_casual,
-          initial_elected_via_casual: !!r.elected_via_casual,
-          relinquished: !!r.relinquished,
-          initial_relinquished: !!r.relinquished,
-          votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
-          initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
-        }));
+        const candidateIds = Array.from(new Set((data ?? []).map((r: any) => r.candidate_id)));
+        const positionsByCandidate = new Map<string, { id: string; kind: string; portfolio: string }>();
+        if (candidateIds.length > 0) {
+          const { data: posData } = await supabase
+            .from("candidate_positions")
+            .select("id, candidate_id, position_kind, portfolio, updated_at")
+            .in("candidate_id", candidateIds)
+            .eq("is_current", true)
+            .order("updated_at", { ascending: false });
+          for (const p of (posData ?? []) as Array<{ id: string; candidate_id: string; position_kind: string; portfolio: string | null }>) {
+            if (!positionsByCandidate.has(p.candidate_id)) {
+              positionsByCandidate.set(p.candidate_id, {
+                id: p.id,
+                kind: p.position_kind,
+                portfolio: p.portfolio ?? "",
+              });
+            }
+          }
+        }
+
+        const mapped: Row[] = (data ?? []).map((r: any) => {
+          const pos = positionsByCandidate.get(r.candidate_id);
+          return {
+            id: r.id,
+            candidate_id: r.candidate_id,
+            candidate_name: r.candidates?.full_name ?? "—",
+            candidate_slug: r.candidates?.slug ?? "",
+            party_name: r.candidates?.parties?.name_en ?? null,
+            party_id: r.candidates?.party_id ?? null,
+            district_id: r.district_id,
+            district_number: r.districts?.number ?? 0,
+            district_name: r.districts?.name_en ?? "",
+            election_year: r.election_year,
+            elected: !!r.elected,
+            initial_elected: !!r.elected,
+            elected_via_gcm: !!r.elected_via_gcm,
+            initial_elected_via_gcm: !!r.elected_via_gcm,
+            elected_via_proportionality: !!r.elected_via_proportionality,
+            initial_elected_via_proportionality: !!r.elected_via_proportionality,
+            elected_via_casual: !!r.elected_via_casual,
+            initial_elected_via_casual: !!r.elected_via_casual,
+            relinquished: !!r.relinquished,
+            initial_relinquished: !!r.relinquished,
+            votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
+            initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
+            position_id: pos?.id ?? null,
+            position_kind: pos?.kind ?? "",
+            initial_position_kind: pos?.kind ?? "",
+            position_portfolio: pos?.portfolio ?? "",
+            initial_position_portfolio: pos?.portfolio ?? "",
+          };
+        });
         mapped.sort(
           (a, b) =>
             a.district_number - b.district_number ||
