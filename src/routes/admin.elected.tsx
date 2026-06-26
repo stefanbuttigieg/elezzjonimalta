@@ -38,12 +38,37 @@ interface Row {
   initial_relinquished: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
+  // Parliamentary role (stored in candidate_positions, is_current=true).
+  // Applied per candidate; edits on any row sync across rows of the same candidate.
+  position_id: string | null;
+  position_kind: string; // "" means no current role
+  initial_position_kind: string;
+  position_portfolio: string;
+  initial_position_portfolio: string;
 }
 
 type DistrictOpt = { id: string; number: number; name_en: string };
 type PartyOpt = { id: string; name: string };
 
 const YEARS = [2026, 2022, 2017, 2013];
+
+const POSITION_KINDS: Array<{ value: string; label: string; group: "gov" | "opp" | "neutral" }> = [
+  { value: "", label: "— none —", group: "neutral" },
+  { value: "speaker", label: "Speaker", group: "neutral" },
+  { value: "deputy_speaker", label: "Deputy Speaker", group: "neutral" },
+  { value: "prime_minister", label: "Prime Minister", group: "gov" },
+  { value: "deputy_pm", label: "Deputy Prime Minister", group: "gov" },
+  { value: "minister", label: "Minister", group: "gov" },
+  { value: "parliamentary_secretary", label: "Parliamentary Secretary", group: "gov" },
+  { value: "cabinet_member", label: "Cabinet Member", group: "gov" },
+  { value: "opposition_leader", label: "Leader of the Opposition", group: "opp" },
+  { value: "shadow_minister", label: "Shadow Minister", group: "opp" },
+  { value: "whip", label: "Whip", group: "neutral" },
+  { value: "committee_chair", label: "Committee Chair", group: "neutral" },
+  { value: "committee_member", label: "Committee Member", group: "neutral" },
+  { value: "other", label: "Other", group: "neutral" },
+];
+const POSITION_LABEL = new Map(POSITION_KINDS.map((p) => [p.value, p.label]));
 
 function ElectedBulkEditor() {
   const [year, setYear] = useState<number>(2026);
@@ -83,30 +108,58 @@ function ElectedBulkEditor() {
         if (error) throw error;
         if (cancelled) return;
 
-        const mapped: Row[] = (data ?? []).map((r: any) => ({
-          id: r.id,
-          candidate_id: r.candidate_id,
-          candidate_name: r.candidates?.full_name ?? "—",
-          candidate_slug: r.candidates?.slug ?? "",
-          party_name: r.candidates?.parties?.name_en ?? null,
-          party_id: r.candidates?.party_id ?? null,
-          district_id: r.district_id,
-          district_number: r.districts?.number ?? 0,
-          district_name: r.districts?.name_en ?? "",
-          election_year: r.election_year,
-          elected: !!r.elected,
-          initial_elected: !!r.elected,
-          elected_via_gcm: !!r.elected_via_gcm,
-          initial_elected_via_gcm: !!r.elected_via_gcm,
-          elected_via_proportionality: !!r.elected_via_proportionality,
-          initial_elected_via_proportionality: !!r.elected_via_proportionality,
-          elected_via_casual: !!r.elected_via_casual,
-          initial_elected_via_casual: !!r.elected_via_casual,
-          relinquished: !!r.relinquished,
-          initial_relinquished: !!r.relinquished,
-          votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
-          initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
-        }));
+        const candidateIds = Array.from(new Set((data ?? []).map((r: any) => r.candidate_id)));
+        const positionsByCandidate = new Map<string, { id: string; kind: string; portfolio: string }>();
+        if (candidateIds.length > 0) {
+          const { data: posData } = await supabase
+            .from("candidate_positions")
+            .select("id, candidate_id, position_kind, portfolio, updated_at")
+            .in("candidate_id", candidateIds)
+            .eq("is_current", true)
+            .order("updated_at", { ascending: false });
+          for (const p of (posData ?? []) as Array<{ id: string; candidate_id: string; position_kind: string; portfolio: string | null }>) {
+            if (!positionsByCandidate.has(p.candidate_id)) {
+              positionsByCandidate.set(p.candidate_id, {
+                id: p.id,
+                kind: p.position_kind,
+                portfolio: p.portfolio ?? "",
+              });
+            }
+          }
+        }
+
+        const mapped: Row[] = (data ?? []).map((r: any) => {
+          const pos = positionsByCandidate.get(r.candidate_id);
+          return {
+            id: r.id,
+            candidate_id: r.candidate_id,
+            candidate_name: r.candidates?.full_name ?? "—",
+            candidate_slug: r.candidates?.slug ?? "",
+            party_name: r.candidates?.parties?.name_en ?? null,
+            party_id: r.candidates?.party_id ?? null,
+            district_id: r.district_id,
+            district_number: r.districts?.number ?? 0,
+            district_name: r.districts?.name_en ?? "",
+            election_year: r.election_year,
+            elected: !!r.elected,
+            initial_elected: !!r.elected,
+            elected_via_gcm: !!r.elected_via_gcm,
+            initial_elected_via_gcm: !!r.elected_via_gcm,
+            elected_via_proportionality: !!r.elected_via_proportionality,
+            initial_elected_via_proportionality: !!r.elected_via_proportionality,
+            elected_via_casual: !!r.elected_via_casual,
+            initial_elected_via_casual: !!r.elected_via_casual,
+            relinquished: !!r.relinquished,
+            initial_relinquished: !!r.relinquished,
+            votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
+            initial_votes: r.votes_first_count == null ? "" : String(r.votes_first_count),
+            position_id: pos?.id ?? null,
+            position_kind: pos?.kind ?? "",
+            initial_position_kind: pos?.kind ?? "",
+            position_portfolio: pos?.portfolio ?? "",
+            initial_position_portfolio: pos?.portfolio ?? "",
+          };
+        });
         mapped.sort(
           (a, b) =>
             a.district_number - b.district_number ||
@@ -153,7 +206,9 @@ function ElectedBulkEditor() {
         r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.elected_via_casual === r.initial_elected_via_casual &&
         r.relinquished === r.initial_relinquished &&
-        r.votes === r.initial_votes
+        r.votes === r.initial_votes &&
+        r.position_kind === r.initial_position_kind &&
+        r.position_portfolio === r.initial_position_portfolio
       )
         return false;
       if (q && !r.candidate_name.toLowerCase().includes(q) && !r.candidate_slug.includes(q))
@@ -171,13 +226,27 @@ function ElectedBulkEditor() {
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
           r.relinquished !== r.initial_relinquished ||
-          r.votes !== r.initial_votes,
+          r.votes !== r.initial_votes ||
+          r.position_kind !== r.initial_position_kind ||
+          r.position_portfolio !== r.initial_position_portfolio,
       ).length,
     [rows],
   );
 
   const updateRow = (id: string, patch: Partial<Row>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  // A candidate's parliamentary role is candidate-level, not per-district.
+  // When the user edits a role on any row, mirror the change to every row of
+  // the same candidate so the table stays consistent.
+  const updateCandidateRole = (
+    candidate_id: string,
+    patch: { position_kind?: string; position_portfolio?: string },
+  ) => {
+    setRows((prev) =>
+      prev.map((r) => (r.candidate_id === candidate_id ? { ...r, ...patch } : r)),
+    );
   };
 
   const toggleSelect = (id: string) => {
@@ -212,7 +281,7 @@ function ElectedBulkEditor() {
   const save = async () => {
     setSaving(true);
     try {
-      const changed = rows.filter(
+      const cdChanged = rows.filter(
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
@@ -221,14 +290,28 @@ function ElectedBulkEditor() {
           r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       );
-      if (changed.length === 0) {
+
+      // Role changes are per-candidate. Reduce to one entry per candidate using
+      // the latest row state (all rows are kept in sync by updateCandidateRole).
+      const roleByCandidate = new Map<string, Row>();
+      for (const r of rows) {
+        if (
+          r.position_kind !== r.initial_position_kind ||
+          r.position_portfolio !== r.initial_position_portfolio
+        ) {
+          roleByCandidate.set(r.candidate_id, r);
+        }
+      }
+
+      if (cdChanged.length === 0 && roleByCandidate.size === 0) {
         toast.info("No changes to save");
         return;
       }
-      // Run in chunks to avoid overly long payloads.
+
+      // Save elected/votes/etc.
       const chunkSize = 100;
-      for (let i = 0; i < changed.length; i += chunkSize) {
-        const chunk = changed.slice(i, i + chunkSize);
+      for (let i = 0; i < cdChanged.length; i += chunkSize) {
+        const chunk = cdChanged.slice(i, i + chunkSize);
         await Promise.all(
           chunk.map((r) =>
             supabase
@@ -245,21 +328,74 @@ function ElectedBulkEditor() {
           ),
         );
       }
-      toast.success(`Saved ${changed.length} row${changed.length === 1 ? "" : "s"}`);
+
+      // Save parliamentary roles (candidate_positions).
+      const newPositionIds = new Map<string, string | null>();
+      for (const [candidate_id, r] of roleByCandidate) {
+        const portfolio = r.position_portfolio.trim();
+        if (!r.position_kind) {
+          // Cleared — delete existing current position if any.
+          if (r.position_id) {
+            await supabase.from("candidate_positions").delete().eq("id", r.position_id);
+          }
+          newPositionIds.set(candidate_id, null);
+        } else if (r.position_id) {
+          const title = portfolio || POSITION_LABEL.get(r.position_kind) || r.position_kind;
+          await supabase
+            .from("candidate_positions")
+            .update({
+              position_kind: r.position_kind as never,
+              portfolio: portfolio || null,
+              title,
+              is_current: true,
+            })
+            .eq("id", r.position_id);
+        } else {
+          const title = portfolio || POSITION_LABEL.get(r.position_kind) || r.position_kind;
+          const { data: inserted } = await supabase
+            .from("candidate_positions")
+            .insert({
+              candidate_id,
+              position_kind: r.position_kind as never,
+              portfolio: portfolio || null,
+              title,
+              is_current: true,
+            })
+            .select("id")
+            .single();
+          newPositionIds.set(candidate_id, inserted?.id ?? null);
+        }
+      }
+
+      const savedCount = cdChanged.length + roleByCandidate.size;
+      toast.success(`Saved ${savedCount} change${savedCount === 1 ? "" : "s"}`);
       setRows((prev) =>
-        prev.map((r) =>
-          changed.find((c) => c.id === r.id)
-            ? {
-                ...r,
-                initial_elected: r.elected,
-                initial_elected_via_gcm: r.elected_via_gcm,
-                initial_elected_via_proportionality: r.elected_via_proportionality,
-                initial_elected_via_casual: r.elected_via_casual,
-                initial_relinquished: r.relinquished,
-                initial_votes: r.votes,
-              }
-            : r,
-        ),
+        prev.map((r) => {
+          let next = r;
+          if (cdChanged.find((c) => c.id === r.id)) {
+            next = {
+              ...next,
+              initial_elected: next.elected,
+              initial_elected_via_gcm: next.elected_via_gcm,
+              initial_elected_via_proportionality: next.elected_via_proportionality,
+              initial_elected_via_casual: next.elected_via_casual,
+              initial_relinquished: next.relinquished,
+              initial_votes: next.votes,
+            };
+          }
+          if (roleByCandidate.has(r.candidate_id)) {
+            const newId = newPositionIds.has(r.candidate_id)
+              ? newPositionIds.get(r.candidate_id) ?? null
+              : r.position_id;
+            next = {
+              ...next,
+              position_id: newId,
+              initial_position_kind: next.position_kind,
+              initial_position_portfolio: next.position_portfolio,
+            };
+          }
+          return next;
+        }),
       );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
@@ -570,6 +706,7 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2 text-center">Casual</th>
                 <th className="px-2 py-2 text-center" title="Relinquished — district given up to enable a casual election">Relinq.</th>
                 <th className="px-2 py-2">Votes (1st)</th>
+                <th className="px-2 py-2" title="Current parliamentary role (Speaker, Cabinet, Shadow Cabinet, etc.). Saved per candidate.">Role</th>
               </tr>
             </thead>
             <tbody>
@@ -687,6 +824,37 @@ maria-vella,9,false,`}
                         onChange={(e) => updateRow(r.id, { votes: e.target.value })}
                         className="w-24 rounded border border-border bg-background px-2 py-1 text-xs"
                       />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={r.position_kind}
+                          onChange={(e) =>
+                            updateCandidateRole(r.candidate_id, { position_kind: e.target.value })
+                          }
+                          className="rounded border border-border bg-background px-1.5 py-1 text-xs"
+                          title="Parliamentary role for this candidate"
+                        >
+                          {POSITION_KINDS.map((p) => (
+                            <option key={p.value} value={p.value}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                        {r.position_kind && r.position_kind !== "speaker" && r.position_kind !== "deputy_speaker" ? (
+                          <input
+                            type="text"
+                            value={r.position_portfolio}
+                            placeholder="Portfolio (e.g. Health)"
+                            onChange={(e) =>
+                              updateCandidateRole(r.candidate_id, {
+                                position_portfolio: e.target.value,
+                              })
+                            }
+                            className="w-36 rounded border border-border bg-background px-2 py-1 text-xs"
+                          />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );
