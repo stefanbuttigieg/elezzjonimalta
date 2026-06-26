@@ -1029,6 +1029,14 @@ function ElectedPage() {
                               {locale === "mt" ? "Rrilaxxat" : "Relinquished"}
                             </p>
                           ) : null}
+                          {c.role ? (
+                            <p
+                              className={`mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${roleBadgeClasses(c.role.kind)}`}
+                              title={c.role.title}
+                            >
+                              {roleShortLabel(c.role, locale)}
+                            </p>
+                          ) : null}
                           {c.votes != null ? (
                             <p className="mt-0.5 text-xs font-medium tabular-nums text-emerald-700 dark:text-emerald-300">
                               {t("elected.votes", { count: c.votes.toLocaleString() })}
