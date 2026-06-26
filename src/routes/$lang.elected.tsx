@@ -1086,3 +1086,220 @@ function ElectedPage() {
     </section>
   );
 }
+
+// ---- Cabinet helpers ------------------------------------------------------
+
+const ROLE_KIND_LABELS_MT: Record<string, string> = {
+  prime_minister: "Prim Ministru",
+  deputy_pm: "Viċi Prim Ministru",
+  minister: "Ministru",
+  parliamentary_secretary: "Segretarju Parlamentari",
+  cabinet_member: "Membru tal-Kabinett",
+  opposition_leader: "Kap tal-Oppożizzjoni",
+  shadow_minister: "Ministru fix-Shadow",
+  speaker: "Speaker",
+  deputy_speaker: "Viċi Speaker",
+  whip: "Whip",
+  committee_chair: "Chairperson ta' Kumitat",
+  committee_member: "Membru ta' Kumitat",
+  other: "Pożizzjoni oħra",
+};
+const ROLE_KIND_LABELS_EN: Record<string, string> = {
+  prime_minister: "Prime Minister",
+  deputy_pm: "Deputy PM",
+  minister: "Minister",
+  parliamentary_secretary: "Parliamentary Secretary",
+  cabinet_member: "Cabinet Member",
+  opposition_leader: "Leader of the Opposition",
+  shadow_minister: "Shadow Minister",
+  speaker: "Speaker",
+  deputy_speaker: "Deputy Speaker",
+  whip: "Whip",
+  committee_chair: "Committee Chair",
+  committee_member: "Committee Member",
+  other: "Other role",
+};
+
+const ROLE_ORDER: Record<string, number> = {
+  prime_minister: 1,
+  deputy_pm: 2,
+  minister: 3,
+  parliamentary_secretary: 4,
+  cabinet_member: 5,
+  opposition_leader: 1,
+  shadow_minister: 2,
+  whip: 6,
+  speaker: 1,
+  deputy_speaker: 2,
+  committee_chair: 7,
+  committee_member: 8,
+  other: 9,
+};
+
+const GOV_KINDS = new Set([
+  "prime_minister",
+  "deputy_pm",
+  "minister",
+  "parliamentary_secretary",
+  "cabinet_member",
+]);
+const OPP_KINDS = new Set(["opposition_leader", "shadow_minister"]);
+const SPEAKER_KINDS = new Set(["speaker", "deputy_speaker"]);
+
+function roleKindLabel(kind: string, locale: Locale): string {
+  const map = locale === "mt" ? ROLE_KIND_LABELS_MT : ROLE_KIND_LABELS_EN;
+  return map[kind] ?? kind;
+}
+
+function roleShortLabel(role: CandidateRole, locale: Locale): string {
+  const base = roleKindLabel(role.kind, locale);
+  if (role.portfolio && !SPEAKER_KINDS.has(role.kind)) {
+    return `${base} · ${role.portfolio}`;
+  }
+  return base;
+}
+
+function roleBadgeClasses(kind: string): string {
+  if (SPEAKER_KINDS.has(kind)) {
+    return "border-purple-500/50 bg-purple-500/15 text-purple-800 dark:text-purple-300";
+  }
+  if (GOV_KINDS.has(kind)) {
+    return "border-emerald-500/50 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300";
+  }
+  if (OPP_KINDS.has(kind)) {
+    return "border-sky-500/50 bg-sky-500/15 text-sky-800 dark:text-sky-300";
+  }
+  return "border-border bg-background text-muted-foreground";
+}
+
+function sortCabinet(entries: CabinetEntry[]): CabinetEntry[] {
+  return [...entries].sort((a, b) => {
+    const oa = ROLE_ORDER[a.role.kind] ?? 99;
+    const ob = ROLE_ORDER[b.role.kind] ?? 99;
+    if (oa !== ob) return oa - ob;
+    return a.full_name.localeCompare(b.full_name);
+  });
+}
+
+function CabinetSection({ cabinet, locale }: { cabinet: CabinetEntry[]; locale: Locale }) {
+  const speakers = sortCabinet(cabinet.filter((c) => SPEAKER_KINDS.has(c.role.kind)));
+  const gov = sortCabinet(cabinet.filter((c) => GOV_KINDS.has(c.role.kind)));
+  const opp = sortCabinet(cabinet.filter((c) => OPP_KINDS.has(c.role.kind)));
+  const other = sortCabinet(
+    cabinet.filter(
+      (c) =>
+        !SPEAKER_KINDS.has(c.role.kind) &&
+        !GOV_KINDS.has(c.role.kind) &&
+        !OPP_KINDS.has(c.role.kind),
+    ),
+  );
+
+  const sectionTitle = locale === "mt" ? "Kabinett u Rwoli Parlamentari" : "Cabinet & Parliamentary Roles";
+  const sectionSub =
+    locale === "mt"
+      ? "L-Iscaker tal-Kamra, il-Kabinett tal-Gvern u l-Kabinett tax-Shadow tal-Oppożizzjoni."
+      : "The Speaker of the House, Government Cabinet and the Opposition's Shadow Cabinet.";
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border bg-surface p-5 shadow-card sm:p-6">
+      <div>
+        <h2 className="font-serif text-xl font-bold text-foreground sm:text-2xl">{sectionTitle}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{sectionSub}</p>
+      </div>
+      <div className="mt-5 space-y-6">
+        {speakers.length > 0 ? (
+          <CabinetGroup
+            title={locale === "mt" ? "Speaker" : "Speaker"}
+            entries={speakers}
+            locale={locale}
+            accent="purple"
+          />
+        ) : null}
+        {gov.length > 0 ? (
+          <CabinetGroup
+            title={locale === "mt" ? "Kabinett tal-Gvern" : "Government Cabinet"}
+            entries={gov}
+            locale={locale}
+            accent="emerald"
+          />
+        ) : null}
+        {opp.length > 0 ? (
+          <CabinetGroup
+            title={locale === "mt" ? "Kabinett tax-Shadow" : "Shadow Cabinet"}
+            entries={opp}
+            locale={locale}
+            accent="sky"
+          />
+        ) : null}
+        {other.length > 0 ? (
+          <CabinetGroup
+            title={locale === "mt" ? "Rwoli Oħra" : "Other Roles"}
+            entries={other}
+            locale={locale}
+            accent="muted"
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CabinetGroup({
+  title,
+  entries,
+  locale,
+  accent,
+}: {
+  title: string;
+  entries: CabinetEntry[];
+  locale: Locale;
+  accent: "purple" | "emerald" | "sky" | "muted";
+}) {
+  const accentClass =
+    accent === "purple"
+      ? "text-purple-800 dark:text-purple-300"
+      : accent === "emerald"
+        ? "text-emerald-800 dark:text-emerald-300"
+        : accent === "sky"
+          ? "text-sky-800 dark:text-sky-300"
+          : "text-muted-foreground";
+  return (
+    <section>
+      <h3 className={`text-xs font-semibold uppercase tracking-[0.18em] ${accentClass}`}>{title}</h3>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {entries.map((c) => (
+          <li key={`${c.slug}-${c.role.kind}-${c.role.portfolio ?? ""}`}>
+            <Link
+              to="/$lang/candidates/$slug"
+              params={{ lang: locale, slug: c.slug }}
+              className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition-colors hover:border-primary/40"
+            >
+              <CandidateAvatar
+                src={c.photo_url}
+                name={c.full_name}
+                className="h-12 w-12 rounded-full object-cover"
+                fallbackClassName="h-12 w-12 rounded-full bg-accent text-accent-foreground"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-foreground group-hover:text-primary">
+                  {c.full_name}
+                </p>
+                <p className={`mt-0.5 truncate text-xs font-semibold ${accentClass}`}>
+                  {roleShortLabel(c.role, locale)}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground">
+                  {c.party
+                    ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
+                    : locale === "mt"
+                      ? "Indipendenti"
+                      : "Independent"}
+                </p>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
