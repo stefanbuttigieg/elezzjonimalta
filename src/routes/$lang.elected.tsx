@@ -89,6 +89,14 @@ type CasualNominee = {
   district: { number: number; name_en: string; name_mt: string | null } | null;
 };
 
+export type CabinetEntry = {
+  slug: string;
+  full_name: string;
+  photo_url: string | null;
+  party: PartyLite | null;
+  role: CandidateRole;
+};
+
 type LoaderData = {
   groups: DistrictGroup[];
   totalElected: number;
@@ -99,6 +107,7 @@ type LoaderData = {
   byParty: PartyTally[];
   allDistricts: DistrictLite[];
   casualNominees: CasualNominee[];
+  cabinet: CabinetEntry[];
   pnLive: PnLiveResults | null;
   elcomFirstCount: ElcomFirstCount | null;
 };
