@@ -825,6 +825,37 @@ maria-vella,9,false,`}
                         className="w-24 rounded border border-border bg-background px-2 py-1 text-xs"
                       />
                     </td>
+                    <td className="px-2 py-1.5">
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={r.position_kind}
+                          onChange={(e) =>
+                            updateCandidateRole(r.candidate_id, { position_kind: e.target.value })
+                          }
+                          className="rounded border border-border bg-background px-1.5 py-1 text-xs"
+                          title="Parliamentary role for this candidate"
+                        >
+                          {POSITION_KINDS.map((p) => (
+                            <option key={p.value} value={p.value}>
+                              {p.label}
+                            </option>
+                          ))}
+                        </select>
+                        {r.position_kind && r.position_kind !== "speaker" && r.position_kind !== "deputy_speaker" ? (
+                          <input
+                            type="text"
+                            value={r.position_portfolio}
+                            placeholder="Portfolio (e.g. Health)"
+                            onChange={(e) =>
+                              updateCandidateRole(r.candidate_id, {
+                                position_portfolio: e.target.value,
+                              })
+                            }
+                            className="w-36 rounded border border-border bg-background px-2 py-1 text-xs"
+                          />
+                        ) : null}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
