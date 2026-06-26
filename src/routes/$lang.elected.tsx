@@ -812,6 +812,8 @@ function ElectedPage() {
           </div>
         ) : null}
 
+        {data.cabinet.length > 0 ? <CabinetSection cabinet={data.cabinet} locale={locale} /> : null}
+
 
         {data.multiDistrictWinners.length > 0 ? (
           <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 shadow-card ring-1 ring-amber-500/20">
