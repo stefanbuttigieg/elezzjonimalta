@@ -298,6 +298,7 @@ const EMPTY_DATA: LoaderData = {
   byParty: [],
   allDistricts: [],
   casualNominees: [],
+  cabinet: [],
   pnLive: null,
   elcomFirstCount: null,
 };
