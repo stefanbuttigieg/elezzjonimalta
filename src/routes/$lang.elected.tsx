@@ -282,6 +282,7 @@ async function loadElected(): Promise<LoaderData> {
     byParty,
     allDistricts: (districtsRes.data ?? []) as DistrictLite[],
     casualNominees: ((casualRes.data ?? []) as unknown as CasualNominee[]),
+    cabinet,
     pnLive: null,
     elcomFirstCount: null,
   };
