@@ -281,7 +281,7 @@ function ElectedBulkEditor() {
   const save = async () => {
     setSaving(true);
     try {
-      const changed = rows.filter(
+      const cdChanged = rows.filter(
         (r) =>
           r.elected !== r.initial_elected ||
           r.elected_via_gcm !== r.initial_elected_via_gcm ||
@@ -290,14 +290,28 @@ function ElectedBulkEditor() {
           r.relinquished !== r.initial_relinquished ||
           r.votes !== r.initial_votes,
       );
-      if (changed.length === 0) {
+
+      // Role changes are per-candidate. Reduce to one entry per candidate using
+      // the latest row state (all rows are kept in sync by updateCandidateRole).
+      const roleByCandidate = new Map<string, Row>();
+      for (const r of rows) {
+        if (
+          r.position_kind !== r.initial_position_kind ||
+          r.position_portfolio !== r.initial_position_portfolio
+        ) {
+          roleByCandidate.set(r.candidate_id, r);
+        }
+      }
+
+      if (cdChanged.length === 0 && roleByCandidate.size === 0) {
         toast.info("No changes to save");
         return;
       }
-      // Run in chunks to avoid overly long payloads.
+
+      // Save elected/votes/etc.
       const chunkSize = 100;
-      for (let i = 0; i < changed.length; i += chunkSize) {
-        const chunk = changed.slice(i, i + chunkSize);
+      for (let i = 0; i < cdChanged.length; i += chunkSize) {
+        const chunk = cdChanged.slice(i, i + chunkSize);
         await Promise.all(
           chunk.map((r) =>
             supabase
@@ -314,21 +328,74 @@ function ElectedBulkEditor() {
           ),
         );
       }
-      toast.success(`Saved ${changed.length} row${changed.length === 1 ? "" : "s"}`);
+
+      // Save parliamentary roles (candidate_positions).
+      const newPositionIds = new Map<string, string | null>();
+      for (const [candidate_id, r] of roleByCandidate) {
+        const portfolio = r.position_portfolio.trim();
+        if (!r.position_kind) {
+          // Cleared — delete existing current position if any.
+          if (r.position_id) {
+            await supabase.from("candidate_positions").delete().eq("id", r.position_id);
+          }
+          newPositionIds.set(candidate_id, null);
+        } else if (r.position_id) {
+          const title = portfolio || POSITION_LABEL.get(r.position_kind) || r.position_kind;
+          await supabase
+            .from("candidate_positions")
+            .update({
+              position_kind: r.position_kind as never,
+              portfolio: portfolio || null,
+              title,
+              is_current: true,
+            })
+            .eq("id", r.position_id);
+        } else {
+          const title = portfolio || POSITION_LABEL.get(r.position_kind) || r.position_kind;
+          const { data: inserted } = await supabase
+            .from("candidate_positions")
+            .insert({
+              candidate_id,
+              position_kind: r.position_kind as never,
+              portfolio: portfolio || null,
+              title,
+              is_current: true,
+            })
+            .select("id")
+            .single();
+          newPositionIds.set(candidate_id, inserted?.id ?? null);
+        }
+      }
+
+      const savedCount = cdChanged.length + roleByCandidate.size;
+      toast.success(`Saved ${savedCount} change${savedCount === 1 ? "" : "s"}`);
       setRows((prev) =>
-        prev.map((r) =>
-          changed.find((c) => c.id === r.id)
-            ? {
-                ...r,
-                initial_elected: r.elected,
-                initial_elected_via_gcm: r.elected_via_gcm,
-                initial_elected_via_proportionality: r.elected_via_proportionality,
-                initial_elected_via_casual: r.elected_via_casual,
-                initial_relinquished: r.relinquished,
-                initial_votes: r.votes,
-              }
-            : r,
-        ),
+        prev.map((r) => {
+          let next = r;
+          if (cdChanged.find((c) => c.id === r.id)) {
+            next = {
+              ...next,
+              initial_elected: next.elected,
+              initial_elected_via_gcm: next.elected_via_gcm,
+              initial_elected_via_proportionality: next.elected_via_proportionality,
+              initial_elected_via_casual: next.elected_via_casual,
+              initial_relinquished: next.relinquished,
+              initial_votes: next.votes,
+            };
+          }
+          if (roleByCandidate.has(r.candidate_id)) {
+            const newId = newPositionIds.has(r.candidate_id)
+              ? newPositionIds.get(r.candidate_id) ?? null
+              : r.position_id;
+            next = {
+              ...next,
+              position_id: newId,
+              initial_position_kind: next.position_kind,
+              initial_position_portfolio: next.position_portfolio,
+            };
+          }
+          return next;
+        }),
       );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
