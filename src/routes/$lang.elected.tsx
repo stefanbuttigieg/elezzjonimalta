@@ -114,7 +114,7 @@ type LoaderData = {
 
 
 async function loadElected(): Promise<LoaderData> {
-  const [electedRes, districtsRes, casualRes] = await Promise.all([
+  const [electedRes, districtsRes, casualRes, positionsRes] = await Promise.all([
     supabase
       .from("candidate_districts")
       .select(
@@ -135,9 +135,42 @@ async function loadElected(): Promise<LoaderData> {
       .eq("casual_nomination_submitted", true)
       .eq("status", "published")
       .order("full_name"),
+    supabase
+      .from("candidate_positions")
+      .select(
+        "candidate_id, position_kind, portfolio, title, updated_at, candidate:candidates!inner(slug, full_name, photo_url, status, party:parties(slug, short_name, name_en, name_mt, color))"
+      )
+      .eq("is_current", true)
+      .order("updated_at", { ascending: false }),
   ]);
 
   const rows = (electedRes.data ?? []) as unknown as ElectedRow[];
+  const positionsBySlug = new Map<string, CandidateRole>();
+  const cabinet: CabinetEntry[] = [];
+  for (const p of (positionsRes.data ?? []) as Array<{
+    candidate_id: string;
+    position_kind: string;
+    portfolio: string | null;
+    title: string | null;
+    candidate: { slug: string; full_name: string; photo_url: string | null; status: string; party: PartyLite | null } | null;
+  }>) {
+    if (!p.candidate || p.candidate.status !== "published") continue;
+    if (positionsBySlug.has(p.candidate.slug)) continue;
+    const role: CandidateRole = {
+      kind: p.position_kind,
+      portfolio: p.portfolio,
+      title: p.title ?? p.position_kind,
+    };
+    positionsBySlug.set(p.candidate.slug, role);
+    cabinet.push({
+      slug: p.candidate.slug,
+      full_name: p.candidate.full_name,
+      photo_url: p.candidate.photo_url,
+      party: p.candidate.party,
+      role,
+    });
+  }
+
   const groupMap = new Map<number, DistrictGroup>();
   const partyMap = new Map<string, PartyTally>();
   const candidateSeen = new Set<string>();
@@ -168,6 +201,7 @@ async function loadElected(): Promise<LoaderData> {
       relinquished: !!r.relinquished,
       party: r.candidate.party,
       also_in: [],
+      role: positionsBySlug.get(r.candidate.slug) ?? null,
     });
     groupMap.set(r.district.number, g);
 
