@@ -38,12 +38,37 @@ interface Row {
   initial_relinquished: boolean;
   votes: string; // string so empty = null
   initial_votes: string;
+  // Parliamentary role (stored in candidate_positions, is_current=true).
+  // Applied per candidate; edits on any row sync across rows of the same candidate.
+  position_id: string | null;
+  position_kind: string; // "" means no current role
+  initial_position_kind: string;
+  position_portfolio: string;
+  initial_position_portfolio: string;
 }
 
 type DistrictOpt = { id: string; number: number; name_en: string };
 type PartyOpt = { id: string; name: string };
 
 const YEARS = [2026, 2022, 2017, 2013];
+
+const POSITION_KINDS: Array<{ value: string; label: string; group: "gov" | "opp" | "neutral" }> = [
+  { value: "", label: "— none —", group: "neutral" },
+  { value: "speaker", label: "Speaker", group: "neutral" },
+  { value: "deputy_speaker", label: "Deputy Speaker", group: "neutral" },
+  { value: "prime_minister", label: "Prime Minister", group: "gov" },
+  { value: "deputy_pm", label: "Deputy Prime Minister", group: "gov" },
+  { value: "minister", label: "Minister", group: "gov" },
+  { value: "parliamentary_secretary", label: "Parliamentary Secretary", group: "gov" },
+  { value: "cabinet_member", label: "Cabinet Member", group: "gov" },
+  { value: "opposition_leader", label: "Leader of the Opposition", group: "opp" },
+  { value: "shadow_minister", label: "Shadow Minister", group: "opp" },
+  { value: "whip", label: "Whip", group: "neutral" },
+  { value: "committee_chair", label: "Committee Chair", group: "neutral" },
+  { value: "committee_member", label: "Committee Member", group: "neutral" },
+  { value: "other", label: "Other", group: "neutral" },
+];
+const POSITION_LABEL = new Map(POSITION_KINDS.map((p) => [p.value, p.label]));
 
 function ElectedBulkEditor() {
   const [year, setYear] = useState<number>(2026);
