@@ -706,6 +706,7 @@ maria-vella,9,false,`}
                 <th className="px-2 py-2 text-center">Casual</th>
                 <th className="px-2 py-2 text-center" title="Relinquished — district given up to enable a casual election">Relinq.</th>
                 <th className="px-2 py-2">Votes (1st)</th>
+                <th className="px-2 py-2" title="Current parliamentary role (Speaker, Cabinet, Shadow Cabinet, etc.). Saved per candidate.">Role</th>
               </tr>
             </thead>
             <tbody>
