@@ -206,7 +206,9 @@ function ElectedBulkEditor() {
         r.elected_via_proportionality === r.initial_elected_via_proportionality &&
         r.elected_via_casual === r.initial_elected_via_casual &&
         r.relinquished === r.initial_relinquished &&
-        r.votes === r.initial_votes
+        r.votes === r.initial_votes &&
+        r.position_kind === r.initial_position_kind &&
+        r.position_portfolio === r.initial_position_portfolio
       )
         return false;
       if (q && !r.candidate_name.toLowerCase().includes(q) && !r.candidate_slug.includes(q))
@@ -224,13 +226,27 @@ function ElectedBulkEditor() {
           r.elected_via_proportionality !== r.initial_elected_via_proportionality ||
           r.elected_via_casual !== r.initial_elected_via_casual ||
           r.relinquished !== r.initial_relinquished ||
-          r.votes !== r.initial_votes,
+          r.votes !== r.initial_votes ||
+          r.position_kind !== r.initial_position_kind ||
+          r.position_portfolio !== r.initial_position_portfolio,
       ).length,
     [rows],
   );
 
   const updateRow = (id: string, patch: Partial<Row>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  };
+
+  // A candidate's parliamentary role is candidate-level, not per-district.
+  // When the user edits a role on any row, mirror the change to every row of
+  // the same candidate so the table stays consistent.
+  const updateCandidateRole = (
+    candidate_id: string,
+    patch: { position_kind?: string; position_portfolio?: string },
+  ) => {
+    setRows((prev) =>
+      prev.map((r) => (r.candidate_id === candidate_id ? { ...r, ...patch } : r)),
+    );
   };
 
   const toggleSelect = (id: string) => {
