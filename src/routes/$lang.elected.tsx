@@ -1295,8 +1295,14 @@ function CabinetGroup({
                   {c.full_name}
                 </p>
                 <p className={`mt-0.5 truncate text-xs font-semibold ${accentClass}`}>
-                  {roleShortLabel(c.role, locale)}
+                  {roleKindLabel(c.role.kind, locale)}
                 </p>
+                {c.role.portfolio && !SPEAKER_KINDS.has(c.role.kind) ? (
+                  <p className="truncate text-[11px] font-medium text-foreground/80">
+                    {locale === "mt" ? "Portafoll: " : "Portfolio: "}
+                    <span className="font-semibold">{c.role.portfolio}</span>
+                  </p>
+                ) : null}
                 <p className="truncate text-[11px] text-muted-foreground">
                   {c.party
                     ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
