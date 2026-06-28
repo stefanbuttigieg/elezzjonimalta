@@ -1030,12 +1030,22 @@ function ElectedPage() {
                             </p>
                           ) : null}
                           {c.role ? (
-                            <p
-                              className={`mt-0.5 ml-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${roleBadgeClasses(c.role.kind)}`}
-                              title={c.role.title}
-                            >
-                              {roleShortLabel(c.role, locale)}
-                            </p>
+                            <span className="mt-0.5 ml-1 flex flex-wrap items-center gap-1">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${roleBadgeClasses(c.role.kind)}`}
+                                title={c.role.title}
+                              >
+                                {roleKindLabel(c.role.kind, locale)}
+                              </span>
+                              {c.role.portfolio && !SPEAKER_KINDS.has(c.role.kind) ? (
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal ${roleBadgeClasses(c.role.kind)}`}
+                                  title={locale === "mt" ? "Portafoll" : "Portfolio"}
+                                >
+                                  {c.role.portfolio}
+                                </span>
+                              ) : null}
+                            </span>
                           ) : null}
                           {c.votes != null ? (
                             <p className="mt-0.5 text-xs font-medium tabular-nums text-emerald-700 dark:text-emerald-300">
@@ -1285,8 +1295,14 @@ function CabinetGroup({
                   {c.full_name}
                 </p>
                 <p className={`mt-0.5 truncate text-xs font-semibold ${accentClass}`}>
-                  {roleShortLabel(c.role, locale)}
+                  {roleKindLabel(c.role.kind, locale)}
                 </p>
+                {c.role.portfolio && !SPEAKER_KINDS.has(c.role.kind) ? (
+                  <p className="truncate text-[11px] font-medium text-foreground/80">
+                    {locale === "mt" ? "Portafoll: " : "Portfolio: "}
+                    <span className="font-semibold">{c.role.portfolio}</span>
+                  </p>
+                ) : null}
                 <p className="truncate text-[11px] text-muted-foreground">
                   {c.party
                     ? (locale === "mt" ? c.party.name_mt : c.party.name_en) ?? c.party.name_en
