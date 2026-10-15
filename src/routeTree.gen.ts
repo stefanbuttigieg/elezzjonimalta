@@ -9,89 +9,84 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as LangRouteImport } from './routes/$lang'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LangIndexRouteImport } from './routes/$lang.index'
-import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
-import { Route as AuthLoginRouteImport } from './routes/auth.login'
-import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
-import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
-import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
-import { Route as AdminSeoRouteImport } from './routes/admin.seo'
-import { Route as AdminRolesRouteImport } from './routes/admin.roles'
-import { Route as AdminReviewRouteImport } from './routes/admin.review'
-import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
-import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
-import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
-import { Route as AdminNewsRouteImport } from './routes/admin.news'
-import { Route as AdminManifestoImportsRouteImport } from './routes/admin.manifesto-imports'
-import { Route as AdminElectedRouteImport } from './routes/admin.elected'
-import { Route as AdminDuplicatesRouteImport } from './routes/admin.duplicates'
-import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
-import { Route as AdminDisclaimersRouteImport } from './routes/admin.disclaimers'
-import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fields'
-import { Route as AdminCommunityProposalsRouteImport } from './routes/admin.community-proposals'
-import { Route as AdminCommunityAuthorsRouteImport } from './routes/admin.community-authors'
-import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
-import { Route as AdminCasualPredictionsRouteImport } from './routes/admin.casual-predictions'
-import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
-import { Route as AdminCandidateSuggestionsRouteImport } from './routes/admin.candidate-suggestions'
-import { Route as AdminAuditRouteImport } from './routes/admin.audit'
-import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
-import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
-import { Route as LangThemesRouteImport } from './routes/$lang.themes'
-import { Route as LangTermsRouteImport } from './routes/$lang.terms'
-import { Route as LangSupportersRouteImport } from './routes/$lang.supporters'
-import { Route as LangSupportRouteImport } from './routes/$lang.support'
-import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
-import { Route as LangSearchRouteImport } from './routes/$lang.search'
-import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
-import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
-import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
-import { Route as LangPartiesCompareRouteImport } from './routes/$lang.parties-compare'
-import { Route as LangMethodologyRouteImport } from './routes/$lang.methodology'
-import { Route as LangFaqRouteImport } from './routes/$lang.faq'
-import { Route as LangElectedRouteImport } from './routes/$lang.elected'
-import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
-import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
-import { Route as LangDataRouteImport } from './routes/$lang.data'
-import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
-import { Route as LangContactRouteImport } from './routes/$lang.contact'
-import { Route as LangCompareRouteImport } from './routes/$lang.compare'
-import { Route as LangCommunityProposalsRouteImport } from './routes/$lang.community-proposals'
-import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
-import { Route as LangAskRouteImport } from './routes/$lang.ask'
-import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
 import { Route as LangAboutRouteImport } from './routes/$lang.about'
-import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
+import { Route as LangAccessibilityRouteImport } from './routes/$lang.accessibility'
+import { Route as LangAskRouteImport } from './routes/$lang.ask'
+import { Route as LangChangelogRouteImport } from './routes/$lang.changelog'
+import { Route as LangCommunityProposalsRouteImport } from './routes/$lang.community-proposals'
+import { Route as LangCompareRouteImport } from './routes/$lang.compare'
+import { Route as LangContactRouteImport } from './routes/$lang.contact'
+import { Route as LangCookiesRouteImport } from './routes/$lang.cookies'
+import { Route as LangDataRouteImport } from './routes/$lang.data'
+import { Route as LangDevelopersRouteImport } from './routes/$lang.developers'
+import { Route as LangDistrictsRouteImport } from './routes/$lang.districts'
+import { Route as LangElectedRouteImport } from './routes/$lang.elected'
+import { Route as LangFaqRouteImport } from './routes/$lang.faq'
+import { Route as LangMethodologyRouteImport } from './routes/$lang.methodology'
+import { Route as LangPartiesCompareRouteImport } from './routes/$lang.parties-compare'
+import { Route as LangPrivacyRouteImport } from './routes/$lang.privacy'
+import { Route as LangProposalsRouteImport } from './routes/$lang.proposals'
+import { Route as LangResourcesRouteImport } from './routes/$lang.resources'
+import { Route as LangSearchRouteImport } from './routes/$lang.search'
+import { Route as LangSittingMpsRouteImport } from './routes/$lang.sitting-mps'
+import { Route as LangSupportRouteImport } from './routes/$lang.support'
+import { Route as LangSupportersRouteImport } from './routes/$lang.supporters'
+import { Route as LangTermsRouteImport } from './routes/$lang.terms'
+import { Route as LangThemesRouteImport } from './routes/$lang.themes'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminApiLogsRouteImport } from './routes/admin.api-logs'
+import { Route as AdminAssistantRouteImport } from './routes/admin.assistant'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminCandidateSuggestionsRouteImport } from './routes/admin.candidate-suggestions'
+import { Route as AdminCandidatesRouteImport } from './routes/admin.candidates'
+import { Route as AdminCasualPredictionsRouteImport } from './routes/admin.casual-predictions'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminCommunityAuthorsRouteImport } from './routes/admin.community-authors'
+import { Route as AdminCommunityProposalsRouteImport } from './routes/admin.community-proposals'
+import { Route as AdminCustomFieldsRouteImport } from './routes/admin.custom-fields'
+import { Route as AdminDisclaimersRouteImport } from './routes/admin.disclaimers'
+import { Route as AdminDistrictsRouteImport } from './routes/admin.districts'
+import { Route as AdminDuplicatesRouteImport } from './routes/admin.duplicates'
+import { Route as AdminElectedRouteImport } from './routes/admin.elected'
+import { Route as AdminManifestoImportsRouteImport } from './routes/admin.manifesto-imports'
+import { Route as AdminNewsRouteImport } from './routes/admin.news'
+import { Route as AdminPartiesRouteImport } from './routes/admin.parties'
+import { Route as AdminProposalsRouteImport } from './routes/admin.proposals'
+import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
+import { Route as AdminReviewRouteImport } from './routes/admin.review'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminSeoRouteImport } from './routes/admin.seo'
+import { Route as AdminSittingMpsRouteImport } from './routes/admin.sitting-mps'
+import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
+import { Route as AdminVotingFaqsRouteImport } from './routes/admin.voting-faqs'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as LangCandidatesIndexRouteImport } from './routes/$lang.candidates.index'
-import { Route as AdminCandidatesConfirmEcRouteImport } from './routes/admin.candidates_.confirm-ec'
-import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
-import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
-import { Route as LangElectedSimulatorRouteImport } from './routes/$lang.elected_.simulator'
 import { Route as LangCandidatesSlugRouteImport } from './routes/$lang.candidates.$slug'
-import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
-import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
-import { Route as ApiPublicV1CatalogDotjsonldRouteImport } from './routes/api/public/v1/catalog[.]jsonld'
-import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
-import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
-import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
-import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
-import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
+import { Route as LangElectedSimulatorRouteImport } from './routes/$lang.elected_.simulator'
+import { Route as LangMyDistrictNumberRouteImport } from './routes/$lang.my-district.$number'
+import { Route as LangPartiesIndexRouteImport } from './routes/$lang.parties.index'
+import { Route as LangPartiesSlugRouteImport } from './routes/$lang.parties.$slug'
+import { Route as AdminCandidatesConfirmEcRouteImport } from './routes/admin.candidates_.confirm-ec'
 import { Route as ApiPublicHooksElcomRefreshRouteImport } from './routes/api/public/hooks/elcom-refresh'
+import { Route as ApiPublicHooksManifestoTickRouteImport } from './routes/api/public/hooks/manifesto-tick'
+import { Route as ApiPublicHooksScanNewsRouteImport } from './routes/api/public/hooks/scan-news'
+import { Route as ApiPublicHooksTelegramPollRouteImport } from './routes/api/public/hooks/telegram-poll'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
+import { Route as ApiPublicV1CandidatesRouteImport } from './routes/api/public/v1/candidates'
+import { Route as ApiPublicV1CatalogDotjsonldRouteImport } from './routes/api/public/v1/catalog[.]jsonld'
+import { Route as ApiPublicV1DistrictsRouteImport } from './routes/api/public/v1/districts'
+import { Route as ApiPublicV1PartiesRouteImport } from './routes/api/public/v1/parties'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LangRoute = LangRouteImport.update({
@@ -99,134 +94,159 @@ const LangRoute = LangRouteImport.update({
   path: '/$lang',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LangRoute,
 } as any)
-const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
-  getParentRoute: () => rootRouteImport,
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRouteImport,
+const LangAccessibilityRoute = LangAccessibilityRouteImport.update({
+  id: '/accessibility',
+  path: '/accessibility',
+  getParentRoute: () => LangRoute,
 } as any)
-const AdminVotingFaqsRoute = AdminVotingFaqsRouteImport.update({
-  id: '/voting-faqs',
-  path: '/voting-faqs',
-  getParentRoute: () => AdminRoute,
+const LangAskRoute = LangAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => LangRoute,
 } as any)
-const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
-  id: '/translations',
-  path: '/translations',
-  getParentRoute: () => AdminRoute,
+const LangChangelogRoute = LangChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => LangRoute,
 } as any)
-const AdminSittingMpsRoute = AdminSittingMpsRouteImport.update({
-  id: '/sitting-mps',
-  path: '/sitting-mps',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSeoRoute = AdminSeoRouteImport.update({
-  id: '/seo',
-  path: '/seo',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRolesRoute = AdminRolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReviewRoute = AdminReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminResourcesRoute = AdminResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProposalsRoute = AdminProposalsRouteImport.update({
-  id: '/proposals',
-  path: '/proposals',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPartiesRoute = AdminPartiesRouteImport.update({
-  id: '/parties',
-  path: '/parties',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminNewsRoute = AdminNewsRouteImport.update({
-  id: '/news',
-  path: '/news',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminManifestoImportsRoute = AdminManifestoImportsRouteImport.update({
-  id: '/manifesto-imports',
-  path: '/manifesto-imports',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminElectedRoute = AdminElectedRouteImport.update({
-  id: '/elected',
-  path: '/elected',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDuplicatesRoute = AdminDuplicatesRouteImport.update({
-  id: '/duplicates',
-  path: '/duplicates',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
-  id: '/districts',
-  path: '/districts',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDisclaimersRoute = AdminDisclaimersRouteImport.update({
-  id: '/disclaimers',
-  path: '/disclaimers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCustomFieldsRoute = AdminCustomFieldsRouteImport.update({
-  id: '/custom-fields',
-  path: '/custom-fields',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCommunityProposalsRoute = AdminCommunityProposalsRouteImport.update({
+const LangCommunityProposalsRoute = LangCommunityProposalsRouteImport.update({
   id: '/community-proposals',
   path: '/community-proposals',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCompareRoute = LangCompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangContactRoute = LangContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCookiesRoute = LangCookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDataRoute = LangDataRouteImport.update({
+  id: '/data',
+  path: '/data',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDevelopersRoute = LangDevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangDistrictsRoute = LangDistrictsRouteImport.update({
+  id: '/districts',
+  path: '/districts',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangElectedRoute = LangElectedRouteImport.update({
+  id: '/elected',
+  path: '/elected',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangFaqRoute = LangFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangMethodologyRoute = LangMethodologyRouteImport.update({
+  id: '/methodology',
+  path: '/methodology',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPartiesCompareRoute = LangPartiesCompareRouteImport.update({
+  id: '/parties-compare',
+  path: '/parties-compare',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPrivacyRoute = LangPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProposalsRoute = LangProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangResourcesRoute = LangResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSearchRoute = LangSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
+  id: '/sitting-mps',
+  path: '/sitting-mps',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSupportRoute = LangSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSupportersRoute = LangSupportersRouteImport.update({
+  id: '/supporters',
+  path: '/supporters',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangTermsRoute = LangTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangThemesRoute = LangThemesRouteImport.update({
+  id: '/themes',
+  path: '/themes',
+  getParentRoute: () => LangRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminCommunityAuthorsRoute = AdminCommunityAuthorsRouteImport.update({
-  id: '/community-authors',
-  path: '/community-authors',
+const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
+  id: '/api-logs',
+  path: '/api-logs',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
+const AdminAssistantRoute = AdminAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminCasualPredictionsRoute = AdminCasualPredictionsRouteImport.update({
-  id: '/casual-predictions',
-  path: '/casual-predictions',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
-  id: '/candidates',
-  path: '/candidates',
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCandidateSuggestionsRoute =
@@ -235,139 +255,139 @@ const AdminCandidateSuggestionsRoute =
     path: '/candidate-suggestions',
     getParentRoute: () => AdminRoute,
   } as any)
-const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
+const AdminCandidatesRoute = AdminCandidatesRouteImport.update({
+  id: '/candidates',
+  path: '/candidates',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAssistantRoute = AdminAssistantRouteImport.update({
-  id: '/assistant',
-  path: '/assistant',
+const AdminCasualPredictionsRoute = AdminCasualPredictionsRouteImport.update({
+  id: '/casual-predictions',
+  path: '/casual-predictions',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminApiLogsRoute = AdminApiLogsRouteImport.update({
-  id: '/api-logs',
-  path: '/api-logs',
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
-const LangThemesRoute = LangThemesRouteImport.update({
-  id: '/themes',
-  path: '/themes',
-  getParentRoute: () => LangRoute,
+const AdminCommunityAuthorsRoute = AdminCommunityAuthorsRouteImport.update({
+  id: '/community-authors',
+  path: '/community-authors',
+  getParentRoute: () => AdminRoute,
 } as any)
-const LangTermsRoute = LangTermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangSupportersRoute = LangSupportersRouteImport.update({
-  id: '/supporters',
-  path: '/supporters',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangSupportRoute = LangSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangSittingMpsRoute = LangSittingMpsRouteImport.update({
-  id: '/sitting-mps',
-  path: '/sitting-mps',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangSearchRoute = LangSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangResourcesRoute = LangResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangProposalsRoute = LangProposalsRouteImport.update({
-  id: '/proposals',
-  path: '/proposals',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangPrivacyRoute = LangPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangPartiesCompareRoute = LangPartiesCompareRouteImport.update({
-  id: '/parties-compare',
-  path: '/parties-compare',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangMethodologyRoute = LangMethodologyRouteImport.update({
-  id: '/methodology',
-  path: '/methodology',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangFaqRoute = LangFaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangElectedRoute = LangElectedRouteImport.update({
-  id: '/elected',
-  path: '/elected',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangDistrictsRoute = LangDistrictsRouteImport.update({
-  id: '/districts',
-  path: '/districts',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangDevelopersRoute = LangDevelopersRouteImport.update({
-  id: '/developers',
-  path: '/developers',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangDataRoute = LangDataRouteImport.update({
-  id: '/data',
-  path: '/data',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangCookiesRoute = LangCookiesRouteImport.update({
-  id: '/cookies',
-  path: '/cookies',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangContactRoute = LangContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangCompareRoute = LangCompareRouteImport.update({
-  id: '/compare',
-  path: '/compare',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangCommunityProposalsRoute = LangCommunityProposalsRouteImport.update({
+const AdminCommunityProposalsRoute = AdminCommunityProposalsRouteImport.update({
   id: '/community-proposals',
   path: '/community-proposals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomFieldsRoute = AdminCustomFieldsRouteImport.update({
+  id: '/custom-fields',
+  path: '/custom-fields',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDisclaimersRoute = AdminDisclaimersRouteImport.update({
+  id: '/disclaimers',
+  path: '/disclaimers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDistrictsRoute = AdminDistrictsRouteImport.update({
+  id: '/districts',
+  path: '/districts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDuplicatesRoute = AdminDuplicatesRouteImport.update({
+  id: '/duplicates',
+  path: '/duplicates',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminElectedRoute = AdminElectedRouteImport.update({
+  id: '/elected',
+  path: '/elected',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminManifestoImportsRoute = AdminManifestoImportsRouteImport.update({
+  id: '/manifesto-imports',
+  path: '/manifesto-imports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNewsRoute = AdminNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPartiesRoute = AdminPartiesRouteImport.update({
+  id: '/parties',
+  path: '/parties',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProposalsRoute = AdminProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminResourcesRoute = AdminResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewRoute = AdminReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSeoRoute = AdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSittingMpsRoute = AdminSittingMpsRouteImport.update({
+  id: '/sitting-mps',
+  path: '/sitting-mps',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
+  id: '/translations',
+  path: '/translations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVotingFaqsRoute = AdminVotingFaqsRouteImport.update({
+  id: '/voting-faqs',
+  path: '/voting-faqs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LangCandidatesIndexRoute = LangCandidatesIndexRouteImport.update({
+  id: '/candidates/',
+  path: '/candidates/',
   getParentRoute: () => LangRoute,
 } as any)
-const LangChangelogRoute = LangChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
+const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
+  id: '/candidates/$slug',
+  path: '/candidates/$slug',
   getParentRoute: () => LangRoute,
 } as any)
-const LangAskRoute = LangAskRouteImport.update({
-  id: '/ask',
-  path: '/ask',
+const LangElectedSimulatorRoute = LangElectedSimulatorRouteImport.update({
+  id: '/elected_/simulator',
+  path: '/elected/simulator',
   getParentRoute: () => LangRoute,
 } as any)
-const LangAccessibilityRoute = LangAccessibilityRouteImport.update({
-  id: '/accessibility',
-  path: '/accessibility',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangAboutRoute = LangAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const LangMyDistrictNumberRoute = LangMyDistrictNumberRouteImport.update({
+  id: '/my-district/$number',
+  path: '/my-district/$number',
   getParentRoute: () => LangRoute,
 } as any)
 const LangPartiesIndexRoute = LangPartiesIndexRouteImport.update({
@@ -375,9 +395,9 @@ const LangPartiesIndexRoute = LangPartiesIndexRouteImport.update({
   path: '/parties/',
   getParentRoute: () => LangRoute,
 } as any)
-const LangCandidatesIndexRoute = LangCandidatesIndexRouteImport.update({
-  id: '/candidates/',
-  path: '/candidates/',
+const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
+  id: '/parties/$slug',
+  path: '/parties/$slug',
   getParentRoute: () => LangRoute,
 } as any)
 const AdminCandidatesConfirmEcRoute =
@@ -386,51 +406,27 @@ const AdminCandidatesConfirmEcRoute =
     path: '/candidates/confirm-ec',
     getParentRoute: () => AdminRoute,
   } as any)
-const LangPartiesSlugRoute = LangPartiesSlugRouteImport.update({
-  id: '/parties/$slug',
-  path: '/parties/$slug',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangMyDistrictNumberRoute = LangMyDistrictNumberRouteImport.update({
-  id: '/my-district/$number',
-  path: '/my-district/$number',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangElectedSimulatorRoute = LangElectedSimulatorRouteImport.update({
-  id: '/elected_/simulator',
-  path: '/elected/simulator',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangCandidatesSlugRoute = LangCandidatesSlugRouteImport.update({
-  id: '/candidates/$slug',
-  path: '/candidates/$slug',
-  getParentRoute: () => LangRoute,
-} as any)
-const ApiPublicV1PartiesRoute = ApiPublicV1PartiesRouteImport.update({
-  id: '/api/public/v1/parties',
-  path: '/api/public/v1/parties',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicV1DistrictsRoute = ApiPublicV1DistrictsRouteImport.update({
-  id: '/api/public/v1/districts',
-  path: '/api/public/v1/districts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicV1CatalogDotjsonldRoute =
-  ApiPublicV1CatalogDotjsonldRouteImport.update({
-    id: '/api/public/v1/catalog.jsonld',
-    path: '/api/public/v1/catalog.jsonld',
+const ApiPublicHooksElcomRefreshRoute =
+  ApiPublicHooksElcomRefreshRouteImport.update({
+    id: '/api/public/hooks/elcom-refresh',
+    path: '/api/public/hooks/elcom-refresh',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
-  id: '/api/public/v1/candidates',
-  path: '/api/public/v1/candidates',
+const ApiPublicHooksManifestoTickRoute =
+  ApiPublicHooksManifestoTickRouteImport.update({
+    id: '/api/public/hooks/manifesto-tick',
+    path: '/api/public/hooks/manifesto-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksScanNewsRoute = ApiPublicHooksScanNewsRouteImport.update({
+  id: '/api/public/hooks/scan-news',
+  path: '/api/public/hooks/scan-news',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicTelegramWebhookRoute =
-  ApiPublicTelegramWebhookRouteImport.update({
-    id: '/api/public/telegram/webhook',
-    path: '/api/public/telegram/webhook',
+const ApiPublicHooksTelegramPollRoute =
+  ApiPublicHooksTelegramPollRouteImport.update({
+    id: '/api/public/hooks/telegram-poll',
+    path: '/api/public/hooks/telegram-poll',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsWebhookRoute =
@@ -439,29 +435,33 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksTelegramPollRoute =
-  ApiPublicHooksTelegramPollRouteImport.update({
-    id: '/api/public/hooks/telegram-poll',
-    path: '/api/public/hooks/telegram-poll',
+const ApiPublicTelegramWebhookRoute =
+  ApiPublicTelegramWebhookRouteImport.update({
+    id: '/api/public/telegram/webhook',
+    path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksScanNewsRoute = ApiPublicHooksScanNewsRouteImport.update({
-  id: '/api/public/hooks/scan-news',
-  path: '/api/public/hooks/scan-news',
+const ApiPublicV1CandidatesRoute = ApiPublicV1CandidatesRouteImport.update({
+  id: '/api/public/v1/candidates',
+  path: '/api/public/v1/candidates',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHooksManifestoTickRoute =
-  ApiPublicHooksManifestoTickRouteImport.update({
-    id: '/api/public/hooks/manifesto-tick',
-    path: '/api/public/hooks/manifesto-tick',
+const ApiPublicV1CatalogDotjsonldRoute =
+  ApiPublicV1CatalogDotjsonldRouteImport.update({
+    id: '/api/public/v1/catalog.jsonld',
+    path: '/api/public/v1/catalog.jsonld',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksElcomRefreshRoute =
-  ApiPublicHooksElcomRefreshRouteImport.update({
-    id: '/api/public/hooks/elcom-refresh',
-    path: '/api/public/hooks/elcom-refresh',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ApiPublicV1DistrictsRoute = ApiPublicV1DistrictsRouteImport.update({
+  id: '/api/public/v1/districts',
+  path: '/api/public/v1/districts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1PartiesRoute = ApiPublicV1PartiesRouteImport.update({
+  id: '/api/public/v1/parties',
+  path: '/api/public/v1/parties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -940,18 +940,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$lang': {
@@ -961,375 +954,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$lang/': {
       id: '/$lang/'
       path: '/'
       fullPath: '/$lang/'
       preLoaderRoute: typeof LangIndexRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/checkout/return': {
-      id: '/checkout/return'
-      path: '/checkout/return'
-      fullPath: '/checkout/return'
-      preLoaderRoute: typeof CheckoutReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/voting-faqs': {
-      id: '/admin/voting-faqs'
-      path: '/voting-faqs'
-      fullPath: '/admin/voting-faqs'
-      preLoaderRoute: typeof AdminVotingFaqsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/translations': {
-      id: '/admin/translations'
-      path: '/translations'
-      fullPath: '/admin/translations'
-      preLoaderRoute: typeof AdminTranslationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/sitting-mps': {
-      id: '/admin/sitting-mps'
-      path: '/sitting-mps'
-      fullPath: '/admin/sitting-mps'
-      preLoaderRoute: typeof AdminSittingMpsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/seo': {
-      id: '/admin/seo'
-      path: '/seo'
-      fullPath: '/admin/seo'
-      preLoaderRoute: typeof AdminSeoRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/roles': {
-      id: '/admin/roles'
-      path: '/roles'
-      fullPath: '/admin/roles'
-      preLoaderRoute: typeof AdminRolesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/review': {
-      id: '/admin/review'
-      path: '/review'
-      fullPath: '/admin/review'
-      preLoaderRoute: typeof AdminReviewRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/resources': {
-      id: '/admin/resources'
-      path: '/resources'
-      fullPath: '/admin/resources'
-      preLoaderRoute: typeof AdminResourcesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/proposals': {
-      id: '/admin/proposals'
-      path: '/proposals'
-      fullPath: '/admin/proposals'
-      preLoaderRoute: typeof AdminProposalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/parties': {
-      id: '/admin/parties'
-      path: '/parties'
-      fullPath: '/admin/parties'
-      preLoaderRoute: typeof AdminPartiesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/news': {
-      id: '/admin/news'
-      path: '/news'
-      fullPath: '/admin/news'
-      preLoaderRoute: typeof AdminNewsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/manifesto-imports': {
-      id: '/admin/manifesto-imports'
-      path: '/manifesto-imports'
-      fullPath: '/admin/manifesto-imports'
-      preLoaderRoute: typeof AdminManifestoImportsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/elected': {
-      id: '/admin/elected'
-      path: '/elected'
-      fullPath: '/admin/elected'
-      preLoaderRoute: typeof AdminElectedRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/duplicates': {
-      id: '/admin/duplicates'
-      path: '/duplicates'
-      fullPath: '/admin/duplicates'
-      preLoaderRoute: typeof AdminDuplicatesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/districts': {
-      id: '/admin/districts'
-      path: '/districts'
-      fullPath: '/admin/districts'
-      preLoaderRoute: typeof AdminDistrictsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/disclaimers': {
-      id: '/admin/disclaimers'
-      path: '/disclaimers'
-      fullPath: '/admin/disclaimers'
-      preLoaderRoute: typeof AdminDisclaimersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/custom-fields': {
-      id: '/admin/custom-fields'
-      path: '/custom-fields'
-      fullPath: '/admin/custom-fields'
-      preLoaderRoute: typeof AdminCustomFieldsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/community-proposals': {
-      id: '/admin/community-proposals'
-      path: '/community-proposals'
-      fullPath: '/admin/community-proposals'
-      preLoaderRoute: typeof AdminCommunityProposalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/community-authors': {
-      id: '/admin/community-authors'
-      path: '/community-authors'
-      fullPath: '/admin/community-authors'
-      preLoaderRoute: typeof AdminCommunityAuthorsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/casual-predictions': {
-      id: '/admin/casual-predictions'
-      path: '/casual-predictions'
-      fullPath: '/admin/casual-predictions'
-      preLoaderRoute: typeof AdminCasualPredictionsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/candidates': {
-      id: '/admin/candidates'
-      path: '/candidates'
-      fullPath: '/admin/candidates'
-      preLoaderRoute: typeof AdminCandidatesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/candidate-suggestions': {
-      id: '/admin/candidate-suggestions'
-      path: '/candidate-suggestions'
-      fullPath: '/admin/candidate-suggestions'
-      preLoaderRoute: typeof AdminCandidateSuggestionsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/audit': {
-      id: '/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/assistant': {
-      id: '/admin/assistant'
-      path: '/assistant'
-      fullPath: '/admin/assistant'
-      preLoaderRoute: typeof AdminAssistantRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/api-logs': {
-      id: '/admin/api-logs'
-      path: '/api-logs'
-      fullPath: '/admin/api-logs'
-      preLoaderRoute: typeof AdminApiLogsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/$lang/themes': {
-      id: '/$lang/themes'
-      path: '/themes'
-      fullPath: '/$lang/themes'
-      preLoaderRoute: typeof LangThemesRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/terms': {
-      id: '/$lang/terms'
-      path: '/terms'
-      fullPath: '/$lang/terms'
-      preLoaderRoute: typeof LangTermsRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/supporters': {
-      id: '/$lang/supporters'
-      path: '/supporters'
-      fullPath: '/$lang/supporters'
-      preLoaderRoute: typeof LangSupportersRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/support': {
-      id: '/$lang/support'
-      path: '/support'
-      fullPath: '/$lang/support'
-      preLoaderRoute: typeof LangSupportRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/sitting-mps': {
-      id: '/$lang/sitting-mps'
-      path: '/sitting-mps'
-      fullPath: '/$lang/sitting-mps'
-      preLoaderRoute: typeof LangSittingMpsRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/search': {
-      id: '/$lang/search'
-      path: '/search'
-      fullPath: '/$lang/search'
-      preLoaderRoute: typeof LangSearchRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/resources': {
-      id: '/$lang/resources'
-      path: '/resources'
-      fullPath: '/$lang/resources'
-      preLoaderRoute: typeof LangResourcesRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/proposals': {
-      id: '/$lang/proposals'
-      path: '/proposals'
-      fullPath: '/$lang/proposals'
-      preLoaderRoute: typeof LangProposalsRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/privacy': {
-      id: '/$lang/privacy'
-      path: '/privacy'
-      fullPath: '/$lang/privacy'
-      preLoaderRoute: typeof LangPrivacyRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/parties-compare': {
-      id: '/$lang/parties-compare'
-      path: '/parties-compare'
-      fullPath: '/$lang/parties-compare'
-      preLoaderRoute: typeof LangPartiesCompareRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/methodology': {
-      id: '/$lang/methodology'
-      path: '/methodology'
-      fullPath: '/$lang/methodology'
-      preLoaderRoute: typeof LangMethodologyRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/faq': {
-      id: '/$lang/faq'
-      path: '/faq'
-      fullPath: '/$lang/faq'
-      preLoaderRoute: typeof LangFaqRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/elected': {
-      id: '/$lang/elected'
-      path: '/elected'
-      fullPath: '/$lang/elected'
-      preLoaderRoute: typeof LangElectedRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/districts': {
-      id: '/$lang/districts'
-      path: '/districts'
-      fullPath: '/$lang/districts'
-      preLoaderRoute: typeof LangDistrictsRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/developers': {
-      id: '/$lang/developers'
-      path: '/developers'
-      fullPath: '/$lang/developers'
-      preLoaderRoute: typeof LangDevelopersRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/data': {
-      id: '/$lang/data'
-      path: '/data'
-      fullPath: '/$lang/data'
-      preLoaderRoute: typeof LangDataRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/cookies': {
-      id: '/$lang/cookies'
-      path: '/cookies'
-      fullPath: '/$lang/cookies'
-      preLoaderRoute: typeof LangCookiesRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/contact': {
-      id: '/$lang/contact'
-      path: '/contact'
-      fullPath: '/$lang/contact'
-      preLoaderRoute: typeof LangContactRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/compare': {
-      id: '/$lang/compare'
-      path: '/compare'
-      fullPath: '/$lang/compare'
-      preLoaderRoute: typeof LangCompareRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/community-proposals': {
-      id: '/$lang/community-proposals'
-      path: '/community-proposals'
-      fullPath: '/$lang/community-proposals'
-      preLoaderRoute: typeof LangCommunityProposalsRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/changelog': {
-      id: '/$lang/changelog'
-      path: '/changelog'
-      fullPath: '/$lang/changelog'
-      preLoaderRoute: typeof LangChangelogRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/ask': {
-      id: '/$lang/ask'
-      path: '/ask'
-      fullPath: '/$lang/ask'
-      preLoaderRoute: typeof LangAskRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/accessibility': {
-      id: '/$lang/accessibility'
-      path: '/accessibility'
-      fullPath: '/$lang/accessibility'
-      preLoaderRoute: typeof LangAccessibilityRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/about': {
@@ -1339,46 +982,368 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangAboutRouteImport
       parentRoute: typeof LangRoute
     }
-    '/$lang/parties/': {
-      id: '/$lang/parties/'
-      path: '/parties'
-      fullPath: '/$lang/parties/'
-      preLoaderRoute: typeof LangPartiesIndexRouteImport
+    '/$lang/accessibility': {
+      id: '/$lang/accessibility'
+      path: '/accessibility'
+      fullPath: '/$lang/accessibility'
+      preLoaderRoute: typeof LangAccessibilityRouteImport
       parentRoute: typeof LangRoute
+    }
+    '/$lang/ask': {
+      id: '/$lang/ask'
+      path: '/ask'
+      fullPath: '/$lang/ask'
+      preLoaderRoute: typeof LangAskRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/changelog': {
+      id: '/$lang/changelog'
+      path: '/changelog'
+      fullPath: '/$lang/changelog'
+      preLoaderRoute: typeof LangChangelogRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/community-proposals': {
+      id: '/$lang/community-proposals'
+      path: '/community-proposals'
+      fullPath: '/$lang/community-proposals'
+      preLoaderRoute: typeof LangCommunityProposalsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/compare': {
+      id: '/$lang/compare'
+      path: '/compare'
+      fullPath: '/$lang/compare'
+      preLoaderRoute: typeof LangCompareRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/contact': {
+      id: '/$lang/contact'
+      path: '/contact'
+      fullPath: '/$lang/contact'
+      preLoaderRoute: typeof LangContactRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/cookies': {
+      id: '/$lang/cookies'
+      path: '/cookies'
+      fullPath: '/$lang/cookies'
+      preLoaderRoute: typeof LangCookiesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/data': {
+      id: '/$lang/data'
+      path: '/data'
+      fullPath: '/$lang/data'
+      preLoaderRoute: typeof LangDataRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/developers': {
+      id: '/$lang/developers'
+      path: '/developers'
+      fullPath: '/$lang/developers'
+      preLoaderRoute: typeof LangDevelopersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/districts': {
+      id: '/$lang/districts'
+      path: '/districts'
+      fullPath: '/$lang/districts'
+      preLoaderRoute: typeof LangDistrictsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/elected': {
+      id: '/$lang/elected'
+      path: '/elected'
+      fullPath: '/$lang/elected'
+      preLoaderRoute: typeof LangElectedRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/faq': {
+      id: '/$lang/faq'
+      path: '/faq'
+      fullPath: '/$lang/faq'
+      preLoaderRoute: typeof LangFaqRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/methodology': {
+      id: '/$lang/methodology'
+      path: '/methodology'
+      fullPath: '/$lang/methodology'
+      preLoaderRoute: typeof LangMethodologyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/parties-compare': {
+      id: '/$lang/parties-compare'
+      path: '/parties-compare'
+      fullPath: '/$lang/parties-compare'
+      preLoaderRoute: typeof LangPartiesCompareRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/privacy': {
+      id: '/$lang/privacy'
+      path: '/privacy'
+      fullPath: '/$lang/privacy'
+      preLoaderRoute: typeof LangPrivacyRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/proposals': {
+      id: '/$lang/proposals'
+      path: '/proposals'
+      fullPath: '/$lang/proposals'
+      preLoaderRoute: typeof LangProposalsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/resources': {
+      id: '/$lang/resources'
+      path: '/resources'
+      fullPath: '/$lang/resources'
+      preLoaderRoute: typeof LangResourcesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/search': {
+      id: '/$lang/search'
+      path: '/search'
+      fullPath: '/$lang/search'
+      preLoaderRoute: typeof LangSearchRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/sitting-mps': {
+      id: '/$lang/sitting-mps'
+      path: '/sitting-mps'
+      fullPath: '/$lang/sitting-mps'
+      preLoaderRoute: typeof LangSittingMpsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/support': {
+      id: '/$lang/support'
+      path: '/support'
+      fullPath: '/$lang/support'
+      preLoaderRoute: typeof LangSupportRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/supporters': {
+      id: '/$lang/supporters'
+      path: '/supporters'
+      fullPath: '/$lang/supporters'
+      preLoaderRoute: typeof LangSupportersRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/terms': {
+      id: '/$lang/terms'
+      path: '/terms'
+      fullPath: '/$lang/terms'
+      preLoaderRoute: typeof LangTermsRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/themes': {
+      id: '/$lang/themes'
+      path: '/themes'
+      fullPath: '/$lang/themes'
+      preLoaderRoute: typeof LangThemesRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/api-logs': {
+      id: '/admin/api-logs'
+      path: '/api-logs'
+      fullPath: '/admin/api-logs'
+      preLoaderRoute: typeof AdminApiLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/assistant': {
+      id: '/admin/assistant'
+      path: '/assistant'
+      fullPath: '/admin/assistant'
+      preLoaderRoute: typeof AdminAssistantRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/candidate-suggestions': {
+      id: '/admin/candidate-suggestions'
+      path: '/candidate-suggestions'
+      fullPath: '/admin/candidate-suggestions'
+      preLoaderRoute: typeof AdminCandidateSuggestionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/candidates': {
+      id: '/admin/candidates'
+      path: '/candidates'
+      fullPath: '/admin/candidates'
+      preLoaderRoute: typeof AdminCandidatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/casual-predictions': {
+      id: '/admin/casual-predictions'
+      path: '/casual-predictions'
+      fullPath: '/admin/casual-predictions'
+      preLoaderRoute: typeof AdminCasualPredictionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community-authors': {
+      id: '/admin/community-authors'
+      path: '/community-authors'
+      fullPath: '/admin/community-authors'
+      preLoaderRoute: typeof AdminCommunityAuthorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community-proposals': {
+      id: '/admin/community-proposals'
+      path: '/community-proposals'
+      fullPath: '/admin/community-proposals'
+      preLoaderRoute: typeof AdminCommunityProposalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/custom-fields': {
+      id: '/admin/custom-fields'
+      path: '/custom-fields'
+      fullPath: '/admin/custom-fields'
+      preLoaderRoute: typeof AdminCustomFieldsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/disclaimers': {
+      id: '/admin/disclaimers'
+      path: '/disclaimers'
+      fullPath: '/admin/disclaimers'
+      preLoaderRoute: typeof AdminDisclaimersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/districts': {
+      id: '/admin/districts'
+      path: '/districts'
+      fullPath: '/admin/districts'
+      preLoaderRoute: typeof AdminDistrictsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/duplicates': {
+      id: '/admin/duplicates'
+      path: '/duplicates'
+      fullPath: '/admin/duplicates'
+      preLoaderRoute: typeof AdminDuplicatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/elected': {
+      id: '/admin/elected'
+      path: '/elected'
+      fullPath: '/admin/elected'
+      preLoaderRoute: typeof AdminElectedRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/manifesto-imports': {
+      id: '/admin/manifesto-imports'
+      path: '/manifesto-imports'
+      fullPath: '/admin/manifesto-imports'
+      preLoaderRoute: typeof AdminManifestoImportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/news': {
+      id: '/admin/news'
+      path: '/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/parties': {
+      id: '/admin/parties'
+      path: '/parties'
+      fullPath: '/admin/parties'
+      preLoaderRoute: typeof AdminPartiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/proposals': {
+      id: '/admin/proposals'
+      path: '/proposals'
+      fullPath: '/admin/proposals'
+      preLoaderRoute: typeof AdminProposalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/resources': {
+      id: '/admin/resources'
+      path: '/resources'
+      fullPath: '/admin/resources'
+      preLoaderRoute: typeof AdminResourcesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/review': {
+      id: '/admin/review'
+      path: '/review'
+      fullPath: '/admin/review'
+      preLoaderRoute: typeof AdminReviewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/seo': {
+      id: '/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AdminSeoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sitting-mps': {
+      id: '/admin/sitting-mps'
+      path: '/sitting-mps'
+      fullPath: '/admin/sitting-mps'
+      preLoaderRoute: typeof AdminSittingMpsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/translations': {
+      id: '/admin/translations'
+      path: '/translations'
+      fullPath: '/admin/translations'
+      preLoaderRoute: typeof AdminTranslationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/voting-faqs': {
+      id: '/admin/voting-faqs'
+      path: '/voting-faqs'
+      fullPath: '/admin/voting-faqs'
+      preLoaderRoute: typeof AdminVotingFaqsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$lang/candidates/': {
       id: '/$lang/candidates/'
       path: '/candidates'
       fullPath: '/$lang/candidates/'
       preLoaderRoute: typeof LangCandidatesIndexRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/admin/candidates_/confirm-ec': {
-      id: '/admin/candidates_/confirm-ec'
-      path: '/candidates/confirm-ec'
-      fullPath: '/admin/candidates/confirm-ec'
-      preLoaderRoute: typeof AdminCandidatesConfirmEcRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/$lang/parties/$slug': {
-      id: '/$lang/parties/$slug'
-      path: '/parties/$slug'
-      fullPath: '/$lang/parties/$slug'
-      preLoaderRoute: typeof LangPartiesSlugRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/my-district/$number': {
-      id: '/$lang/my-district/$number'
-      path: '/my-district/$number'
-      fullPath: '/$lang/my-district/$number'
-      preLoaderRoute: typeof LangMyDistrictNumberRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/elected_/simulator': {
-      id: '/$lang/elected_/simulator'
-      path: '/elected/simulator'
-      fullPath: '/$lang/elected/simulator'
-      preLoaderRoute: typeof LangElectedSimulatorRouteImport
       parentRoute: typeof LangRoute
     }
     '/$lang/candidates/$slug': {
@@ -1388,60 +1353,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangCandidatesSlugRouteImport
       parentRoute: typeof LangRoute
     }
-    '/api/public/v1/parties': {
-      id: '/api/public/v1/parties'
-      path: '/api/public/v1/parties'
-      fullPath: '/api/public/v1/parties'
-      preLoaderRoute: typeof ApiPublicV1PartiesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$lang/elected_/simulator': {
+      id: '/$lang/elected_/simulator'
+      path: '/elected/simulator'
+      fullPath: '/$lang/elected/simulator'
+      preLoaderRoute: typeof LangElectedSimulatorRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/api/public/v1/districts': {
-      id: '/api/public/v1/districts'
-      path: '/api/public/v1/districts'
-      fullPath: '/api/public/v1/districts'
-      preLoaderRoute: typeof ApiPublicV1DistrictsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$lang/my-district/$number': {
+      id: '/$lang/my-district/$number'
+      path: '/my-district/$number'
+      fullPath: '/$lang/my-district/$number'
+      preLoaderRoute: typeof LangMyDistrictNumberRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/api/public/v1/catalog.jsonld': {
-      id: '/api/public/v1/catalog.jsonld'
-      path: '/api/public/v1/catalog.jsonld'
-      fullPath: '/api/public/v1/catalog.jsonld'
-      preLoaderRoute: typeof ApiPublicV1CatalogDotjsonldRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$lang/parties/': {
+      id: '/$lang/parties/'
+      path: '/parties'
+      fullPath: '/$lang/parties/'
+      preLoaderRoute: typeof LangPartiesIndexRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/api/public/v1/candidates': {
-      id: '/api/public/v1/candidates'
-      path: '/api/public/v1/candidates'
-      fullPath: '/api/public/v1/candidates'
-      preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/$lang/parties/$slug': {
+      id: '/$lang/parties/$slug'
+      path: '/parties/$slug'
+      fullPath: '/$lang/parties/$slug'
+      preLoaderRoute: typeof LangPartiesSlugRouteImport
+      parentRoute: typeof LangRoute
     }
-    '/api/public/telegram/webhook': {
-      id: '/api/public/telegram/webhook'
-      path: '/api/public/telegram/webhook'
-      fullPath: '/api/public/telegram/webhook'
-      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/candidates_/confirm-ec': {
+      id: '/admin/candidates_/confirm-ec'
+      path: '/candidates/confirm-ec'
+      fullPath: '/admin/candidates/confirm-ec'
+      preLoaderRoute: typeof AdminCandidatesConfirmEcRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/telegram-poll': {
-      id: '/api/public/hooks/telegram-poll'
-      path: '/api/public/hooks/telegram-poll'
-      fullPath: '/api/public/hooks/telegram-poll'
-      preLoaderRoute: typeof ApiPublicHooksTelegramPollRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/scan-news': {
-      id: '/api/public/hooks/scan-news'
-      path: '/api/public/hooks/scan-news'
-      fullPath: '/api/public/hooks/scan-news'
-      preLoaderRoute: typeof ApiPublicHooksScanNewsRouteImport
+    '/api/public/hooks/elcom-refresh': {
+      id: '/api/public/hooks/elcom-refresh'
+      path: '/api/public/hooks/elcom-refresh'
+      fullPath: '/api/public/hooks/elcom-refresh'
+      preLoaderRoute: typeof ApiPublicHooksElcomRefreshRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/manifesto-tick': {
@@ -1451,11 +1402,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksManifestoTickRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/elcom-refresh': {
-      id: '/api/public/hooks/elcom-refresh'
-      path: '/api/public/hooks/elcom-refresh'
-      fullPath: '/api/public/hooks/elcom-refresh'
-      preLoaderRoute: typeof ApiPublicHooksElcomRefreshRouteImport
+    '/api/public/hooks/scan-news': {
+      id: '/api/public/hooks/scan-news'
+      path: '/api/public/hooks/scan-news'
+      fullPath: '/api/public/hooks/scan-news'
+      preLoaderRoute: typeof ApiPublicHooksScanNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/telegram-poll': {
+      id: '/api/public/hooks/telegram-poll'
+      path: '/api/public/hooks/telegram-poll'
+      fullPath: '/api/public/hooks/telegram-poll'
+      preLoaderRoute: typeof ApiPublicHooksTelegramPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/telegram/webhook': {
+      id: '/api/public/telegram/webhook'
+      path: '/api/public/telegram/webhook'
+      fullPath: '/api/public/telegram/webhook'
+      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/candidates': {
+      id: '/api/public/v1/candidates'
+      path: '/api/public/v1/candidates'
+      fullPath: '/api/public/v1/candidates'
+      preLoaderRoute: typeof ApiPublicV1CandidatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/catalog.jsonld': {
+      id: '/api/public/v1/catalog.jsonld'
+      path: '/api/public/v1/catalog.jsonld'
+      fullPath: '/api/public/v1/catalog.jsonld'
+      preLoaderRoute: typeof ApiPublicV1CatalogDotjsonldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/districts': {
+      id: '/api/public/v1/districts'
+      path: '/api/public/v1/districts'
+      fullPath: '/api/public/v1/districts'
+      preLoaderRoute: typeof ApiPublicV1DistrictsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/parties': {
+      id: '/api/public/v1/parties'
+      path: '/api/public/v1/parties'
+      fullPath: '/api/public/v1/parties'
+      preLoaderRoute: typeof ApiPublicV1PartiesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
