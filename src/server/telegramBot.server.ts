@@ -744,6 +744,20 @@ export async function registerTelegramWebhook(url: string, secretToken: string) 
   });
 }
 
+export const TELEGRAM_WEBHOOK_URL =
+  "https://elezzjonimalta.lovable.app/api/public/telegram/webhook";
+
+/** Register the webhook if Telegram doesn't already point at our URL. */
+export async function ensureTelegramWebhook(): Promise<{ changed: boolean; url?: string }> {
+  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!secret) return { changed: false };
+  const info = await getTelegramWebhookInfo();
+  const current = (info.result as { url?: string } | undefined)?.url;
+  if (current === TELEGRAM_WEBHOOK_URL) return { changed: false, url: current };
+  await registerTelegramWebhook(TELEGRAM_WEBHOOK_URL, secret);
+  return { changed: true, url: TELEGRAM_WEBHOOK_URL };
+}
+
 export async function getTelegramWebhookInfo() {
   return tgCall("getWebhookInfo", {});
 }

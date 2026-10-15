@@ -1,13 +1,10 @@
 // Telegram webhook receiver. Telegram sends every update here; we verify the
 // X-Telegram-Bot-Api-Secret-Token header against TELEGRAM_WEBHOOK_SECRET,
 // answer 200 immediately and process the update in the background.
-//
-// GET ?action=register (with header x-webhook-secret = TELEGRAM_WEBHOOK_SECRET)
-// (re)registers the webhook with Telegram — used after publishing.
+// Registration is self-healing: see ensureTelegramWebhook (called by the
+// manifesto-tick cron), which re-registers if Telegram's URL ever drifts.
 import { createFileRoute } from "@tanstack/react-router";
 import { timingSafeEqual } from "crypto";
-
-const WEBHOOK_URL = "https://elezzjonimalta.lovable.app/api/public/telegram/webhook";
 
 function safeEqual(a: string, b: string): boolean {
   const l = Buffer.from(a);
@@ -46,21 +43,6 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         ]);
         runInBackground(handleTelegramUpdate(update));
         return json({ ok: true });
-      },
-      GET: async ({ request }) => {
-        const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-        if (!secret) return json({ error: "not configured" }, 503);
-        const got = request.headers.get("x-webhook-secret") ?? "";
-        if (!safeEqual(got, secret)) return json({ error: "unauthorized" }, 401);
-        const { registerTelegramWebhook, getTelegramWebhookInfo } = await import(
-          "@/server/telegramBot.server"
-        );
-        const action = new URL(request.url).searchParams.get("action");
-        if (action === "register") {
-          const reg = await registerTelegramWebhook(WEBHOOK_URL, secret);
-          return json({ register: reg, info: await getTelegramWebhookInfo() });
-        }
-        return json({ info: await getTelegramWebhookInfo() });
       },
     },
   },

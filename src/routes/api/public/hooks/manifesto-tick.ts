@@ -73,7 +73,14 @@ export const Route = createFileRoute("/api/public/hooks/manifesto-tick")({
         }
         try {
           const out = await tickOne();
-          return new Response(JSON.stringify({ ok: true, ...out }), {
+          let telegram: unknown = null;
+          try {
+            const { ensureTelegramWebhook } = await import("@/server/telegramBot.server");
+            telegram = await ensureTelegramWebhook();
+          } catch (e) {
+            telegram = { error: e instanceof Error ? e.message : String(e) };
+          }
+          return new Response(JSON.stringify({ ok: true, ...out, telegram }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
