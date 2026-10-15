@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import {
   createFileRoute,
   ErrorComponent,
@@ -380,7 +381,7 @@ function districtName(district: DistrictOption, locale: Locale) {
   return `${district.number} · ${name}`;
 }
 
-function CandidatesError({ error, reset }: { error: Error; reset: () => void }) {
+function CandidatesError({ error, reset }: ErrorComponentProps) {
   const t = useT();
   const router = useRouter();
   return (

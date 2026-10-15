@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import {
   createFileRoute,
   ErrorComponent,
@@ -731,7 +732,7 @@ function MyDistrictPage() {
   );
 }
 
-function MyDistrictError({ error, reset }: { error: Error; reset: () => void }) {
+function MyDistrictError({ error, reset }: ErrorComponentProps) {
   const t = useT();
   const router = useRouter();
   return (

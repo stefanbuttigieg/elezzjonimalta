@@ -59,7 +59,8 @@ export const Route = createFileRoute("/$lang/elected_/simulator")({
 const YEAR = 2026;
 
 function SimulatorPage() {
-  const { lang } = Route.useLoaderData();
+  const { lang: rawLang } = Route.useParams();
+  const lang: Locale = isLocale(rawLang) ? rawLang : "mt";
   const t = useT();
   const isMt = lang === "mt";
 
