@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { createFileRoute, ErrorComponent, Link, useRouter } from "@tanstack/react-router";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,7 +162,7 @@ function PartiesPage() {
   );
 }
 
-function PartiesError({ error, reset }: { error: Error; reset: () => void }) {
+function PartiesError({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <section className="container mx-auto max-w-3xl px-4 py-20">

@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { createFileRoute, ErrorComponent, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
@@ -607,7 +608,7 @@ function Bool({ value, t }: { value: boolean; t: (k: string) => string }) {
   );
 }
 
-function CompareError({ error, reset }: { error: Error; reset: () => void }) {
+function CompareError({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   return (
     <section className="container mx-auto max-w-3xl px-4 py-20">

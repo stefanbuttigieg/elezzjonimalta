@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import {
   createFileRoute,
   ErrorComponent,
@@ -823,7 +824,7 @@ function PaginationBar({
   );
 }
 
-function ProposalsError({ error, reset }: { error: Error; reset: () => void }) {
+function ProposalsError({ error, reset }: ErrorComponentProps) {
   const t = useT();
   const router = useRouter();
   return (

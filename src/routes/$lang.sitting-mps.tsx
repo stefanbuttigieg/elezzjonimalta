@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import {
   createFileRoute,
   ErrorComponent,
@@ -422,7 +423,7 @@ function MpCard({
   );
 }
 
-function SittingMpsError({ error, reset }: { error: Error; reset: () => void }) {
+function SittingMpsError({ error, reset }: ErrorComponentProps) {
   const t = useT();
   const router = useRouter();
   return (
