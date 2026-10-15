@@ -729,6 +729,25 @@ async function processCallbackQuery(update: TgUpdate): Promise<void> {
   });
 }
 
+/** Process one Telegram update (shared by webhook and legacy polling). */
+export async function handleTelegramUpdate(update: unknown): Promise<void> {
+  await processUpdate(update as TgUpdate);
+}
+
+/** Register (or re-register) the Telegram webhook. */
+export async function registerTelegramWebhook(url: string, secretToken: string) {
+  return tgCall("setWebhook", {
+    url,
+    secret_token: secretToken,
+    allowed_updates: ["message", "callback_query"],
+    drop_pending_updates: false,
+  });
+}
+
+export async function getTelegramWebhookInfo() {
+  return tgCall("getWebhookInfo", {});
+}
+
 async function processUpdate(update: TgUpdate): Promise<void> {
   if (update.callback_query) {
     try {
