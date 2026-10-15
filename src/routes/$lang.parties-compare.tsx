@@ -97,7 +97,7 @@ export const Route = createFileRoute("/$lang/parties-compare")({
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-2xl px-4 py-16 text-center">
       <h1 className="text-2xl font-semibold">Something went wrong</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</p>
     </div>
   ),
   notFoundComponent: () => (
