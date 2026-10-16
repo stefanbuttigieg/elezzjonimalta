@@ -745,7 +745,7 @@ export async function registerTelegramWebhook(url: string, secretToken: string) 
 }
 
 export const TELEGRAM_WEBHOOK_URL =
-  "https://elezzjonimalta.lovable.app/api/public/telegram/webhook";
+  "https://elezzjoni.app/api/public/telegram/webhook";
 
 /** Register the webhook if Telegram doesn't already point at our URL. */
 export async function ensureTelegramWebhook(): Promise<{ changed: boolean; url?: string }> {
